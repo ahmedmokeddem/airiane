@@ -1,3 +1,4 @@
+import { ReportDocument } from './report-document';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PropsWithChildren } from 'react';
@@ -12,6 +13,7 @@ function Evidence({ id, sources, date, confirmation }: { id: string; sources: DT
  return <View><Pressable accessibilityRole="button" accessibilityLabel="View supporting evidence" accessibilityState={{ expanded: open }} onPress={() => setOpen(value => !value)} style={s.evidenceControl}><Text style={s.link}>{open ? 'Hide supporting record −' : 'View supporting record +'}</Text></Pressable>{open && <View style={s.evidence}><Text selectable style={s.small}>{confirmation}</Text><Text selectable style={s.small}>{date}</Text><Text selectable style={s.id}>Record · {id}</Text>{sources.map(source => <Text selectable style={s.id} key={`${source.source_id}:${source.source_revision}`}>Source · {source.source_id} · revision {source.source_revision}</Text>)}{!sources.length && <Text style={s.small}>No separate source reference is attached.</Text>}</View>}</View>;
 }
 export function PatientReport({ report }: { report: DTO<'Report'> }) {
+ if(report.document && report.state === 'ready')return <ReportDocument report={report}/>;
  const facts = reportFacts(report);
  return <View style={s.root} testID="patient-report">
   <View style={s.cover}><Text style={s.coverEyebrow}>A LOOK BACK, AT YOUR PACE</Text><Text style={s.coverTitle}>Your wellbeing record</Text><Text style={s.coverBody}>{new Date(report.period_start).toLocaleDateString()} — {new Date(report.period_end).toLocaleDateString()}</Text><View style={s.stats}>{[{ count: facts.activities.length, label: 'activities' },{ count: facts.insights.length, label: 'confirmed insights' },{ count: facts.observations.length, label: 'check-in values' }].map(stat => <View key={stat.label} style={s.stat}><Text style={s.statNumber}>{stat.count}</Text><Text style={s.statLabel}>{stat.label}</Text></View>)}</View><Text style={s.coverBody}>This is a snapshot of saved records, not a measure of your recovery.</Text></View>

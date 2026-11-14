@@ -4412,6 +4412,195 @@ paths:
       x-permission: authenticated patient owner; explicit touch confirmation required
         for writes
       x-idempotency: required
+  /v1/reports/{report_id}/pdf:
+    get:
+      operationId: exportPatientReportPdf
+      summary: exportPatientReportPdf
+      description: Authenticated in-memory PDF rendering. Rechecks current ownership/grants,
+        full comparison bounds and evidence after rendering. No public URL or retained
+        server file.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: perspective
+        in: query
+        schema:
+          type: string
+          enum:
+          - patient
+          - clinician
+          default: patient
+      - name: disposition
+        in: query
+        schema:
+          type: string
+          enum:
+          - inline
+          - attachment
+          default: attachment
+      responses:
+        '200':
+          description: Selectable-text tagged A4 PDF; private no-store
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store, max-age=0
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; 409 REPORT_NOT_READY while pending
+      x-idempotency: safe-read
+  /v1/doctor/patients/{patient_id}/reports/{report_id}/pdf:
+    get:
+      operationId: exportDoctorReportPdf
+      summary: exportDoctorReportPdf
+      description: Authenticated in-memory PDF rendering. Rechecks current ownership/grants,
+        full comparison bounds and evidence after rendering. No public URL or retained
+        server file.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema: &pdfid001
+          type: string
+          format: uuid
+      - name: report_id
+        in: path
+        required: true
+        schema: *pdfid001
+      - name: disposition
+        in: query
+        schema:
+          type: string
+          enum:
+          - inline
+          - attachment
+          default: attachment
+      responses:
+        '200':
+          description: Selectable-text tagged A4 PDF; private no-store
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store, max-age=0
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: same as listDoctorReports; repeat authorization before response;
+        no raw transcript access
+      x-idempotency: safe-read
 components:
   securitySchemes:
     supabaseJWT:
@@ -5202,6 +5391,14 @@ components:
       properties:
         period_start: *id005
         period_end: *id005
+        compare_previous:
+          type: boolean
+          default: false
+          description: Include prior equal-length evidence; clinician grants must cover its earliest date.
+        regeneration_of:
+          type: string
+          format: uuid
+          description: Owned report of the same period; creates a new report ID/version, never replaces it.
       required:
       - period_start
       - period_end
@@ -5282,6 +5479,10 @@ components:
           maxLength: 40
         period_start: *id005
         period_end: *id005
+        evidence_period_start:
+          type: string
+          format: date-time
+          description: Earliest included evidence window; retained after withdrawal to preserve consent bounds.
         timezone:
           type: string
           minLength: 1
@@ -5337,6 +5538,8 @@ components:
             $ref: '#/components/schemas/ConfirmedInsight'
         factual_overview:
           $ref: '#/components/schemas/FactualOverview'
+        document:
+          $ref: '#/components/schemas/ReportDocument'
       required:
       - report_id
       - patient_id
@@ -6437,3 +6640,271 @@ components:
       - assessment_count
       - active_days
       - coverage_note
+    ReportEvidence:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          maxLength: 100
+        record_id: &docid001
+          type: string
+          format: uuid
+        kind:
+          enum:
+          - activity
+          - feedback
+          - insight
+          - observation
+          - questionnaire
+        date: &docid002
+          type: string
+          format: date-time
+        source_ids:
+          type: array
+          items: *docid001
+          maxItems: 20
+        label:
+          type: string
+          maxLength: 250
+        text:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+        value:
+          anyOf:
+          - &docid005
+            type: number
+          - type: 'null'
+        unit:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+        category:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+        phase:
+          enum:
+          - current
+          - previous
+        origin:
+          type: string
+          maxLength: 100
+      required:
+      - id
+      - record_id
+      - kind
+      - date
+      - source_ids
+      - label
+      - text
+      - value
+      - unit
+      - category
+      - phase
+      - origin
+    ReportEvidenceSnapshot:
+      type: object
+      additionalProperties: false
+      properties:
+        evidence:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportEvidence'
+          maxItems: 1600
+        current_start: *docid002
+        current_end: *docid002
+        previous_start:
+          anyOf:
+          - *docid002
+          - type: 'null'
+        timezone:
+          type: string
+          maxLength: 80
+        aggregates:
+          type: object
+          additionalProperties: false
+          properties:
+            current: &docid004
+              type: object
+              additionalProperties: false
+              properties:
+                counts:
+                  type: object
+                  additionalProperties: &docid003
+                    type: integer
+                    minimum: 0
+                active_days: *docid003
+                themes:
+                  type: object
+                  additionalProperties: *docid003
+              required:
+              - counts
+              - active_days
+              - themes
+            previous:
+              anyOf:
+              - *docid004
+              - type: 'null'
+          required:
+          - current
+          - previous
+        authorization_start: *docid002
+      required:
+      - evidence
+      - current_start
+      - current_end
+      - previous_start
+      - timezone
+      - aggregates
+      - authorization_start
+    ReportClaim:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          maxLength: 120
+        section:
+          enum: &docid006
+          - overview
+          - experiences
+          - themes
+          - changes
+          - activities
+          - reflections
+          - topics
+          - assessments
+          - limitations
+        patient_text:
+          type: string
+          maxLength: 1800
+        clinician_text:
+          type: string
+          maxLength: 1800
+        evidence_ids:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+          maxItems: 1600
+      required:
+      - id
+      - section
+      - patient_text
+      - clinician_text
+      - evidence_ids
+    ReportChart:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          maxLength: 80
+        title:
+          type: string
+          maxLength: 200
+        unit:
+          type: string
+          maxLength: 80
+        caption:
+          type: string
+          maxLength: 500
+        points:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              label:
+                type: string
+                maxLength: 100
+              value: *docid005
+              evidence_ids:
+                type: array
+                items:
+                  type: string
+                  maxLength: 100
+                maxItems: 1600
+            required:
+            - label
+            - value
+            - evidence_ids
+          maxItems: 16
+      required:
+      - id
+      - title
+      - unit
+      - caption
+      - points
+    ReportDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        schema_version:
+          const: 1.0.0
+        report_type:
+          const: dual_perspective_wellbeing
+        generator_version:
+          type: string
+          maxLength: 80
+        template_version:
+          const: editorial-v1
+        evidence_snapshot_version:
+          const: 1
+        evidence_snapshot_id: &docid007
+          type: string
+          pattern: ^[0-9a-f]{64}$
+        snapshot:
+          $ref: '#/components/schemas/ReportEvidenceSnapshot'
+        claims:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportClaim'
+          maxItems: 1200
+        charts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportChart'
+          maxItems: 5
+        sections:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                enum: *docid006
+              patient_title:
+                type: string
+                maxLength: 150
+              clinician_title:
+                type: string
+                maxLength: 150
+            required:
+            - id
+            - patient_title
+            - clinician_title
+          maxItems: 9
+        regeneration_of:
+          anyOf:
+          - *docid001
+          - type: 'null'
+        content_hash: *docid007
+      required:
+      - schema_version
+      - report_type
+      - generator_version
+      - template_version
+      - evidence_snapshot_version
+      - evidence_snapshot_id
+      - snapshot
+      - claims
+      - charts
+      - sections
+      - regeneration_of
+      - content_hash

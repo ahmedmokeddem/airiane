@@ -110,11 +110,24 @@ class InsightService:
         # Stored report snapshots must not continue exposing deleted/superseded text.
         for report in await self.store.all("reports", patient_id=patient):
             payload = report["payload"]
-            if not payload or not any(
-                r["insight_id"] in ids for r in payload.get("confirmed_insights", [])
-            ):
+            doc_evidence = (
+                (payload or {}).get("document", {}).get("snapshot", {}).get("evidence", [])
+            )
+            affected = any(
+                r["insight_id"] in ids for r in (payload or {}).get("confirmed_insights", [])
+            ) or any(
+                r["record_id"] in ids or bool(set(r["source_ids"]) & sources) for r in doc_evidence
+            )
+            if not payload or not affected:
                 continue
             payload = dict(payload)
+            if "document" in payload:
+                payload["evidence_period_start"] = payload["document"]["snapshot"][
+                    "authorization_start"
+                ]
+            payload.pop(
+                "document", None
+            )  # Withdrawn text must not survive in either narrative or prior-period snapshot.
             payload["confirmed_insights"] = [
                 r for r in payload["confirmed_insights"] if r["insight_id"] not in ids
             ]

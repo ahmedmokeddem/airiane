@@ -1,3 +1,4 @@
+import { ReportDocument } from './report-document';
 import type { Report } from '@/lib/types';
 import { confirmedInsights, metricLabel, metricUnit, observationSeries, reportOverview } from '@/lib/report-presentation';
 const date = (value: string, timezone: string) => new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeZone: timezone }).format(new Date(value));
@@ -7,6 +8,7 @@ function Sources({ sources }: { sources: Source[] }) {
   return <details className="evidence"><summary>{sources.length ? `${sources.length} supporting source reference${sources.length === 1 ? '' : 's'}` : 'No linked evidence supplied'}</summary>{sources.length > 0 && <ul>{sources.map(source => <li key={`${source.source_id}-${source.source_revision}`}><code>{source.source_id}</code> · revision {source.source_revision}</li>)}</ul>}</details>;
 }
 export function ReportView({ report }: { report: Report }) {
+  if(report.document && report.state==='ready')return <ReportDocument report={report}/>;
   const { confirmed, completed, assessmentCount } = reportOverview(report);
   const series = observationSeries(report);
   const insights = confirmedInsights(report);

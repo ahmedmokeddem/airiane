@@ -1,0 +1,531 @@
+{
+  "report_id": "97142f63-3c71-5d65-9254-91fc9ee28c97",
+  "patient_id": "d9efc857-7c98-53e7-8ad3-223402000acb",
+  "version": 1,
+  "state": "ready",
+  "period_start": "2026-11-07T00:00:00+00:00",
+  "period_end": "2026-11-14T00:00:00+00:00",
+  "generated_at": "2026-11-14T00:00:00+00:00",
+  "data_cutoff": "2026-11-14T00:00:00+00:00",
+  "timezone": "Europe/Helsinki",
+  "calculation_version": "facts-v3",
+  "document": {
+    "schema_version": "1.0.0",
+    "report_type": "dual_perspective_wellbeing",
+    "generator_version": "deterministic-v3.1",
+    "template_version": "editorial-v1",
+    "evidence_snapshot_version": 1,
+    "evidence_snapshot_id": "56cd3363403521c7b90049a47b70adf76605cd97351f82705a4310633ea5fa78",
+    "snapshot": {
+      "evidence": [
+        {
+          "id": "insight:2542d7ca-1c6d-56ac-b218-a8db305760ee",
+          "record_id": "2542d7ca-1c6d-56ac-b218-a8db305760ee",
+          "kind": "insight",
+          "date": "2026-11-10T00:00:00+00:00",
+          "source_ids": [
+            "daaf7c6c-533e-5f3e-9bbf-dab02277bc4e"
+          ],
+          "label": "reflection",
+          "text": "Fictional: Café, hyvää yötä — Ελληνικά. A quiet moment mattered to me.",
+          "value": null,
+          "unit": null,
+          "category": "reflection",
+          "phase": "current",
+          "origin": "direct_statement"
+        },
+        {
+          "id": "activity:e1be6f68-b44a-5c69-8ee4-ae5c9dcf3736",
+          "record_id": "e1be6f68-b44a-5c69-8ee4-ae5c9dcf3736",
+          "kind": "activity",
+          "date": "2026-11-11T00:00:00+00:00",
+          "source_ids": [
+            "7d3b674d-876e-571f-86de-6962019f4ef4"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": null,
+          "unit": null,
+          "category": "breathing",
+          "phase": "current",
+          "origin": "curated_catalog"
+        },
+        {
+          "id": "feedback:b99e6a59-359b-5248-b191-b6fa1f5e1d08",
+          "record_id": "b99e6a59-359b-5248-b191-b6fa1f5e1d08",
+          "kind": "feedback",
+          "date": "2026-11-11T00:00:00+00:00",
+          "source_ids": [
+            "d41135d7-b266-52e5-9899-54a933d975b3"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": 5,
+          "unit": "helpfulness_1_5",
+          "category": "breathing",
+          "phase": "current",
+          "origin": "patient_explicit_feedback"
+        },
+        {
+          "id": "insight:e01dacd6-9244-5097-96c1-0d95ce0db9ea",
+          "record_id": "e01dacd6-9244-5097-96c1-0d95ce0db9ea",
+          "kind": "insight",
+          "date": "2026-11-11T00:00:00+00:00",
+          "source_ids": [
+            "e3d51da6-b4e7-5ca1-a1d3-0b91434aad1f"
+          ],
+          "label": "clinician question",
+          "text": "Fictional: Could we discuss my sleep routine?",
+          "value": null,
+          "unit": null,
+          "category": "clinician_question",
+          "phase": "current",
+          "origin": "direct_statement"
+        },
+        {
+          "id": "activity:b6d7ac19-9410-5bed-afa8-16cd2db37aa9",
+          "record_id": "b6d7ac19-9410-5bed-afa8-16cd2db37aa9",
+          "kind": "activity",
+          "date": "2026-11-12T00:00:00+00:00",
+          "source_ids": [
+            "ba895988-e08b-5192-9c87-dfa75181c665"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": null,
+          "unit": null,
+          "category": "breathing",
+          "phase": "current",
+          "origin": "curated_catalog"
+        },
+        {
+          "id": "feedback:054a9e78-d789-554f-a2b6-326d515b3683",
+          "record_id": "054a9e78-d789-554f-a2b6-326d515b3683",
+          "kind": "feedback",
+          "date": "2026-11-12T00:00:00+00:00",
+          "source_ids": [
+            "e12d42ba-b5f0-5b80-9196-6c2dfd32a977"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": 3,
+          "unit": "helpfulness_1_5",
+          "category": "breathing",
+          "phase": "current",
+          "origin": "patient_explicit_feedback"
+        },
+        {
+          "id": "insight:57dc9ef7-27f3-57c7-815a-6e9d5ee3a2c1",
+          "record_id": "57dc9ef7-27f3-57c7-815a-6e9d5ee3a2c1",
+          "kind": "insight",
+          "date": "2026-11-12T00:00:00+00:00",
+          "source_ids": [
+            "d853c209-2349-568a-811c-96e9c1c3c008"
+          ],
+          "label": "goal",
+          "text": "Fictional: I want to make room for a gentle daily pause.",
+          "value": null,
+          "unit": null,
+          "category": "goal",
+          "phase": "current",
+          "origin": "direct_statement"
+        },
+        {
+          "id": "activity:17c30c25-6b9a-5b4a-af08-a3cd0ac2629c",
+          "record_id": "17c30c25-6b9a-5b4a-af08-a3cd0ac2629c",
+          "kind": "activity",
+          "date": "2026-11-13T00:00:00+00:00",
+          "source_ids": [
+            "f1accaaf-a0c5-5761-9ddd-54280b99dcac"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": null,
+          "unit": null,
+          "category": "breathing",
+          "phase": "current",
+          "origin": "curated_catalog"
+        },
+        {
+          "id": "feedback:20932d25-bf52-571e-8cf3-09af61f82f32",
+          "record_id": "20932d25-bf52-571e-8cf3-09af61f82f32",
+          "kind": "feedback",
+          "date": "2026-11-13T00:00:00+00:00",
+          "source_ids": [
+            "0c7b5a33-c194-5ce0-85cc-ffff2a1c3c73"
+          ],
+          "label": "Calm Breathing",
+          "text": "Fictional: I enjoyed having a quiet minute.",
+          "value": 4,
+          "unit": "helpfulness_1_5",
+          "category": "breathing",
+          "phase": "current",
+          "origin": "patient_explicit_feedback"
+        },
+        {
+          "id": "insight:901245fa-4a63-5f02-9025-ee3ec7ddb749",
+          "record_id": "901245fa-4a63-5f02-9025-ee3ec7ddb749",
+          "kind": "insight",
+          "date": "2026-11-13T00:00:00+00:00",
+          "source_ids": [
+            "6961316b-b0e5-5e15-892c-c3b6a918ce70"
+          ],
+          "label": "fatigue",
+          "text": "Fictional: I felt tired after work, so I chose to rest.",
+          "value": null,
+          "unit": null,
+          "category": "fatigue",
+          "phase": "current",
+          "origin": "direct_statement"
+        }
+      ],
+      "current_start": "2026-11-07T00:00:00+00:00",
+      "current_end": "2026-11-14T00:00:00+00:00",
+      "previous_start": null,
+      "timezone": "Europe/Helsinki",
+      "aggregates": {
+        "current": {
+          "counts": {
+            "insight": 4,
+            "activity": 3,
+            "feedback": 3
+          },
+          "active_days": 4,
+          "themes": {
+            "reflection": 1,
+            "clinician_question": 1,
+            "goal": 1,
+            "fatigue": 1
+          }
+        },
+        "previous": null
+      },
+      "authorization_start": "2026-11-07T00:00:00+00:00"
+    },
+    "claims": [
+      {
+        "id": "overview-coverage",
+        "section": "overview",
+        "patient_text": "You saved 4 confirmed notes, 3 completed activities and 3 ratings, plus 0 confirmed check-in values across 4 recorded days. This is a view of the moments you chose to keep, not a grade.",
+        "clinician_text": "The period contains 4 patient-confirmed notes, 3 activity completions and 3 explicit ratings, plus 0 confirmed check-in values across 4 recorded days. Coverage is opportunistic, not scheduled.",
+        "evidence_ids": [
+          "activity:17c30c25-6b9a-5b4a-af08-a3cd0ac2629c",
+          "activity:b6d7ac19-9410-5bed-afa8-16cd2db37aa9",
+          "activity:e1be6f68-b44a-5c69-8ee4-ae5c9dcf3736",
+          "feedback:054a9e78-d789-554f-a2b6-326d515b3683",
+          "feedback:20932d25-bf52-571e-8cf3-09af61f82f32",
+          "feedback:b99e6a59-359b-5248-b191-b6fa1f5e1d08",
+          "insight:2542d7ca-1c6d-56ac-b218-a8db305760ee",
+          "insight:57dc9ef7-27f3-57c7-815a-6e9d5ee3a2c1",
+          "insight:901245fa-4a63-5f02-9025-ee3ec7ddb749",
+          "insight:e01dacd6-9244-5097-96c1-0d95ce0db9ea"
+        ]
+      },
+      {
+        "id": "themes-clinician_question",
+        "section": "themes",
+        "patient_text": "One note concerns clinician question. A single note is worth keeping, but does not establish a recurring pattern.",
+        "clinician_text": "One confirmed note is categorized as clinician question; recurrence is not established.",
+        "evidence_ids": [
+          "insight:e01dacd6-9244-5097-96c1-0d95ce0db9ea"
+        ]
+      },
+      {
+        "id": "topics-insight:e01dacd6-9244-5097-96c1-0d95ce0db9ea",
+        "section": "topics",
+        "patient_text": "You confirmed: “Fictional: Could we discuss my sleep routine?” This is your direct self-report.",
+        "clinician_text": "Patient-confirmed direct statement: “Fictional: Could we discuss my sleep routine?”",
+        "evidence_ids": [
+          "insight:e01dacd6-9244-5097-96c1-0d95ce0db9ea"
+        ]
+      },
+      {
+        "id": "themes-fatigue",
+        "section": "themes",
+        "patient_text": "One note concerns fatigue. A single note is worth keeping, but does not establish a recurring pattern.",
+        "clinician_text": "One confirmed note is categorized as fatigue; recurrence is not established.",
+        "evidence_ids": [
+          "insight:901245fa-4a63-5f02-9025-ee3ec7ddb749"
+        ]
+      },
+      {
+        "id": "experiences-insight:901245fa-4a63-5f02-9025-ee3ec7ddb749",
+        "section": "experiences",
+        "patient_text": "You confirmed: “Fictional: I felt tired after work, so I chose to rest.” This is your direct self-report.",
+        "clinician_text": "Patient-confirmed direct statement: “Fictional: I felt tired after work, so I chose to rest.”",
+        "evidence_ids": [
+          "insight:901245fa-4a63-5f02-9025-ee3ec7ddb749"
+        ]
+      },
+      {
+        "id": "themes-goal",
+        "section": "themes",
+        "patient_text": "One note concerns goal. A single note is worth keeping, but does not establish a recurring pattern.",
+        "clinician_text": "One confirmed note is categorized as goal; recurrence is not established.",
+        "evidence_ids": [
+          "insight:57dc9ef7-27f3-57c7-815a-6e9d5ee3a2c1"
+        ]
+      },
+      {
+        "id": "reflections-insight:57dc9ef7-27f3-57c7-815a-6e9d5ee3a2c1",
+        "section": "reflections",
+        "patient_text": "You confirmed: “Fictional: I want to make room for a gentle daily pause.” This is your direct self-report.",
+        "clinician_text": "Patient-confirmed direct statement: “Fictional: I want to make room for a gentle daily pause.”",
+        "evidence_ids": [
+          "insight:57dc9ef7-27f3-57c7-815a-6e9d5ee3a2c1"
+        ]
+      },
+      {
+        "id": "themes-reflection",
+        "section": "themes",
+        "patient_text": "One note concerns reflection. A single note is worth keeping, but does not establish a recurring pattern.",
+        "clinician_text": "One confirmed note is categorized as reflection; recurrence is not established.",
+        "evidence_ids": [
+          "insight:2542d7ca-1c6d-56ac-b218-a8db305760ee"
+        ]
+      },
+      {
+        "id": "reflections-insight:2542d7ca-1c6d-56ac-b218-a8db305760ee",
+        "section": "reflections",
+        "patient_text": "You confirmed: “Fictional: Café, hyvää yötä — Ελληνικά. A quiet moment mattered to me.” This is your direct self-report.",
+        "clinician_text": "Patient-confirmed direct statement: “Fictional: Café, hyvää yötä — Ελληνικά. A quiet moment mattered to me.”",
+        "evidence_ids": [
+          "insight:2542d7ca-1c6d-56ac-b218-a8db305760ee"
+        ]
+      },
+      {
+        "id": "changes-insufficient",
+        "section": "changes",
+        "patient_text": "An equal-period comparison is not supported by enough confirmed notes on multiple days in both periods. Missing information remains missing.",
+        "clinician_text": "Insufficient comparable observations: each equal-length period needs at least three confirmed notes across two dates. No symptom or treatment-change conclusion is produced.",
+        "evidence_ids": []
+      },
+      {
+        "id": "activities-breathing",
+        "section": "activities",
+        "patient_text": "You completed 3 breathing activities. You rated 3 of them; 2 ratings were 4 or 5 out of 5. These ratings describe what seemed helpful to you, without showing what caused a change.",
+        "clinician_text": "3 breathing completions; 3 explicit helpfulness ratings, including 2 at 4–5/5. No causal or treatment inference is warranted.",
+        "evidence_ids": [
+          "activity:17c30c25-6b9a-5b4a-af08-a3cd0ac2629c",
+          "activity:b6d7ac19-9410-5bed-afa8-16cd2db37aa9",
+          "activity:e1be6f68-b44a-5c69-8ee4-ae5c9dcf3736",
+          "feedback:054a9e78-d789-554f-a2b6-326d515b3683",
+          "feedback:20932d25-bf52-571e-8cf3-09af61f82f32",
+          "feedback:b99e6a59-359b-5248-b191-b6fa1f5e1d08"
+        ]
+      },
+      {
+        "id": "activities-breathing-preference",
+        "section": "activities",
+        "patient_text": "Your average helpfulness rating for breathing was 4.0/5 across 3 ratings. This is a reported experience, not a permanent preference or recommendation.",
+        "clinician_text": "Mean explicit breathing helpfulness rating 4.0/5, n=3. It does not establish a stable preference or clinical benefit.",
+        "evidence_ids": [
+          "feedback:054a9e78-d789-554f-a2b6-326d515b3683",
+          "feedback:20932d25-bf52-571e-8cf3-09af61f82f32",
+          "feedback:b99e6a59-359b-5248-b191-b6fa1f5e1d08"
+        ]
+      },
+      {
+        "id": "activities-comment-feedback:20932d25-bf52-571e-8cf3-09af61f82f32",
+        "section": "activities",
+        "patient_text": "After Calm Breathing, you wrote: “Fictional: I enjoyed having a quiet minute.”",
+        "clinician_text": "Explicit feedback for Calm Breathing: “Fictional: I enjoyed having a quiet minute.”",
+        "evidence_ids": [
+          "feedback:20932d25-bf52-571e-8cf3-09af61f82f32"
+        ]
+      },
+      {
+        "id": "assessments-missing",
+        "section": "assessments",
+        "patient_text": "No completed questionnaire records are available. No score or screening result has been inferred.",
+        "clinician_text": "No completed assessment records are available. Validated instrument results are unavailable.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-0",
+        "section": "limitations",
+        "patient_text": "Missing records are not evidence that an experience or symptom was absent.",
+        "clinician_text": "Missing records are not evidence that an experience or symptom was absent.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-1",
+        "section": "limitations",
+        "patient_text": "Frequency describes saved reports, not symptom frequency, severity or improvement.",
+        "clinician_text": "Frequency describes saved reports, not symptom frequency, severity or improvement.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-2",
+        "section": "limitations",
+        "patient_text": "Feedback describes the patient's experience; participation and ratings do not establish recovery or a treatment effect.",
+        "clinician_text": "Feedback describes the patient's experience; participation and ratings do not establish recovery or a treatment effect.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-3",
+        "section": "limitations",
+        "patient_text": "Only patient-confirmed structured notes are used. No raw conversation history or recording is included.",
+        "clinician_text": "Only patient-confirmed structured notes are used. No raw conversation history or recording is included.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-4",
+        "section": "limitations",
+        "patient_text": "Questionnaire records do not identify a validated clinical scoring method; no clinical score or diagnosis is generated.",
+        "clinician_text": "Questionnaire records do not identify a validated clinical scoring method; no clinical score or diagnosis is generated.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-5",
+        "section": "limitations",
+        "patient_text": "This is a supplementary patient-shared wellbeing record, not a medical evaluation or proof of clinician review or monitoring.",
+        "clinician_text": "This is a supplementary patient-shared wellbeing record, not a medical evaluation or proof of clinician review or monitoring.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-method",
+        "section": "limitations",
+        "patient_text": "Dates use your saved timezone. Only traceable, confirmed records available at the snapshot cutoff contribute to findings. Later corrections or withdrawals require a new report.",
+        "clinician_text": "Dates use the stored patient timezone. Aggregation uses traceable accepted records at cutoff. Evidence withdrawal invalidates export; downloaded copies remain independent.",
+        "evidence_ids": []
+      }
+    ],
+    "charts": [
+      {
+        "id": "themes",
+        "title": "Themes you chose to record",
+        "unit": "confirmed notes",
+        "caption": "Counts of patient-confirmed summaries, not symptom frequency or severity.",
+        "points": [
+          {
+            "label": "clinician question",
+            "value": 1,
+            "evidence_ids": [
+              "insight:e01dacd6-9244-5097-96c1-0d95ce0db9ea"
+            ]
+          },
+          {
+            "label": "fatigue",
+            "value": 1,
+            "evidence_ids": [
+              "insight:901245fa-4a63-5f02-9025-ee3ec7ddb749"
+            ]
+          },
+          {
+            "label": "goal",
+            "value": 1,
+            "evidence_ids": [
+              "insight:57dc9ef7-27f3-57c7-815a-6e9d5ee3a2c1"
+            ]
+          },
+          {
+            "label": "reflection",
+            "value": 1,
+            "evidence_ids": [
+              "insight:2542d7ca-1c6d-56ac-b218-a8db305760ee"
+            ]
+          }
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "id": "overview",
+        "patient_title": "Your journey at a glance",
+        "clinician_title": "Executive overview"
+      },
+      {
+        "id": "experiences",
+        "patient_title": "What you shared",
+        "clinician_title": "Patient-confirmed experiences"
+      },
+      {
+        "id": "themes",
+        "patient_title": "Recurring confirmed themes",
+        "clinician_title": "Confirmed recurring themes"
+      },
+      {
+        "id": "changes",
+        "patient_title": "Changes worth noticing",
+        "clinician_title": "Longitudinal observations"
+      },
+      {
+        "id": "activities",
+        "patient_title": "Activities and your feedback",
+        "clinician_title": "Activity engagement and explicit feedback"
+      },
+      {
+        "id": "reflections",
+        "patient_title": "Reflections and goals",
+        "clinician_title": "Patient reflections and goals"
+      },
+      {
+        "id": "topics",
+        "patient_title": "Questions for your clinician",
+        "clinician_title": "Patient-selected discussion topics"
+      },
+      {
+        "id": "assessments",
+        "patient_title": "Questionnaire records",
+        "clinician_title": "Assessment availability"
+      },
+      {
+        "id": "limitations",
+        "patient_title": "Coverage and what remains unknown",
+        "clinician_title": "Methodology and limitations"
+      }
+    ],
+    "regeneration_of": null,
+    "content_hash": "d1bfa567465494cb8fd7f5e7a37912d208cfd09a6ab9d5adc2b4ebfa9e3c0aa6"
+  },
+  "sources": [
+    {
+      "source_id": "daaf7c6c-533e-5f3e-9bbf-dab02277bc4e",
+      "source_revision": 1
+    },
+    {
+      "source_id": "7d3b674d-876e-571f-86de-6962019f4ef4",
+      "source_revision": 1
+    },
+    {
+      "source_id": "d41135d7-b266-52e5-9899-54a933d975b3",
+      "source_revision": 1
+    },
+    {
+      "source_id": "e3d51da6-b4e7-5ca1-a1d3-0b91434aad1f",
+      "source_revision": 1
+    },
+    {
+      "source_id": "ba895988-e08b-5192-9c87-dfa75181c665",
+      "source_revision": 1
+    },
+    {
+      "source_id": "e12d42ba-b5f0-5b80-9196-6c2dfd32a977",
+      "source_revision": 1
+    },
+    {
+      "source_id": "d853c209-2349-568a-811c-96e9c1c3c008",
+      "source_revision": 1
+    },
+    {
+      "source_id": "f1accaaf-a0c5-5761-9ddd-54280b99dcac",
+      "source_revision": 1
+    },
+    {
+      "source_id": "0c7b5a33-c194-5ce0-85cc-ffff2a1c3c73",
+      "source_revision": 1
+    },
+    {
+      "source_id": "6961316b-b0e5-5e15-892c-c3b6a918ce70",
+      "source_revision": 1
+    }
+  ],
+  "observations": [],
+  "completed_activities": [],
+  "feedback": [],
+  "assessments": [],
+  "confirmed_insights": [],
+  "trends": [],
+  "limitations": []
+}

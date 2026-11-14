@@ -236,6 +236,8 @@ export function HomeScreen({
         <Feather name="chevron-right" color={t.muted} size={19} />
       </Pressable>
       <Pressable
+        testID="open-reports"
+        accessibilityLabel="Your reports and sharing"
         accessibilityRole="button"
         onPress={onReports}
         style={p.reportLink}

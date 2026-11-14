@@ -48,3 +48,7 @@ Patient → invite verified clinician → clinician accepts → patient separate
 Clinician provisioning is an explicit operator command, never an API/model tool: `uv run --directory backend python -m app.seed_clinician --fictional-demo` for local development, or `--auth-subject <UUID> --display-name <NAME>` for an operator-verified real Supabase identity. `demo-clinician-token` works only under the existing development auth gate and only after provisioning. Real Supabase login remains to be verified with an actual configured project.
 
 Report/consent lists have opaque actor/filter-bound cursors. Cursors expire after an hour and become invalid after an API process restart. Transcript consent remains unavailable because history capture is not implemented; alert sharing does not imply a notification was sent.
+
+### Evidence-grounded reports and PDF export
+
+Reports now store an optional deterministic dual-perspective document in the existing JSON payload. No external LLM/provider or new migration is required. Read [report implementation and deployment dependencies](../docs/REPORTS_IMPLEMENTATION.md) for authenticated PDF endpoints, full comparison-period grants, correction/withdrawal behavior and WeasyPrint's native font dependencies. Old snapshots must be regenerated before PDF export. Fictional PDF specimens can be recreated with `uv run --directory backend python -m app.reports.examples --output ../docs/implementation-validation/reports/examples` from the repository root.

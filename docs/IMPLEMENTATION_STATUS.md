@@ -2,6 +2,23 @@
 
 Updated 14 November 2026. Work continued from the existing slice; the baseline migration, existing API operations, technical package identifiers and Stitch assets are preserved. Additive confirmed-insight schemas are documented below. This is a tested development integration, not a production or clinical validation.
 
+
+## Evidence-grounded reports and PDF export — 14 November 2026
+
+Implemented the current-stack-only brief: **no new LLM provider**. Reports now store a deterministic-v3.1 evidence snapshot, patient/clinician narratives, traceable findings, explicit goals/questions, conditional charts and qualified equal-period reporting comparisons. Existing patient-confirmed note review/correction/rejection/withdrawal is reused. Missing conversation data remains explicitly missing; no symptom change, diagnosis or treatment effect is inferred. Existing wire/tool version 2.0.0 and baseline migrations are preserved; the optional document and PDF operations are additive. No hosted migration was needed.
+
+| Classification | Actual result |
+| --- | --- |
+| **VERIFIED ON DEVICE** | Samsung SM-G998B / Android 15; Expo development APK rebuilt and installed, **BUILD SUCCESSFUL in 32s**. Fictional sign-in, actual backend report creation, new-ID version-2 regeneration, authenticated PDF download, native share chooser (cancelled without recipient), A4 six-page print preview and Samsung local file save passed. The saved PDF was read back: six selectable-text pages and the correct report ID. |
+| **VERIFIED LIVE POSTGRESQL + BROWSER** | Report `b328f6a2-2076-401d-8bd3-039a7a327480`, version 2, deterministic-v3.1, contains 11 evidence records: one confirmed note, five completions and five feedback records. Direct PostgreSQL metadata read and real authorized portal presentation/download passed. Proxy returned HTTP 200 PDF with private/no-store; no session returned HTTP 401. Existing live grants were preserved. |
+| **VERIFIED AUTOMATED** | 28 backend tests on disposable SQLite and PostgreSQL 16; mobile 32 tests, lint/typecheck; portal 10 tests, lint/typecheck and production build; eight shared contract fixtures. Security tests include ownership, prior-period bounds, revocation/withdrawal during rendering, prior-only withdrawal, invented claims, Unicode and local-midnight dates. |
+| **VERIFIED PDF REVIEW** | Four fictional A4 specimens (empty, activities only, confirmed experiences, longitudinal clinician edition) generated and visually inspected. Selectable text, Latin/Finnish/Greek extraction and structure trees checked. Official logo and existing licensed font used. This is not PDF/UA certification. |
+| **NOT TESTED / LIMITS** | iOS share/save; production account auth; all writing systems/assistive technologies; low-memory and multi-worker stress. No new real voice/Bluetooth/camera verification is claimed in this report pass. Earlier evidence and existing force-kill recovery gap remain below. No sharing recipient was selected. |
+
+PDFs render in memory with exact embedded assets, escaped patient text and no public storage/URL. Authorization, source revisions and snapshot hashes are rechecked after rendering. Comparison consent covers the complete earlier evidence window. Withdrawing/correcting a note removes affected documents and denies stale exports. Old/unsupported report documents remain readable but require regeneration for export. Mobile download, Save / print and Share are separate explicit actions; private cache expires while running and is swept on the next export, while saved/shared copies cannot be remotely revoked. OS termination can defer cache cleanup.
+
+Read [implementation, exact launch commands, changed files and limits](REPORTS_IMPLEMENTATION.md), [verification receipt](implementation-validation/reports/verification.json) and [PostgreSQL receipt](implementation-validation/reports/postgresql.json). Example PDFs: [activities](implementation-validation/reports/examples/activities.pdf), [confirmed experiences](implementation-validation/reports/examples/confirmed.pdf), [longitudinal clinician report](implementation-validation/reports/examples/longitudinal.pdf). WeasyPrint's native Pango/HarfBuzz/font dependencies must be present in deployment; the current Linux host is verified.
+
 ## Ariadne opening — 14 November 2026
 
 Implemented a skippable, approximately 2.5-second cold-launch opening using the approved SVG's exact two strokes and original horizontal wordmark. Native splash retention is tied to local readiness, with bounded fallback; authentication, APIs and the mounted app do not await animation completion. Reduced motion skips the drawing, and backgrounding cancels playback. Standard navigation and providers retain their existing ownership.

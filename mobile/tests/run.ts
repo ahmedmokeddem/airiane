@@ -12,3 +12,5 @@ import "./brand.test";
 import "./native-text.test";
 
 import "./opening.test";
+
+import "./report-export.test";

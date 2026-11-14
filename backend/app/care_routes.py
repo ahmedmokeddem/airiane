@@ -3,7 +3,7 @@
 from .care import CareService
 from .domain import DomainError
 from .insights import InsightService
-from .reporting import ReportService
+from .reporting import ReportService, authorization_start
 from .services import utc
 
 SHARED_OPERATIONS = {
@@ -117,7 +117,8 @@ async def dispatch(op, store, actor, p, body, query, pages):
             rows = [
                 r
                 for r in await store.all("reports", patient_id=patient)
-                if grant["data_from"] is None or utc(r["period_start"]) >= utc(grant["data_from"])
+                if grant["data_from"] is None
+                or utc(authorization_start(r)) >= utc(grant["data_from"])
             ]
             return page(rows, reports.receipt)
         case "getDoctorReport":

@@ -67,7 +67,8 @@
             "backgroundColor": "#081018"
           }
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "scheme": "re-patient"
   }

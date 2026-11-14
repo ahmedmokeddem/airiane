@@ -904,6 +904,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reports/{report_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * exportPatientReportPdf
+         * @description Authenticated in-memory PDF rendering. Rechecks current ownership/grants, full comparison bounds and evidence after rendering. No public URL or retained server file.
+         */
+        get: operations["exportPatientReportPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/doctor/patients/{patient_id}/reports/{report_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * exportDoctorReportPdf
+         * @description Authenticated in-memory PDF rendering. Rechecks current ownership/grants, full comparison bounds and evidence after rendering. No public URL or retained server file.
+         */
+        get: operations["exportDoctorReportPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1216,6 +1256,16 @@ export interface components {
             period_start: string;
             /** Format: date-time */
             period_end: string;
+            /**
+             * @description Include prior equal-length evidence; clinician grants must cover its earliest date.
+             * @default false
+             */
+            compare_previous: boolean;
+            /**
+             * Format: uuid
+             * @description Owned report of the same period; creates a new report ID/version, never replaces it.
+             */
+            regeneration_of?: string;
         };
         ReportReceipt: {
             /** Format: uuid */
@@ -1246,6 +1296,11 @@ export interface components {
             period_start: string;
             /** Format: date-time */
             period_end: string;
+            /**
+             * Format: date-time
+             * @description Earliest included evidence window; retained after withdrawal to preserve consent bounds.
+             */
+            evidence_period_start?: string;
             timezone: string;
             /** Format: date-time */
             generated_at: string;
@@ -1262,6 +1317,7 @@ export interface components {
             limitations: string[];
             confirmed_insights?: components["schemas"]["ConfirmedInsight"][];
             factual_overview?: components["schemas"]["FactualOverview"];
+            document?: components["schemas"]["ReportDocument"];
         };
         CareInviteRequest: {
             /** Format: uuid */
@@ -1622,6 +1678,97 @@ export interface components {
             assessment_count: number;
             active_days: number;
             coverage_note: string;
+        };
+        ReportEvidence: {
+            id: string;
+            /** Format: uuid */
+            record_id: string;
+            /** @enum {unknown} */
+            kind: "activity" | "feedback" | "insight" | "observation" | "questionnaire";
+            /** Format: date-time */
+            date: string;
+            source_ids: string[];
+            label: string;
+            text: string | null;
+            value: number | null;
+            unit: string | null;
+            category: string | null;
+            /** @enum {unknown} */
+            phase: "current" | "previous";
+            origin: string;
+        };
+        ReportEvidenceSnapshot: {
+            evidence: components["schemas"]["ReportEvidence"][];
+            /** Format: date-time */
+            current_start: string;
+            /** Format: date-time */
+            current_end: string;
+            previous_start: string | null;
+            timezone: string;
+            aggregates: {
+                current: {
+                    counts: {
+                        [key: string]: number;
+                    };
+                    active_days: number;
+                    themes: {
+                        [key: string]: number;
+                    };
+                };
+                previous: {
+                    counts: {
+                        [key: string]: number;
+                    };
+                    active_days: number;
+                    themes: {
+                        [key: string]: number;
+                    };
+                } | null;
+            };
+            /** Format: date-time */
+            authorization_start: string;
+        };
+        ReportClaim: {
+            id: string;
+            /** @enum {unknown} */
+            section: "overview" | "experiences" | "themes" | "changes" | "activities" | "reflections" | "topics" | "assessments" | "limitations";
+            patient_text: string;
+            clinician_text: string;
+            evidence_ids: string[];
+        };
+        ReportChart: {
+            id: string;
+            title: string;
+            unit: string;
+            caption: string;
+            points: {
+                label: string;
+                value: number;
+                evidence_ids: string[];
+            }[];
+        };
+        ReportDocument: {
+            /** @constant */
+            schema_version: "1.0.0";
+            /** @constant */
+            report_type: "dual_perspective_wellbeing";
+            generator_version: string;
+            /** @constant */
+            template_version: "editorial-v1";
+            /** @constant */
+            evidence_snapshot_version: 1;
+            evidence_snapshot_id: string;
+            snapshot: components["schemas"]["ReportEvidenceSnapshot"];
+            claims: components["schemas"]["ReportClaim"][];
+            charts: components["schemas"]["ReportChart"][];
+            sections: {
+                /** @enum {unknown} */
+                id: "overview" | "experiences" | "themes" | "changes" | "activities" | "reflections" | "topics" | "assessments" | "limitations";
+                patient_title: string;
+                clinician_title: string;
+            }[];
+            regeneration_of: string | null;
+            content_hash: string;
         };
     };
     responses: never;
@@ -6984,6 +7131,202 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Invalid or expired authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State, version, idempotency or stale recommendation conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Invalid request/schema/domain bounds */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limited; honor Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unexpected internal failure; sanitized Error only */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider or infrastructure unavailable; no success implied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    exportPatientReportPdf: {
+        parameters: {
+            query?: {
+                perspective?: "patient" | "clinician";
+                disposition?: "inline" | "attachment";
+            };
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Selectable-text tagged A4 PDF; private no-store */
+            200: {
+                headers: {
+                    "Cache-Control"?: "private, no-store, max-age=0";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Invalid or expired authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State, version, idempotency or stale recommendation conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Invalid request/schema/domain bounds */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limited; honor Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unexpected internal failure; sanitized Error only */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider or infrastructure unavailable; no success implied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    exportDoctorReportPdf: {
+        parameters: {
+            query?: {
+                disposition?: "inline" | "attachment";
+            };
+            header?: never;
+            path: {
+                patient_id: string;
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Selectable-text tagged A4 PDF; private no-store */
+            200: {
+                headers: {
+                    "Cache-Control"?: "private, no-store, max-age=0";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
             };
             /** @description Invalid or expired authentication */
             401: {
