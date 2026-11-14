@@ -1,7 +1,9 @@
 """Bounded readiness without upstream provider calls or sensitive response details."""
 
 import asyncio
+import hashlib
 import logging
+import re
 import ssl
 import time
 
@@ -34,6 +36,37 @@ def readiness_reason(error: Exception) -> str:
     return "database_or_catalogue_unavailable"
 
 
+def tls_diagnostic(error: Exception, pem: str) -> str:
+    """Public certificate hash and bounded TLS codes only; no exception text."""
+    fingerprint = "absent"
+    if pem:
+        try:
+            block = re.search(
+                r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", pem, re.DOTALL
+            )
+            der = ssl.PEM_cert_to_DER_cert(block.group(0)) if block else b""
+            fingerprint = hashlib.sha256(der).hexdigest() if der else "invalid"
+        except (ValueError, TypeError):
+            fingerprint = "invalid"
+    seen = set()
+    current = error
+    code = "unknown"
+    kind = "unknown"
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if isinstance(current, ssl.SSLError):
+            number = getattr(current, "verify_code", None)
+            code = str(number) if isinstance(number, int) else "none"
+            kind = (
+                "certificate_verification"
+                if isinstance(current, ssl.SSLCertVerificationError)
+                else "ssl_configuration_or_handshake"
+            )
+            break
+        current = getattr(current, "orig", None) or current.__cause__ or current.__context__
+    return f"tls_kind={kind} verify_code={code} ca_sha256={fingerprint}"
+
+
 def install_health(app, engine, settings):
     last_failure_log = float("-inf")
 
@@ -59,7 +92,15 @@ def install_health(app, engine, settings):
             status, code = "ready", 200
         except Exception as error:  # noqa: BLE001 — public health stays sanitized
             if time.monotonic() - last_failure_log >= 30:
-                logger.warning("Readiness failed: %s", readiness_reason(error))
+                reason = readiness_reason(error)
+                if reason == "database_tls":
+                    logger.warning(
+                        "Readiness failed: %s %s",
+                        reason,
+                        tls_diagnostic(error, settings.database_ca_pem),
+                    )
+                else:
+                    logger.warning("Readiness failed: %s", reason)
                 last_failure_log = time.monotonic()
             status, code = "not_ready", 503
         return JSONResponse(

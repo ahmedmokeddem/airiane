@@ -127,3 +127,16 @@ def test_database_ca_accepts_flattened_pem_without_disabling_tls():
         )
     with pytest.raises(ValueError):
         Settings(_env_file=None, database_ca_pem="not a PEM certificate")
+
+
+def test_tls_diagnostic_never_logs_exception_content():
+    import ssl
+
+    from app.health import tls_diagnostic
+
+    secret = "private-password-and-host"
+    result = tls_diagnostic(ssl.SSLError(secret), "")
+    assert "ca_sha256=absent" in result
+    assert "verify_code=none" in result
+    assert secret not in result
+    assert "ca_sha256=invalid" in tls_diagnostic(ssl.SSLError(secret), "invalid")
