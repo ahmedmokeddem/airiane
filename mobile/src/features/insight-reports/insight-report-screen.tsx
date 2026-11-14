@@ -45,7 +45,7 @@ export function InsightReportScreen({
   sessionId,
   onExit,
 }: {
-  messages: { role: string; text: string }[];
+  messages: { role: string; text: string; id?: string; createdAt?: string }[];
   sessionId: string | null;
   onExit: () => void;
 }) {
@@ -53,6 +53,7 @@ export function InsightReportScreen({
   const [report, setReport] = useState<InsightReportResponse | null>(null);
   const [links, setLinks] = useState<CareLink[]>([]);
   const [selectedLink, setSelectedLink] = useState<string | null>(null);
+  const [analysisConsent, setAnalysisConsent] = useState(false);
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,10 +78,14 @@ export function InsightReportScreen({
       setError('Open a conversation session before preparing a report.');
       return;
     }
+    if (!analysisConsent) {
+      setError('Please confirm that you consent to analyzing this conversation.');
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      setReport(await createInsightReport(sessionId ?? 'mock-session', messages));
+      setReport(await createInsightReport(sessionId ?? 'mock-session', messages, analysisConsent));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'The private report could not be generated.');
     } finally {
@@ -141,7 +146,28 @@ export function InsightReportScreen({
                 ? `${messages.length} conversation messages are available from this session.`
                 : 'No current conversation messages are available.'}
             </Text>
-            <Button label={busy ? 'Preparing…' : 'Prepare private draft'} disabled={busy} onPress={() => void generate()} />
+            {messages.length > 100 && (
+              <Text style={s.body}>
+                Only the most recent 100 messages will be included in this draft.
+              </Text>
+            )}
+            <Pressable
+              testID="insight-analysis-consent"
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: analysisConsent }}
+              onPress={() => setAnalysisConsent(value => !value)}
+              style={s.consentRow}
+            >
+              <View style={[s.checkbox, analysisConsent && s.checkboxSelected]} />
+              <Text style={s.body}>
+                I consent to analyzing the current conversation to prepare this private draft.
+              </Text>
+            </Pressable>
+            <Button
+              label={busy ? 'Preparing…' : 'Prepare private draft'}
+              disabled={busy || !analysisConsent}
+              onPress={() => void generate()}
+            />
           </Surface>
         ) : (
           <>
@@ -152,6 +178,7 @@ export function InsightReportScreen({
                 {report.report.coverage.message_count} messages · {report.report.coverage.patient_message_count} patient messages
               </Text>
               <Text style={s.body}>Generated {dateLabel(report.created_at)}</Text>
+              <Text style={s.body}>Analysis consent: {report.report.consent.analysis_consent ? 'recorded' : 'not recorded'}</Text>
             </Surface>
 
             <Surface>

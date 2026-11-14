@@ -66,3 +66,6 @@ No external email or arbitrary-address delivery is implemented.
   questionnaire records appear in the agent report.
 - The agent is deterministic and rule-based. It does not use an LLM; this is intentional for
   auditability and to avoid unsupported clinical claims.
+- Report drafts persist bounded evidence quotes (up to 300 characters per source) in
+  `re.insight_reports` until sharing is revoked or the row is removed by an operator. No
+  automatic retention scheduler or user-facing delete endpoint is implemented in this branch.

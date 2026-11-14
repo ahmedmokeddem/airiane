@@ -143,6 +143,29 @@ def test_prompt_injection_is_treated_as_data(report_client):  # noqa: F811
     assert report["limitations"]
 
 
+def test_negated_safety_and_symptom_phrases_are_not_counted(report_client):  # noqa: F811
+    c = report_client
+    sid = start(c)
+    r = create(
+        c,
+        sid,
+        [
+            turn(sid, "patient", "I am not suicidal and I do not want to die."),
+            turn(sid, "patient", "I am not sad."),
+            turn(sid, "patient", "I am not sleeping and I can't focus."),
+        ],
+    )
+    assert r.status_code == 201, r.text
+    report = r.json()["report"]
+    assert report["safety"]["present"] is False
+    emotional = next(item for item in report["dimensions"] if item["key"] == "emotional")
+    assert emotional["status"] == "not_assessed"
+    sleep = next(item for item in report["dimensions"] if item["key"] == "sleep_appetite")
+    cognitive = next(item for item in report["dimensions"] if item["key"] == "cognitive")
+    assert sleep["status"] == "user_reported"
+    assert cognitive["status"] == "user_reported"
+
+
 def test_user_isolation_and_report_ownership(report_client):  # noqa: F811
     c = report_client
     sid = start(c)

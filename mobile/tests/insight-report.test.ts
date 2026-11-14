@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildMockInsightReport } from '../src/features/insight-reports/api';
+import { buildMockInsightReport, createInsightReport } from '../src/features/insight-reports/api';
 
 const conversation = [
   { role: 'user', text: 'I feel sad and hopeless and I cannot sleep.' },
@@ -39,12 +39,36 @@ test('Conversation insight mock report ignores assistant-only safety language', 
   assert.equal(response.report.coverage.assistant_message_count, 1);
 });
 
+test('Conversation insight mock report ignores negated safety and symptom denials', () => {
+  const response = buildMockInsightReport([
+    { role: 'user', text: 'I am not suicidal and I do not want to die.' },
+    { role: 'user', text: 'I am not sad.' },
+    { role: 'user', text: 'I am not sleeping and I cannot focus.' },
+  ]);
+  assert.equal(response.report.safety.present, false);
+  const emotional = response.report.dimensions.find(item => item.key === 'emotional');
+  const sleep = response.report.dimensions.find(item => item.key === 'sleep_appetite');
+  const cognitive = response.report.dimensions.find(item => item.key === 'cognitive');
+  assert.equal(emotional?.status, 'not_assessed');
+  assert.equal(sleep?.status, 'user_reported');
+  assert.equal(cognitive?.status, 'user_reported');
+});
+
+test('Conversation insight requires explicit analysis consent', async () => {
+  await assert.rejects(
+    createInsightReport('session-1', [{ role: 'user', text: 'I feel sad.' }], false),
+    /consent/,
+  );
+});
+
 test('Conversation insight UI requires preview, recipient selection and explicit consent', () => {
   const screen = readFileSync(
     new URL('../src/features/insight-reports/insight-report-screen.tsx', import.meta.url),
     'utf8',
   );
   assert.match(screen, /Prepare private draft/);
+  assert.match(screen, /insight-analysis-consent/);
+  assert.match(screen, /Only the most recent 100 messages/);
   assert.match(screen, /insight-consent/);
   assert.match(screen, /accessibilityRole="checkbox"/);
   assert.match(screen, /Share report/);

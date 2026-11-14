@@ -121,6 +121,12 @@ type Screen =
   | "bdi"
   | "assessments"
   | "insights";
+type ChatMessage = {
+  role: string;
+  text: string;
+  id: string;
+  createdAt: string;
+};
 const realVoice = process.env.EXPO_PUBLIC_VOICE_PROVIDER === "elevenlabs";
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -155,9 +161,7 @@ export default function App() {
   const [rating, setRating] = useState(4);
   const [connected, setConnected] = useState(false);
   const [text, setText] = useState("");
-  const [messages, setMessages] = useState<{ role: string; text: string }[]>(
-    [],
-  );
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [callState, setCallState] = useState<CompanionState>("idle");
   const [voiceCall, setVoiceCall] = useState(false);
   const voiceCallRef = useRef(false);
@@ -178,8 +182,14 @@ export default function App() {
   const [proposalsKey, setProposalsKey] = useState(0);
   // Simulated companion only: the check-in question currently being asked.
   const checkInKind = useRef<CheckInKind | null>(null);
+  const newMessage = (role: string, text: string): ChatMessage => ({
+    role,
+    text,
+    id: uuid(),
+    createdAt: new Date().toISOString(),
+  });
   const say = (textValue: string) =>
-    setMessages((m) => [...m, { role: "agent", text: textValue }]);
+    setMessages((m) => [...m, newMessage("agent", textValue)]);
   const assessment = useAssessment((question, definition, number, total) => {
     const options = (question.options ?? []).map((o) => o.label).join(" · ");
     if (realVoice) {
@@ -738,7 +748,7 @@ export default function App() {
     const value = text.trim();
     if (!value) return;
     if (!connected) await openConversation("text");
-    setMessages((m) => [...m, { role: "user", text: value }]);
+    setMessages((m) => [...m, newMessage("user", value)]);
     setText("");
     const flow = assessment.state;
     if (flow.phase === "paused" && wantsResume(value)) {
@@ -817,10 +827,10 @@ export default function App() {
       await bridge.current!.present();
       setMessages((m) => [
         ...m,
-        {
-          role: "agent",
-          text: "Simulated response: a few gentle options are in the cards below.",
-        },
+        newMessage(
+          "agent",
+          "Simulated response: a few gentle options are in the cards below.",
+        ),
       ]);
     }
   };
@@ -907,7 +917,7 @@ export default function App() {
         await askNextCheckIn(sessionRef.current.session_id);
       if (realVoice) {
         const opener = "I’d like to do my daily check-in.";
-        setMessages((m) => [...m, { role: "user", text: opener }]);
+        setMessages((m) => [...m, newMessage("user", opener)]);
         adapter.current!.sendText(opener);
       }
     });
@@ -919,7 +929,7 @@ export default function App() {
       if (!connected) await openConversation("text");
       if (then) await then();
       if (realVoice) {
-        setMessages((m) => [...m, { role: "user", text: liveLine }]);
+        setMessages((m) => [...m, newMessage("user", liveLine)]);
         adapter.current!.sendText(liveLine);
       } else say(simulatedLine);
     });
@@ -1410,7 +1420,7 @@ export default function App() {
           tools={tools}
           onAdapter={receiveAdapter}
           onMessage={(role, value) =>
-            setMessages((m) => [...m, { role, text: value }])
+            setMessages((m) => [...m, newMessage(role, value)])
           }
           onDisconnected={() => {
             void closeConnection().catch(() =>

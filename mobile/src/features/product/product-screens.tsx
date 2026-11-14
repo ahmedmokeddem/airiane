@@ -287,7 +287,7 @@ export function HomeScreen({
       {checkIn}
       {onAssessments && (
         <Surface>
-          <Text style={s.eyebrow}>A PRIVATE CHECK ┬╖ OPTIONAL</Text>
+          <Text style={s.eyebrow}>ASSESSMENT CENTER - OPTIONAL</Text>
           <Text style={p.activityTitle}>
             PHQ-9 and adapted BDI-II
           </Text>

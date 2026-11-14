@@ -155,12 +155,19 @@ class InsightReportPayload(BaseModel):
 
 
 class _Rule:
-    __slots__ = ("key", "label", "pattern")
+    __slots__ = ("key", "label", "negation_sensitive", "pattern")
 
-    def __init__(self, key: str, label: str, pattern: str) -> None:
+    def __init__(
+        self,
+        key: str,
+        label: str,
+        pattern: str,
+        negation_sensitive: bool = True,
+    ) -> None:
         self.key = key
         self.label = label
         self.pattern = re.compile(pattern, re.IGNORECASE)
+        self.negation_sensitive = negation_sensitive
 
 
 SYMPTOM_RULES = (
@@ -186,12 +193,14 @@ SYMPTOM_RULES = (
         "Sleep and appetite",
         r"\b(sleep|sleeping|insomnia|wake up|waking|oversleep|appetite|eating|"
         r"overeating|not hungry|no appetite)\b",
+        negation_sensitive=False,
     ),
     _Rule(
         "cognitive",
         "Cognitive experiences",
         r"\b(concentrate|concentration|focus|decision|decisions|indecisive|"
         r"remember|memory|forgetful)\b",
+        negation_sensitive=False,
     ),
     _Rule(
         "self_perception",
@@ -204,6 +213,7 @@ SYMPTOM_RULES = (
         "Social interaction",
         r"\b(isolated|lonely|alone|avoid people|withdrew|withdrawn|friends|"
         r"family|social)\b",
+        negation_sensitive=False,
     ),
     _Rule(
         "anxiety",
@@ -235,6 +245,28 @@ SAFETY_RULE = _Rule(
 )
 
 
+_NEGATION = re.compile(
+    r"\b(?:not|no|never|without|isn['’]?t|aren['’]?t|don['’]?t|doesn['’]?t|"
+    r"didn['’]?t|cannot|can['’]?t|hardly|rarely)\b",
+    re.IGNORECASE,
+)
+
+
+def _rule_hit(rule: _Rule, text: str) -> bool:
+    """Match a rule unless the match is immediately preceded by a clear negation.
+
+    Sleep/appetite, cognitive, social and functioning rules opt out because negated
+    forms such as “not sleeping” or “can't focus” are themselves relevant experiences.
+    """
+    if not rule.negation_sensitive:
+        return bool(rule.pattern.search(text))
+    for match in rule.pattern.finditer(text):
+        before = text[max(0, match.start() - 48) : match.start()]
+        if not _NEGATION.search(before):
+            return True
+    return False
+
+
 def _quote(text: str) -> str:
     clean = " ".join(text.split())
     return clean[:300]
@@ -246,7 +278,7 @@ def _evidence(
     limit: int = 4,
 ) -> list[EvidenceReference]:
     patient_messages = [message for message in messages if message.speaker == "patient"]
-    hits = [message for message in patient_messages if rule.pattern.search(message.text)]
+    hits = [message for message in patient_messages if _rule_hit(rule, message.text)]
     return [
         EvidenceReference(
             message_id=message.message_id,
@@ -267,7 +299,7 @@ def _dimension(
     missing_note: str,
 ) -> ReportDimension:
     patient_messages = [message for message in messages if message.speaker == "patient"]
-    hits = [message for message in patient_messages if rule.pattern.search(message.text)]
+    hits = [message for message in patient_messages if _rule_hit(rule, message.text)]
     if not patient_messages:
         status: EvidenceType = "insufficient_information"
         note = insufficient_note
@@ -294,7 +326,7 @@ def _dimension(
 
 def _safety(messages: list[ConversationTurn]) -> SafetySection:
     patient_messages = [message for message in messages if message.speaker == "patient"]
-    hits = [message for message in patient_messages if SAFETY_RULE.pattern.search(message.text)]
+    hits = [message for message in patient_messages if _rule_hit(SAFETY_RULE, message.text)]
     if not patient_messages:
         return SafetySection(
             present=False,
