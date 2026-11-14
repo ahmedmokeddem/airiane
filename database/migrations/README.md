@@ -17,3 +17,9 @@ Do not rerun the baseline on an existing service. Runtime PostgreSQL schemas are
 ```sh
 uv run --directory backend python -m app.migrate --migration 0003_clinical_questionnaires.sql
 ```
+
+`0004_medication_reminders.sql` adds `re.medication_reminders`, a doctor-set reminder shown on the patient's Home while the connection stays active (one row per patient/clinician pair). Additive: no existing data is changed. Apply once after 0001 (and 0002, 0003):
+
+```sh
+uv run --directory backend python -m app.migrate --migration 0004_medication_reminders.sql
+```

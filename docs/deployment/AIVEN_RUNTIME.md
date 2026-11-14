@@ -45,6 +45,8 @@ The production process performs **no migration or catalogue write at startup**. 
 ```sh
 docker run --rm --env-file /SECURE/PATH/api-operator.env --entrypoint python airiane-api:reviewed -m app.migrate --migration 0001_baseline.sql
 docker run --rm --env-file /SECURE/PATH/api-operator.env --entrypoint python airiane-api:reviewed -m app.migrate --migration 0002_confirmed_insights.sql
+docker run --rm --env-file /SECURE/PATH/api-operator.env --entrypoint python airiane-api:reviewed -m app.migrate --migration 0003_clinical_questionnaires.sql
+docker run --rm --env-file /SECURE/PATH/api-operator.env --entrypoint python airiane-api:reviewed -m app.migrate --migration 0004_medication_reminders.sql
 docker run --rm --env-file /SECURE/PATH/api-operator.env --entrypoint python airiane-api:reviewed -m app.seed_catalog
 ```
 

@@ -29,14 +29,21 @@ async def apply(connection, name, *, adopt=False, check=False):
                 return "already_applied"
         if check:
             return "pending_or_untracked"
-        target = "re.users" if name == "0001_baseline.sql" else "re.confirmed_insights"
-        exists = await connection.fetchval("SELECT to_regclass($1)", target)
-        if exists and not adopt:
-            raise RuntimeError(
-                "Existing untracked schema: review it before explicit --adopt-existing; baseline will not be rerun"
-            )
-        if adopt and not exists:
-            raise RuntimeError("Cannot adopt a missing migration target")
+        target = {
+            "0001_baseline.sql": "re.users",
+            "0002_confirmed_insights.sql": "re.confirmed_insights",
+            "0004_medication_reminders.sql": "re.medication_reminders",
+        }.get(name)
+        if target:
+            exists = await connection.fetchval("SELECT to_regclass($1)", target)
+            if exists and not adopt:
+                raise RuntimeError(
+                    "Existing untracked schema: review it before explicit --adopt-existing; baseline will not be rerun"
+                )
+            if adopt and not exists:
+                raise RuntimeError("Cannot adopt a missing migration target")
+        elif adopt:
+            raise RuntimeError("Cannot adopt a migration with no adoption target")
         if name != "0001_baseline.sql" and (
             not ledger
             or not await connection.fetchval(
@@ -45,8 +52,8 @@ async def apply(connection, name, *, adopt=False, check=False):
         ):
             raise RuntimeError("Apply or explicitly adopt the baseline first")
         if adopt:
-            required = (
-                [
+            required = {
+                "0001_baseline.sql": [
                     "users",
                     "patient_profiles",
                     "conversation_sessions",
@@ -56,10 +63,10 @@ async def apply(connection, name, *, adopt=False, check=False):
                     "activity_catalog",
                     "care_links",
                     "consent_grants",
-                ]
-                if name == "0001_baseline.sql"
-                else ["confirmed_insights"]
-            )
+                ],
+                "0002_confirmed_insights.sql": ["confirmed_insights"],
+                "0004_medication_reminders.sql": ["medication_reminders"],
+            }[name]
             for table in required:
                 if not await connection.fetchval("SELECT to_regclass($1)", "re." + table):
                     raise RuntimeError("Incomplete schema cannot be adopted")
@@ -92,6 +99,7 @@ async def main():
             "0001_baseline.sql",
             "0002_confirmed_insights.sql",
             "0003_clinical_questionnaires.sql",
+            "0004_medication_reminders.sql",
         ],
     )
     args = parser.parse_args()
@@ -103,11 +111,7 @@ async def main():
         kwargs["ssl"] = ssl.create_default_context(cadata=settings.database_ca_pem or None)
     connection = await asyncpg.connect(postgres_dsn(settings.database_url), **kwargs)
     try:
-        await connection.execute(
-            (
-                Path(__file__).resolve().parents[2] / "database/migrations" / args.migration
-            ).read_text(encoding="utf-8")
-        )
+        print(await apply(connection, args.migration))
     finally:
         await connection.close()
 

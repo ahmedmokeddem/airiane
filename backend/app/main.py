@@ -48,46 +48,50 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise RuntimeError("SQLite is development-only; use migrated PostgreSQL")
             async with engine.begin() as connection:
                 await connection.run_sync(metadata.create_all)
-        async with engine.begin() as connection:
-            store = SqlStore(connection)
-            await assessments.seed(store)
-            for row in CATALOG:
-                existing = await store.get("activity_catalog", id=row["id"])
-                if not existing:
-                    await store.add("activity_catalog", **row)
-                elif (
-                    existing["config"] != row["config"]
-                    or existing["description"] != row["description"]
-                    or existing["title"] != row["title"]
-                ):
-                    await store.update(
-                        "activity_catalog",
-                        {"id": row["id"], "version": row["version"]},
-                        {
-                            "config": row["config"],
-                            "description": row["description"],
-                            "title": row["title"],
+        if settings.environment == "development":
+            async with engine.begin() as connection:
+                store = SqlStore(connection)
+                await assessments.seed(store)
+                for row in CATALOG:
+                    existing = await store.get("activity_catalog", id=row["id"])
+                    if not existing:
+                        await store.add("activity_catalog", **row)
+                    elif (
+                        existing["config"] != row["config"]
+                        or existing["description"] != row["description"]
+                        or existing["title"] != row["title"]
+                    ):
+                        await store.update(
+                            "activity_catalog",
+                            {"id": row["id"], "version": row["version"]},
+                            {
+                                "config": row["config"],
+                                "description": row["description"],
+                                "title": row["title"],
+                            },
+                        )
+                if not await store.get("alert_rules", rule_key=SAFETY_RULE, version=1):
+                    await store.add(
+                        "alert_rules",
+                        rule_key=SAFETY_RULE,
+                        version=1,
+                        enabled=True,
+                        definition={
+                            "trigger": "questionnaire_item_9_above_0",
+                            "patient_informed": True,
                         },
                     )
-            if not await store.get("alert_rules", rule_key=SAFETY_RULE, version=1):
-                await store.add(
-                    "alert_rules",
-                    rule_key=SAFETY_RULE,
-                    version=1,
-                    enabled=True,
-                    definition={
-                        "trigger": "questionnaire_item_9_above_0",
-                        "patient_informed": True,
-                    },
-                )
-            if not await store.get("alert_rules", rule_key=REVIEW_RULE, version=1):
-                await store.add(
-                    "alert_rules",
-                    rule_key=REVIEW_RULE,
-                    version=1,
-                    enabled=True,
-                    definition={"trigger": "explicit_patient_request", "clinical_threshold": None},
-                )
+                if not await store.get("alert_rules", rule_key=REVIEW_RULE, version=1):
+                    await store.add(
+                        "alert_rules",
+                        rule_key=REVIEW_RULE,
+                        version=1,
+                        enabled=True,
+                        definition={
+                            "trigger": "explicit_patient_request",
+                            "clinical_threshold": None,
+                        },
+                    )
         yield
         await engine.dispose()
 
