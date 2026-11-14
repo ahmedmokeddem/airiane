@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str = Field(default="sqlite+aiosqlite:///./re-local.db", repr=False)
     demo_auth: bool = False
+    companion_v2_enabled: bool = False
     supabase_url: str = ""
     jwt_audience: str = "authenticated"
     cors_origins: str = "http://localhost:8081,http://localhost:3000"

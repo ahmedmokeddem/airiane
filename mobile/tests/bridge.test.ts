@@ -15,7 +15,7 @@ test('voice adapter exposes no camera input and waits for actual provider connec
  let options:Record<string,unknown>|undefined;
  const adapter=new ElevenLabsAdapter({startSession:o=>{options=o;},endSession:()=>{},sendUserMessage:()=>{},sendContextualUpdate:()=>{},setVolume:()=>{}},()=>{});
  const bootstrap={provider:'elevenlabs',camera_policy:'local_preview_only_no_transmission',mode:'voice',conversation_token:'fixture',agent_context:{vision_access:'none'}} as Bootstrap;
- const pending=adapter.connect(bootstrap);adapter.emit({type:'connected'});await pending;assert.deepEqual(options,{conversationToken:'fixture',connectionType:'webrtc'});assert.equal('camera' in adapter,false);assert.equal('sendFrame' in adapter,false);
+ const pending=adapter.connect(bootstrap);adapter.emit({type:'connected'});await pending;assert.equal(options?.conversationToken,'fixture');assert.equal(options?.connectionType,'webrtc');const initial=JSON.parse((options?.dynamicVariables as Record<string,string>).application_context);assert.equal(initial.vision_access,'none');assert.equal('ephemeral_current_conversation' in initial,false);assert.ok(initial.application_time);assert.equal('camera' in adapter,false);assert.equal('sendFrame' in adapter,false);
 });
 test('mock accepted activity and feedback keep strict response shapes',async()=>{
  const {api}=await import('../src/integration/api');

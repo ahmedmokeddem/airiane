@@ -13,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from . import care_routes, replay
 from .auth import Authenticator
 from .care import CareService, current_user
+from .companion import CompanionService
 from .config import Settings
 from .contracts import SPEC, validate
 from .domain import ConversationController, DomainError, now, stamp
@@ -111,6 +112,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def handler(request: Request):
         identity = await auth.verify(request.headers.get("authorization"))
         operation = request.scope["route"].name
+        if (
+            operation in {"getCompanionContext", "updateCompanionMemory", "submitDailyCheckin"}
+            and not settings.companion_v2_enabled
+        ):
+            raise DomainError("FEATURE_UNAVAILABLE", 404)
         schema_request, schema_response, status = IMPLEMENTED[operation]
         body = None
         if schema_request:
@@ -149,7 +155,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             store = SqlStore(connection)
             patients = PatientService(store)
             if operation == "onboardPatient":
-                result = await patients.onboard(identity.subject, body)
+                result = await patients.onboard(
+                    identity.subject, body, companion_v2=settings.companion_v2_enabled
+                )
             else:
                 user = (
                     await current_user(store, identity.subject)
@@ -214,7 +222,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         if "activity_session_id" in params:
                             await activities.owned(pid, params["activity_session_id"])
                         restored = await replay.restore(
-                            operation, prior["response_body"], store, pid
+                            operation,
+                            prior["response_body"],
+                            store,
+                            pid,
+                            companion_v2=settings.companion_v2_enabled,
                         )
                         if status == 204:
                             return Response(status_code=204, headers={"Cache-Control": "no-store"})
@@ -317,6 +329,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 IMPLEMENTED = {
     **care_routes.OPERATIONS,
     "onboardPatient": ("OnboardingRequest", "Me", 201),
+    "getCompanionContext": (None, "CompanionContext", 200),
+    "updateCompanionMemory": ("CompanionMemoryUpdate", "CompanionContext", 200),
+    "submitDailyCheckin": ("DailyCheckinSubmit", "CompanionContext", 200),
     "getMe": (None, "Me", 200),
     "getPatientContext": (None, "PatientContext", 200),
     "updateProfile": ("ProfilePatch", "Me", 200),
@@ -341,6 +356,16 @@ IMPLEMENTED = {
 async def dispatch(op, store, settings, subject, pid, p, body, request, sessions, activities):
     sid = p.get("session_id")
     aid = p.get("activity_session_id")
+    if op in {"getCompanionContext", "updateCompanionMemory", "submitDailyCheckin"}:
+        if not settings.companion_v2_enabled:
+            raise DomainError("FEATURE_UNAVAILABLE", 404)
+
+        companion = CompanionService(store)
+        if op == "getCompanionContext":
+            return await companion.context(pid)
+        if op == "updateCompanionMemory":
+            return await companion.update_memory(pid, body)
+        return await companion.checkin(pid, body)
     match op:
         case "getMe":
             user = await current_user(store, subject)
@@ -356,7 +381,9 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                 }
             return await PatientService(store).me(subject)
         case "getPatientContext":
-            return await PatientService(store).context(pid)
+            return await PatientService(store).context(
+                pid, companion_v2=settings.companion_v2_enabled
+            )
         case "updateProfile":
             return await PatientService(store).patch(subject, body)
         case "updatePatientContext":
@@ -397,6 +424,8 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
             )
         case "getGuidedQuestion":
             row = await sessions.owned(pid, sid)
+            if settings.companion_v2_enabled:
+                return await CompanionService(store).question(pid, row["version"])
             return ConversationController().question(row["version"])
         case "dispatchTool":
             row = await sessions.owned(pid, sid)
@@ -434,9 +463,14 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                         await activities.owned(pid, prior["result_resource_id"])
                     )
                 elif name == "get_patient_context":
-                    result = await PatientService(store).context(pid)
+                    result = await PatientService(store).context(
+                        pid, companion_v2=settings.companion_v2_enabled
+                    )
                 else:
-                    result = ConversationController().question(row["version"])
+                    if settings.companion_v2_enabled:
+                        result = await CompanionService(store).question(pid, row["version"])
+                    else:
+                        result = ConversationController().question(row["version"])
                 return {
                     "tool_call_id": body["tool_call_id"],
                     "contract_version": "2.0.0",
@@ -450,9 +484,15 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                     pid, dict(session_id=sid, selection_channel="voice", **body["arguments"])
                 )
             elif name == "get_patient_context":
-                result = await PatientService(store).context(pid)
+                result = await PatientService(store).context(
+                    pid, companion_v2=settings.companion_v2_enabled
+                )
             else:
-                result = ConversationController().question(row["version"])
+                result = (
+                    (await CompanionService(store).question(pid, row["version"]))
+                    if settings.companion_v2_enabled
+                    else ConversationController().question(row["version"])
+                )
             resource = (
                 result.get("recommendation_id")
                 if name == "present_activity_recommendations"

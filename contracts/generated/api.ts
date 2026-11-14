@@ -944,6 +944,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** getCompanionContext */
+        get: operations["getCompanionContext"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** updateCompanionMemory */
+        patch: operations["updateCompanionMemory"];
+        trace?: never;
+    };
+    "/v1/companion/daily-checkin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** submitDailyCheckin */
+        post: operations["submitDailyCheckin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -992,6 +1027,7 @@ export interface components {
             recovery_plan: components["schemas"]["RecoveryPlan"] | null;
             memories: components["schemas"]["Memory"][];
             recent_observations: components["schemas"]["Observation"][];
+            companion_context?: components["schemas"]["CompanionContext"];
         };
         ContextPatch: {
             preferences: components["schemas"]["PatientPreferences"];
@@ -1528,6 +1564,7 @@ export interface components {
             active_activity_session: components["schemas"]["ActivitySession"] | null;
             /** @constant */
             vision_access: "none";
+            companion_context?: components["schemas"]["CompanionContext"];
         };
         AgentConnectionRequest: {
             /** @enum {string} */
@@ -1769,6 +1806,43 @@ export interface components {
             }[];
             regeneration_of: string | null;
             content_hash: string;
+        };
+        DailyCheckinState: {
+            /** Format: date */
+            local_day: string;
+            timezone: string;
+            /** @enum {string} */
+            state: "available" | "declined" | "completed";
+            version: number;
+            invitation_allowed: boolean;
+        };
+        CompanionContext: {
+            /** @enum {string} */
+            relationship_status: "new" | "returning" | "unknown";
+            memory_enabled: boolean;
+            version: number;
+            daily_checkin: components["schemas"]["DailyCheckinState"];
+            confirmed_notes: components["schemas"]["ConfirmedInsight"][];
+            recent_observations: components["schemas"]["Observation"][];
+        };
+        CompanionMemoryUpdate: {
+            memory_enabled: boolean;
+            expected_version: number;
+        };
+        DailyCheckinValues: {
+            mood: number;
+            energy: number;
+            sleep_hours: number;
+        };
+        DailyCheckinSubmit: {
+            /** Format: date */
+            local_day: string;
+            expected_version: number;
+            /** @enum {string} */
+            decision: "confirm" | "decline";
+            confirmation?: boolean;
+            values?: components["schemas"]["DailyCheckinValues"];
+            session_id?: string | null;
         };
     };
     responses: never;
@@ -7393,6 +7467,215 @@ export interface operations {
             };
             /** @description Provider or infrastructure unavailable; no success implied */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getCompanionContext: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current patient companion state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionContext"];
+                };
+            };
+            /** @description Invalid or expired authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State, version, idempotency or stale recommendation conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Invalid request/schema/domain bounds */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateCompanionMemory: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Actor+method+canonical path+key, canonical request hash; retain non-secret outcomes 24h (demo assumption). Same body replays; changed body => 409. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanionMemoryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Current patient companion state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionContext"];
+                };
+            };
+            /** @description Invalid or expired authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State, version, idempotency or stale recommendation conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Invalid request/schema/domain bounds */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    submitDailyCheckin: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Actor+method+canonical path+key, canonical request hash; retain non-secret outcomes 24h (demo assumption). Same body replays; changed body => 409. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyCheckinSubmit"];
+            };
+        };
+        responses: {
+            /** @description Current patient companion state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionContext"];
+                };
+            };
+            /** @description Invalid or expired authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State, version, idempotency or stale recommendation conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Invalid request/schema/domain bounds */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

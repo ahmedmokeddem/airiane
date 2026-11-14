@@ -84,6 +84,10 @@ class ElevenLabsBootstrap:
             context["active_activity_session"] = ActivityService(self.store).view(active)
         profile = await self.store.get("patient_profiles", patient_id=patient)
         context["preferences"] = profile["preferences"]
+        if self.settings.companion_v2_enabled:
+            from .companion import CompanionService
+
+            context = await CompanionService(self.store).enrich(patient, context)
         response = {
             "session_id": sid,
             "connection_id": cid,

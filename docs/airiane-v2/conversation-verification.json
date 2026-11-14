@@ -1,0 +1,44 @@
+{
+  "fictional_data_only": true,
+  "real_provider": true,
+  "real_local_backend": true,
+  "device_test": false,
+  "ui_cards_rendered_on_device": false,
+  "checks": [
+    {
+      "scenario": "casual_chat",
+      "response_received": true,
+      "forced_activity": false,
+      "forced_note": false
+    },
+    {
+      "scenario": "returning_reconnection",
+      "relationship": "returning",
+      "response_received": true,
+      "self_introduction": false,
+      "daily_invitation_allowed": false
+    },
+    {
+      "scenario": "activity_request",
+      "response_received": true,
+      "recommendation_tool_called": true,
+      "backend_generated_recommendation": true,
+      "backend_generated_option_ids": true
+    },
+    {
+      "scenario": "approved_memory_after_reconnect",
+      "approved_notes_loaded": true,
+      "grounded_recall": true
+    },
+    {
+      "scenario": "memory_opt_out_after_reconnect",
+      "notes_empty": true,
+      "previous_preference_not_claimed": true
+    }
+  ],
+  "activity_first_reply_leaked_tool_markup": false,
+  "activity_tool_called_without_followup": true,
+  "tool_calls": [
+    "present_activity_recommendations"
+  ]
+}

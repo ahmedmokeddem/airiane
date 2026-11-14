@@ -6,6 +6,7 @@ import jsonschema
 import yaml
 
 from .domain import DomainError
+from .schema_validation import PreciseValidator
 
 SPEC = yaml.safe_load((Path(__file__).resolve().parents[2] / "contracts/openapi.yaml").read_text())
 RESOLVER = jsonschema.RefResolver.from_schema(SPEC)
@@ -13,7 +14,7 @@ RESOLVER = jsonschema.RefResolver.from_schema(SPEC)
 
 def validate(name: str, body: object) -> None:
     errors = list(
-        jsonschema.Draft202012Validator(
+        PreciseValidator(
             SPEC["components"]["schemas"][name],
             resolver=RESOLVER,
             format_checker=jsonschema.FormatChecker(),

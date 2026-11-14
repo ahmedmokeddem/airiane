@@ -85,6 +85,9 @@ def install_health(app, engine, settings):
                     prefix = "" if engine.dialect.name == "sqlite" else "re."
                     for table in ("users", "reports", "confirmed_insights", "activity_catalog"):
                         await connection.execute(text(f"SELECT 1 FROM {prefix}{table} LIMIT 1"))
+                    if settings.companion_v2_enabled:
+                        for table in ("companion_state", "daily_checkins"):
+                            await connection.execute(text(f"SELECT 1 FROM {prefix}{table} LIMIT 1"))
                     available = await connection.scalar(
                         text(f"SELECT 1 FROM {prefix}activity_catalog WHERE active = true LIMIT 1")
                     )

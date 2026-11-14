@@ -1,0 +1,41 @@
+{
+  "agent_id": "agent_0801m7dfz5w1ez7s46a26640wjtt",
+  "name": "AIriane V2",
+  "api_readback_http": 200,
+  "original_conversation_configuration_unchanged": true,
+  "original_privacy_unchanged": true,
+  "static_first_message": "",
+  "language": "en",
+  "llm": "deepseek-v41-flash",
+  "voice_id": "cjVigY5qzO86Huf0OWal",
+  "client_tools": [
+    {
+      "name": "present_activity_recommendations",
+      "expects_response": true
+    },
+    {
+      "name": "select_activity",
+      "expects_response": true
+    },
+    {
+      "name": "propose_conversation_insight",
+      "expects_response": true
+    },
+    {
+      "name": "get_patient_context",
+      "expects_response": true
+    },
+    {
+      "name": "get_next_guided_question",
+      "expects_response": true
+    }
+  ],
+  "authenticated_access": true,
+  "record_voice": false,
+  "retention_days": 0,
+  "delete_audio": true,
+  "delete_transcript_and_pii": true,
+  "provider_memory_enabled": false,
+  "configured_prompt_sha256": "d3f67a9bce1dfef7408e50c1444292bff7fd746a1d901ef85bc2c24513c077d4",
+  "production_switched": false
+}

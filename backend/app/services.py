@@ -27,7 +27,7 @@ class PatientService:
             raise DomainError("ROLE_REQUIRED", 403)
         return user
 
-    async def onboard(self, subject: str, body: dict) -> dict:
+    async def onboard(self, subject: str, body: dict, *, companion_v2=False) -> dict:
         from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
         try:
@@ -52,6 +52,10 @@ class PatientService:
                 preferences={},
                 avatar={},
             )
+            if companion_v2:
+                from .companion import CompanionService
+
+                await CompanionService(self.store).state(user["id"], new_patient=True)
         return await self.me(subject)
 
     async def me(self, subject: str) -> dict:
@@ -81,15 +85,21 @@ class PatientService:
             await self.store.update("patient_profiles", {"patient_id": user["id"]}, body)
         return await self.me(subject)
 
-    async def context(self, patient: str) -> dict:
+    async def context(self, patient: str, *, companion_v2=False) -> dict:
         profile = await self.store.get("patient_profiles", patient_id=patient)
-        return {
+        result = {
             "patient_id": patient,
             "preferences": profile["preferences"],
             "recovery_plan": None,
             "memories": [],
             "recent_observations": [],
         }
+        if companion_v2:
+            from .companion import CompanionService
+
+            result["companion_context"] = await CompanionService(self.store).context(patient)
+            result["recent_observations"] = result["companion_context"]["recent_observations"]
+        return result
 
     async def patch_context(self, patient: str, body: dict) -> dict:
         await self.store.update(

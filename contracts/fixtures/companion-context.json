@@ -1,0 +1,17 @@
+{
+  "schema": "CompanionContext",
+  "data": {
+    "relationship_status": "unknown",
+    "memory_enabled": false,
+    "version": 1,
+    "daily_checkin": {
+      "local_day": "2026-11-14",
+      "timezone": "Europe/Helsinki",
+      "state": "available",
+      "version": 1,
+      "invitation_allowed": false
+    },
+    "confirmed_notes": [],
+    "recent_observations": []
+  }
+}

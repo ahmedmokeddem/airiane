@@ -29,7 +29,11 @@ async def apply(connection, name, *, adopt=False, check=False):
                 return "already_applied"
         if check:
             return "pending_or_untracked"
-        target = "re.users" if name == "0001_baseline.sql" else "re.confirmed_insights"
+        target = {
+            "0001_baseline.sql": "re.users",
+            "0002_confirmed_insights.sql": "re.confirmed_insights",
+            "0003_companion_continuity.sql": "re.companion_state",
+        }[name]
         exists = await connection.fetchval("SELECT to_regclass($1)", target)
         if exists and not adopt:
             raise RuntimeError(
@@ -44,6 +48,15 @@ async def apply(connection, name, *, adopt=False, check=False):
             )
         ):
             raise RuntimeError("Apply or explicitly adopt the baseline first")
+        if name == "0003_companion_continuity.sql" and (
+            not ledger
+            or not await connection.fetchval(
+                "SELECT 1 FROM public.airiane_schema_migrations WHERE name='0002_confirmed_insights.sql'"
+            )
+        ):
+            raise RuntimeError(
+                "Apply or explicitly adopt confirmed insights before companion continuity"
+            )
         if adopt:
             required = (
                 [
@@ -58,7 +71,11 @@ async def apply(connection, name, *, adopt=False, check=False):
                     "consent_grants",
                 ]
                 if name == "0001_baseline.sql"
-                else ["confirmed_insights"]
+                else (
+                    ["confirmed_insights"]
+                    if name == "0002_confirmed_insights.sql"
+                    else ["companion_state", "daily_checkins"]
+                )
             )
             for table in required:
                 if not await connection.fetchval("SELECT to_regclass($1)", "re." + table):
@@ -86,7 +103,13 @@ async def apply(connection, name, *, adopt=False, check=False):
 async def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--migration", required=True, choices=["0001_baseline.sql", "0002_confirmed_insights.sql"]
+        "--migration",
+        required=True,
+        choices=[
+            "0001_baseline.sql",
+            "0002_confirmed_insights.sql",
+            "0003_companion_continuity.sql",
+        ],
     )
     parser.add_argument(
         "--adopt-existing",

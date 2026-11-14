@@ -1,0 +1,8 @@
+{
+  "voice_bootstrap_real_provider": true,
+  "transport": "webrtc",
+  "v2_agent_confirmed": true,
+  "credential_present": true,
+  "credential_logged": false,
+  "native_audio_conversation_tested": false
+}

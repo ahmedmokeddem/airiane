@@ -1,6 +1,8 @@
 import "./src/features/opening/splash";
+import {CompanionControls} from "./src/features/companion/companion-controls";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TextInput, View } from "react-native";
+import {carryApprovedRecap} from "./src/features/companion/handoff";
 import { Feather } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
@@ -93,6 +95,7 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [handoffDraft, setHandoffDraft] = useState<string|null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [rec, setRec] = useState<Recommendation | null>(null);
   const [activity, setActivity] = useState<ActivitySession | null>(null);
@@ -396,6 +399,12 @@ export default function App() {
   };
   const tools = useMemo<ClientTools>(
     () => ({
+      get_patient_context: async () => JSON.stringify(await request('/patient-context')),
+      get_next_guided_question: async () => {
+        const id = sessionRef.current?.session_id;
+        if (!id) throw new Error('Open a session first.');
+        return JSON.stringify(await request(`/conversation-sessions/${id}/guided-question`));
+      },
       present_activity_recommendations: async (args) => {
         setCallState("thinking");
         if (!bridge.current)
@@ -538,11 +547,13 @@ export default function App() {
     await bridge.current!.select(id, "touch");
   };
   const signOut = async () => {
+    connectEpoch.current++;
     await adapter.current?.disconnect();
     await closeConnection();
     setAccessToken("");
     setSignedIn(false);
     setMessages([]);
+    setHandoffDraft(null);
     setSession(null);
     sessionRef.current = null;
     bridge.current = null;
@@ -555,15 +566,26 @@ export default function App() {
   const friendlyError = error
     ? "This moment could not be completed. Your saved records are safe. Please try again."
     : null;
+  const refreshCompanionContext = async () => {
+    await product.refresh();
+    if (process.env.EXPO_PUBLIC_COMPANION_V2 === 'true') {
+      const latest = await request<DTO<'CompanionContext'>>('/companion');
+      adapter.current?.updateContext(JSON.stringify({companion_context:latest,application_time:new Date().toISOString()}));
+    }
+  };
   const reviewPanel = proposal ? (
     <InsightReview
       key={proposal.proposal_id}
       proposal={proposal}
       dark={immersive}
-      onDismiss={() => setProposal(null)}
-      onSaved={() => {
+      onDismiss={() => {
         setProposal(null);
-        void product.refresh();
+        adapter.current?.updateContext(JSON.stringify({event:'patient_rejected_note',persisted:false}));
+      }}
+      onSaved={(saved) => {
+        setProposal(null);
+        adapter.current?.updateContext(JSON.stringify({event:'patient_confirmed_note',persisted:true,insight_id:saved.insight_id}));
+        void refreshCompanionContext().catch(()=>{});
       }}
     />
   ) : undefined;
@@ -677,7 +699,10 @@ export default function App() {
               value={text}
               onChange={setText}
               onSend={() => void run(sendText)}
-              onVoice={() => void run(() => openConversation("voice"))}
+              onVoice={() => {
+                if(process.env.EXPO_PUBLIC_COMPANION_V2==='true')setHandoffDraft('');
+                else void run(() => openConversation('voice'));
+              }}
               connected={connected}
               busy={busy}
               recommendation={rec}
@@ -688,6 +713,22 @@ export default function App() {
               }
               reviewPanel={
                 <>
+                  {handoffDraft!==null && <View style={{gap:10,padding:12}}>
+                    <Text style={productStyles.subtitle}>Continue by voice</Text>
+                    <Text style={productStyles.small}>Optionally write a recap to share with the voice AI. Sending it does not create a saved note. Your previous chat is not automatically replayed.</Text>
+                    <TextInput accessibilityLabel="Optional voice recap" multiline maxLength={1500} value={handoffDraft} onChangeText={setHandoffDraft} placeholder="What would you like to carry into voice?" style={{padding:12,borderWidth:1,borderRadius:12}}/>
+                    <Button label="Send recap & switch to voice" disabled={busy||!handoffDraft.trim()} onPress={()=>void run(async()=>{
+                      const text=handoffDraft;setHandoffDraft(null);
+                      const expectedEpoch=connectEpoch.current+1;
+                      await carryApprovedRecap({text,confirmation:true},async()=>{
+                        await openConversation('voice');
+                        if(connectEpoch.current!==expectedEpoch||connection.current?.state!=='active'||connection.current.mode!=='voice')throw new Error('Voice connection was cancelled. Your recap was not sent.');
+                      },message=>adapter.current!.sendText(message));
+                    })}/>
+                    <Button secondary label="Switch without a recap" disabled={busy} onPress={()=>{setHandoffDraft(null);void run(()=>openConversation('voice'));}}/>
+                    <Button secondary label="Keep chatting here" disabled={busy} onPress={()=>setHandoffDraft(null)}/>
+                  </View>}
+                  {process.env.EXPO_PUBLIC_COMPANION_V2 === 'true' && <CompanionControls sessionId={session?.session_id ?? null} onChanged={()=>void refreshCompanionContext().catch(()=>{})}/>}
                   {reviewPanel}
                   {!connected && !busy && (
                     <Button label="Connect conversation" onPress={openText} />
@@ -740,10 +781,10 @@ export default function App() {
               onReports={() => setScreen("reports")}
               onSignOut={() => void run(signOut)}
               insightsPanel={
-                <SavedInsights
-                  insights={product.insights}
-                  onChanged={product.refresh}
-                />
+                <>
+                  {process.env.EXPO_PUBLIC_COMPANION_V2==='true' && <CompanionControls sessionId={session?.session_id ?? null} onChanged={()=>void refreshCompanionContext().catch(()=>{})}/>}
+                  <SavedInsights insights={product.insights} onChanged={()=>void refreshCompanionContext().catch(()=>{})}/>
+                </>
               }
             />
           )}

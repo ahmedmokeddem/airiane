@@ -14,6 +14,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Table,
+    UniqueConstraint,
     Uuid,
     select,
     update,
@@ -121,11 +122,23 @@ TABLES = {
         "assessment_responses",
         "id:u patient_id:u session_id:u assessment_id:u assessment_version:i source_id:u answers:j complete:b observed_at:t created_at:t",
     ),
+    "companion_state": table(
+        "companion_state",
+        "id:u patient_id:u relationship_status:s memory_enabled:b version:i created_at:t",
+    ),
+    "daily_checkins": table(
+        "daily_checkins",
+        "id:u patient_id:u local_day:s timezone:s state:s offered_at:t completed_at:t version:i",
+    ),
     "audit_events": table(
         "audit_events",
         "id:u actor_id:u patient_id:u action:s resource_type:s resource_id:u request_id:u created_at:t",
     ),
 }
+
+
+TABLES["daily_checkins"].append_constraint(UniqueConstraint("patient_id", "local_day"))
+TABLES["companion_state"].append_constraint(UniqueConstraint("patient_id"))
 
 
 def converted(t: Table, values: dict) -> dict:
@@ -157,6 +170,18 @@ class SqlStore:
     async def all(self, name: str, **filters: Any) -> list[dict]:
         t = TABLES[name]
         stmt = select(t).filter_by(**converted(t, filters))
+        return [exported(r) for r in (await self.connection.execute(stmt)).mappings()]
+
+    async def recent(self, name: str, *, limit: int, **filters: Any) -> list[dict]:
+        if not 1 <= limit <= 30:
+            raise ValueError("Bounded context query required")
+        t = TABLES[name]
+        stmt = (
+            select(t)
+            .filter_by(**converted(t, filters))
+            .order_by(t.c.observed_at.desc(), t.c.id.desc())
+            .limit(limit)
+        )
         return [exported(r) for r in (await self.connection.execute(stmt)).mappings()]
 
     async def get(self, table: str, **filters: Any) -> dict | None:

@@ -5,6 +5,8 @@ from .services import ActivityService, SessionService
 
 
 def metadata(op: str, result: dict) -> dict:
+    if op in {"updateCompanionMemory", "submitDailyCheckin"}:
+        return {"type": "companion_context"}
     if op == "updateProfile":
         return {"type": "profile"}
     if op == "dispatchTool":
@@ -30,8 +32,12 @@ def metadata(op: str, result: dict) -> dict:
     return {key: result[key] for key in keys if key in result}
 
 
-async def restore(op: str, meta: dict, store, patient: str) -> dict:
+async def restore(op: str, meta: dict, store, patient: str, *, companion_v2=False) -> dict:
     activities, sessions = ActivityService(store), SessionService(store)
+    if meta.get("type") == "companion_context":
+        from .companion import CompanionService
+
+        return await CompanionService(store).context(patient)
     if meta.get("type") == "profile":
         from .services import PatientService
 
@@ -52,6 +58,7 @@ async def restore(op: str, meta: dict, store, patient: str) -> dict:
             {**meta["resource"], "application_session_id": meta["application_session_id"]},
             store,
             patient,
+            companion_v2=companion_v2,
         )
         return {"tool_call_id": meta["tool_call_id"], "contract_version": "2.0.0", "result": result}
     if "consent_grant_id" in meta:
@@ -73,9 +80,13 @@ async def restore(op: str, meta: dict, store, patient: str) -> dict:
     if meta.get("type") == "patient_context":
         from .services import PatientService
 
-        return await PatientService(store).context(patient)
+        return await PatientService(store).context(patient, companion_v2=companion_v2)
     if meta.get("type") == "guided_question":
         session = await sessions.owned(patient, meta["application_session_id"])
+        if companion_v2:
+            from .companion import CompanionService
+
+            return await CompanionService(store).question(patient, session["version"])
         return ConversationController().question(session["version"])
     if "feedback_id" in meta:
         row = await store.get("activity_feedback", id=meta["feedback_id"], patient_id=patient)

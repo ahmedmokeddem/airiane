@@ -49,15 +49,20 @@ export class ElevenLabsAdapter implements VoiceAgentAdapter {
     this.mode = b.mode;
     this.emit({ type: "connecting" });
     const ready = this.wait("connected");
+    const initialContext = {...b.agent_context, application_time:new Date().toISOString()};
+    // Only canonical backend context. Never replay raw messages on reconnect.
+    const dynamicVariables = {application_context:JSON.stringify(initialContext)};
     try {
       Promise.resolve(
         this.sdk.startSession(
           b.mode === "voice"
             ? {
+                dynamicVariables,
                 conversationToken: b.conversation_token,
                 connectionType: "webrtc",
               }
             : {
+                dynamicVariables,
                 signedUrl: b.signed_url,
                 textOnly: true,
                 connectionType: "websocket",
@@ -78,7 +83,7 @@ export class ElevenLabsAdapter implements VoiceAgentAdapter {
       });
     }
     await ready;
-    this.sdk.sendContextualUpdate(JSON.stringify({...b.agent_context,application_time:new Date().toISOString()}));
+    this.sdk.sendContextualUpdate(JSON.stringify(initialContext));
   }
   async disconnect() {
     if (!this.mode) return;

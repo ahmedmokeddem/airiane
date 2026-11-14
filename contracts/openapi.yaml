@@ -3908,7 +3908,7 @@ paths:
       - name: connection_id
         in: path
         required: true
-        schema: &id006
+        schema: &id008
           type: string
           format: uuid
       - name: Idempotency-Key
@@ -4075,8 +4075,8 @@ paths:
     post:
       operationId: confirmInsight
       summary: confirmInsight
-      description: Patient-owned confirmed structured insight. Proposals remain in client
-        memory. This operation is never a model tool.
+      description: Patient-owned confirmed structured insight. Proposals remain in
+        client memory. This operation is never a model tool.
       security:
       - supabaseJWT: []
       parameters:
@@ -4163,8 +4163,8 @@ paths:
     get:
       operationId: listConfirmedInsights
       summary: listConfirmedInsights
-      description: Patient-owned confirmed structured insight. Proposals remain in client
-        memory. This operation is never a model tool.
+      description: Patient-owned confirmed structured insight. Proposals remain in
+        client memory. This operation is never a model tool.
       security:
       - supabaseJWT: []
       parameters:
@@ -4244,8 +4244,8 @@ paths:
     post:
       operationId: correctInsight
       summary: correctInsight
-      description: Patient-owned confirmed structured insight. Proposals remain in client
-        memory. This operation is never a model tool.
+      description: Patient-owned confirmed structured insight. Proposals remain in
+        client memory. This operation is never a model tool.
       security:
       - supabaseJWT: []
       parameters:
@@ -4261,7 +4261,7 @@ paths:
       - name: insight_id
         in: path
         required: true
-        schema: &insightpath001
+        schema: &id003
           type: string
           format: uuid
       responses:
@@ -4339,8 +4339,8 @@ paths:
     delete:
       operationId: deleteInsight
       summary: deleteInsight
-      description: Patient-owned confirmed structured insight. Proposals remain in client
-        memory. This operation is never a model tool.
+      description: Patient-owned confirmed structured insight. Proposals remain in
+        client memory. This operation is never a model tool.
       security:
       - supabaseJWT: []
       parameters:
@@ -4356,7 +4356,7 @@ paths:
       - name: insight_id
         in: path
         required: true
-        schema: *insightpath001
+        schema: *id003
       responses:
         '401':
           description: Invalid or expired authentication
@@ -4521,13 +4521,13 @@ paths:
       - name: patient_id
         in: path
         required: true
-        schema: &pdfid001
+        schema: &id004
           type: string
           format: uuid
       - name: report_id
         in: path
         required: true
-        schema: *pdfid001
+        schema: *id004
       - name: disposition
         in: query
         schema:
@@ -4601,6 +4601,175 @@ paths:
       x-permission: same as listDoctorReports; repeat authorization before response;
         no raw transcript access
       x-idempotency: safe-read
+  /v1/companion:
+    get:
+      operationId: getCompanionContext
+      summary: getCompanionContext
+      security:
+      - supabaseJWT: []
+      x-permission: authenticated patient UI only; no model writes
+      responses:
+        '200':
+          description: Current patient companion state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanionContext'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-feature-flag: RE_COMPANION_V2_ENABLED
+    patch:
+      operationId: updateCompanionMemory
+      summary: updateCompanionMemory
+      security:
+      - supabaseJWT: []
+      x-permission: authenticated patient UI only; no model writes
+      responses:
+        '200':
+          description: Current patient companion state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanionContext'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanionMemoryUpdate'
+      x-feature-flag: RE_COMPANION_V2_ENABLED
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+  /v1/companion/daily-checkin:
+    post:
+      operationId: submitDailyCheckin
+      summary: submitDailyCheckin
+      security:
+      - supabaseJWT: []
+      x-permission: authenticated patient UI only; no model writes
+      responses:
+        '200':
+          description: Current patient companion state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanionContext'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyCheckinSubmit'
+      x-feature-flag: RE_COMPANION_V2_ENABLED
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
 components:
   securitySchemes:
     supabaseJWT:
@@ -4621,7 +4790,7 @@ components:
           minLength: 1
           maxLength: 300
         request_id: *id001
-        retryable: &id003
+        retryable: &id005
           type: boolean
       required:
       - code
@@ -4632,9 +4801,9 @@ components:
       type: object
       additionalProperties: false
       properties:
-        accepted: *id003
+        accepted: *id005
         resource_id: *id001
-        version: &id004
+        version: &id006
           type: integer
           minimum: 1
       required:
@@ -4646,7 +4815,7 @@ components:
       additionalProperties: false
       properties:
         source_id: *id001
-        source_revision: *id004
+        source_revision: *id006
       required:
       - source_id
       - source_revision
@@ -4698,7 +4867,7 @@ components:
           type: string
           minLength: 1
           maxLength: 80
-        clinician_verified: *id003
+        clinician_verified: *id005
         avatar:
           anyOf:
           - $ref: '#/components/schemas/AvatarCustomization'
@@ -4731,6 +4900,8 @@ components:
           items:
             $ref: '#/components/schemas/Observation'
           maxItems: 30
+        companion_context:
+          $ref: '#/components/schemas/CompanionContext'
       required:
       - patient_id
       - preferences
@@ -4773,18 +4944,18 @@ components:
           enum:
           - voice
           - text
-        version: *id004
-        created_at: &id005
+        version: *id006
+        created_at: &id007
           type: string
           format: date-time
         ended_at:
           anyOf:
-          - *id005
+          - *id007
           - type: 'null'
-        history_enabled: *id003
+        history_enabled: *id005
         current_connection_id:
           anyOf:
-          - *id006
+          - *id008
           - type: 'null'
       required:
       - session_id
@@ -4799,7 +4970,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        expected_version: *id004
+        expected_version: *id006
         state:
           type: string
           enum:
@@ -4822,8 +4993,8 @@ components:
           type: string
           minLength: 1
           maxLength: 120
-        connection_epoch: *id004
-        sequence: *id004
+        connection_epoch: *id006
+        sequence: *id006
         speaker:
           type: string
           enum:
@@ -4838,7 +5009,7 @@ components:
           enum:
           - voice_transcription
           - typed_text
-        event_at: *id005
+        event_at: *id007
         finality:
           type: string
           enum:
@@ -4864,7 +5035,7 @@ components:
           items:
             $ref: '#/components/schemas/TranscriptEvent'
           maxItems: 50
-        connection_id: *id006
+        connection_id: *id008
       required:
       - consent_grant_id
       - events
@@ -4908,7 +5079,7 @@ components:
       properties:
         summary_id: *id001
         session_id: *id001
-        version: *id004
+        version: *id006
         basis:
           type: string
           enum:
@@ -4955,7 +5126,7 @@ components:
           minimum: 0
           maximum: 24
           multipleOf: 0.01
-        observed_at: *id005
+        observed_at: *id007
         sources:
           type: array
           items:
@@ -4988,7 +5159,7 @@ components:
           minimum: 0
           maximum: 24
           multipleOf: 0.01
-        observed_at: *id005
+        observed_at: *id007
         state:
           type: string
           enum:
@@ -4996,7 +5167,7 @@ components:
           - confirmed
           - rejected
           - superseded
-        version: *id004
+        version: *id006
         supersedes_observation_id:
           anyOf:
           - *id001
@@ -5021,7 +5192,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        expected_version: *id004
+        expected_version: *id006
         decision:
           type: string
           enum:
@@ -5032,7 +5203,7 @@ components:
           minimum: 0
           maximum: 24
           multipleOf: 0.01
-        observed_at: *id005
+        observed_at: *id007
       required:
       - expected_version
       - decision
@@ -5040,13 +5211,13 @@ components:
       type: object
       additionalProperties: false
       properties:
-        expected_version: *id004
+        expected_version: *id006
         value:
           type: number
           minimum: 0
           maximum: 24
           multipleOf: 0.01
-        observed_at: *id005
+        observed_at: *id007
         reason:
           type: string
           minLength: 1
@@ -5098,7 +5269,7 @@ components:
       additionalProperties: false
       properties:
         activity_id: *id001
-        activity_version: *id004
+        activity_version: *id006
         kind:
           type: string
           enum:
@@ -5151,7 +5322,7 @@ components:
           type: string
           minLength: 1
           maxLength: 300
-        rank: *id004
+        rank: *id006
       required:
       - activity
       - reason
@@ -5162,7 +5333,7 @@ components:
       properties:
         recommendation_id: *id001
         session_id: *id001
-        expires_at: *id005
+        expires_at: *id007
         options:
           type: array
           items:
@@ -5180,7 +5351,7 @@ components:
         session_id: *id001
         recommendation_id: *id001
         activity_id: *id001
-        activity_version: *id004
+        activity_version: *id006
         selection_channel:
           type: string
           enum:
@@ -5200,18 +5371,18 @@ components:
         session_id: *id001
         recommendation_id: *id001
         activity_id: *id001
-        activity_version: *id004
+        activity_version: *id006
         state:
           type: string
           enum:
           - started
           - completed
           - abandoned
-        version: *id004
-        started_at: *id005
+        version: *id006
+        started_at: *id007
         ended_at:
           anyOf:
-          - *id005
+          - *id007
           - type: 'null'
       required:
       - activity_session_id
@@ -5228,7 +5399,7 @@ components:
       additionalProperties: false
       properties:
         client_event_id: *id001
-        expected_version: *id004
+        expected_version: *id006
         event_type:
           type: string
           enum:
@@ -5239,7 +5410,7 @@ components:
           type: integer
           minimum: 0
           maximum: 7200
-        event_at: *id005
+        event_at: *id007
       required:
       - client_event_id
       - expected_version
@@ -5291,7 +5462,7 @@ components:
       additionalProperties: false
       properties:
         assessment_id: *id001
-        version: *id004
+        version: *id006
         title:
           type: string
           minLength: 1
@@ -5336,8 +5507,8 @@ components:
           anyOf:
           - *id001
           - type: 'null'
-        assessment_version: *id004
-        answers: &id007
+        assessment_version: *id006
+        answers: &id009
           type: array
           items:
             type: object
@@ -5355,7 +5526,7 @@ components:
             - question_id
             - value
           maxItems: 20
-        observed_at: *id005
+        observed_at: *id007
       required:
       - session_id
       - assessment_version
@@ -5367,15 +5538,15 @@ components:
       properties:
         assessment_response_id: *id001
         assessment_id: *id001
-        assessment_version: *id004
+        assessment_version: *id006
         source_id: *id001
-        complete: *id003
+        complete: *id005
         title:
           type: string
           minLength: 1
           maxLength: 160
-        answers: *id007
-        observed_at: *id005
+        answers: *id009
+        observed_at: *id007
       required:
       - assessment_response_id
       - assessment_id
@@ -5389,16 +5560,18 @@ components:
       type: object
       additionalProperties: false
       properties:
-        period_start: *id005
-        period_end: *id005
+        period_start: *id007
+        period_end: *id007
         compare_previous:
           type: boolean
           default: false
-          description: Include prior equal-length evidence; clinician grants must cover its earliest date.
+          description: Include prior equal-length evidence; clinician grants must
+            cover its earliest date.
         regeneration_of:
           type: string
           format: uuid
-          description: Owned report of the same period; creates a new report ID/version, never replaces it.
+          description: Owned report of the same period; creates a new report ID/version,
+            never replaces it.
       required:
       - period_start
       - period_end
@@ -5414,7 +5587,7 @@ components:
           - ready
           - stale
           - failed
-        version: *id004
+        version: *id006
       required:
       - report_id
       - state
@@ -5472,23 +5645,24 @@ components:
       properties:
         report_id: *id001
         patient_id: *id001
-        version: *id004
+        version: *id006
         calculation_version:
           type: string
           minLength: 1
           maxLength: 40
-        period_start: *id005
-        period_end: *id005
+        period_start: *id007
+        period_end: *id007
         evidence_period_start:
           type: string
           format: date-time
-          description: Earliest included evidence window; retained after withdrawal to preserve consent bounds.
+          description: Earliest included evidence window; retained after withdrawal
+            to preserve consent bounds.
         timezone:
           type: string
           minLength: 1
           maxLength: 80
-        generated_at: *id005
-        data_cutoff: *id005
+        generated_at: *id007
+        data_cutoff: *id007
         state:
           type: string
           enum:
@@ -5578,7 +5752,7 @@ components:
           - pending
           - active
           - revoked
-        created_at: *id005
+        created_at: *id007
       required:
       - care_link_id
       - patient_id
@@ -5610,10 +5784,10 @@ components:
           anyOf:
           - *id001
           - type: 'null'
-        expires_at: *id005
+        expires_at: *id007
         data_from:
           anyOf:
-          - *id005
+          - *id007
           - type: 'null'
       required:
       - scope
@@ -5635,14 +5809,14 @@ components:
           anyOf:
           - *id001
           - type: 'null'
-        expires_at: *id005
+        expires_at: *id007
         data_from:
           anyOf:
-          - *id005
+          - *id007
           - type: 'null'
         revoked_at:
           anyOf:
-          - *id005
+          - *id007
           - type: 'null'
       required:
       - consent_grant_id
@@ -5682,8 +5856,8 @@ components:
           - open
           - acknowledged
           - resolved
-        version: *id004
-        created_at: *id005
+        version: *id006
+        created_at: *id007
         sources:
           type: array
           items:
@@ -5701,7 +5875,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        expected_version: *id004
+        expected_version: *id006
         state:
           type: string
           enum:
@@ -5762,7 +5936,7 @@ components:
             - energy
             - sleep_hours
           maxItems: 3
-        session_version: *id004
+        session_version: *id006
       required:
       - question_id
       - flow_version
@@ -5792,7 +5966,7 @@ components:
           minimum: 0
           maximum: 24
           multipleOf: 0.01
-        observed_at: *id005
+        observed_at: *id007
       required:
       - question_id
       - flow_version
@@ -5834,7 +6008,7 @@ components:
           minimum: 0
           maximum: 24
           multipleOf: 0.01
-        observed_at: *id005
+        observed_at: *id007
       required:
       - kind
       - value
@@ -5845,7 +6019,7 @@ components:
       properties:
         recommendation_id: *id001
         activity_id: *id001
-        activity_version: *id004
+        activity_version: *id006
       required:
       - recommendation_id
       - activity_id
@@ -5894,7 +6068,7 @@ components:
       additionalProperties: false
       properties:
         recovery_plan_id: *id001
-        version: *id004
+        version: *id006
         title:
           type: string
           minLength: 1
@@ -6005,7 +6179,7 @@ components:
           type: string
           minLength: 1
           maxLength: 40
-        expected_version: *id004
+        expected_version: *id006
       required:
       - question_id
       - flow_version
@@ -6028,7 +6202,7 @@ components:
           - $ref: '#/components/schemas/ToolArgs_propose_observation'
           - $ref: '#/components/schemas/ToolArgs_select_activity'
           - $ref: '#/components/schemas/ToolArgs_request_clinician_review'
-        connection_id: *id006
+        connection_id: *id008
       required:
       - tool_call_id
       - contract_version
@@ -6240,7 +6414,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        context_version: &id008
+        context_version: &id010
           type: integer
           minimum: 1
         summary:
@@ -6261,6 +6435,8 @@ components:
           - type: 'null'
         vision_access:
           const: none
+        companion_context:
+          $ref: '#/components/schemas/CompanionContext'
       required:
       - context_version
       - summary
@@ -6278,7 +6454,7 @@ components:
           enum:
           - voice
           - text
-        expected_version: *id008
+        expected_version: *id010
       required:
       - mode
       - expected_version
@@ -6286,31 +6462,31 @@ components:
       type: object
       additionalProperties: false
       properties:
-        session_id: *id006
-        connection_id: *id006
-        connection_epoch: *id008
-        provider: &id010
+        session_id: *id008
+        connection_id: *id008
+        connection_epoch: *id010
+        provider: &id012
           const: elevenlabs
-        agent_id: &id011
+        agent_id: &id013
           type: string
           minLength: 1
           maxLength: 200
-        agent_context: &id012
+        agent_context: &id014
           $ref: '#/components/schemas/AgentContext'
-        connect_before: &id009
+        connect_before: &id011
           type: string
           format: date-time
-        credential_expires_at: &id013
+        credential_expires_at: &id015
           anyOf:
-          - *id009
+          - *id011
           - type: 'null'
-        privacy_policy_version: &id014
+        privacy_policy_version: &id016
           type: string
           minLength: 1
           maxLength: 80
-        camera_policy: &id015
+        camera_policy: &id017
           const: local_preview_only_no_transmission
-        tool_contract_version: &id016
+        tool_contract_version: &id018
           const: 2.0.0
         mode:
           const: voice
@@ -6346,17 +6522,17 @@ components:
       type: object
       additionalProperties: false
       properties:
-        session_id: *id006
-        connection_id: *id006
-        connection_epoch: *id008
-        provider: *id010
-        agent_id: *id011
-        agent_context: *id012
-        connect_before: *id009
-        credential_expires_at: *id013
-        privacy_policy_version: *id014
-        camera_policy: *id015
-        tool_contract_version: *id016
+        session_id: *id008
+        connection_id: *id008
+        connection_epoch: *id010
+        provider: *id012
+        agent_id: *id013
+        agent_context: *id014
+        connect_before: *id011
+        credential_expires_at: *id015
+        privacy_policy_version: *id016
+        camera_policy: *id017
+        tool_contract_version: *id018
         mode:
           const: text
         transport:
@@ -6391,9 +6567,9 @@ components:
       type: object
       additionalProperties: false
       properties:
-        connection_id: *id006
-        session_id: *id006
-        connection_epoch: *id008
+        connection_id: *id008
+        session_id: *id008
+        connection_epoch: *id010
         provider:
           const: elevenlabs
         mode:
@@ -6420,8 +6596,8 @@ components:
             minLength: 1
             maxLength: 200
           - type: 'null'
-        context_version: *id008
-        version: *id008
+        context_version: *id010
+        version: *id010
       required:
       - connection_id
       - session_id
@@ -6437,7 +6613,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        expected_version: *id008
+        expected_version: *id010
         state:
           type: string
           enum:
@@ -6491,13 +6667,13 @@ components:
       type: object
       additionalProperties: false
       properties:
-        session_id: &insightschema001
+        session_id: &id019
           anyOf:
-          - &insightschema007
+          - &id025
             type: string
             format: uuid
           - type: 'null'
-        theme: &insightschema002
+        theme: &id020
           type: string
           enum:
           - fatigue
@@ -6507,19 +6683,19 @@ components:
           - clinician_question
           - reflection
           - goal
-        text: &insightschema003
+        text: &id021
           type: string
           minLength: 1
           maxLength: 500
-        observed_at: &insightschema004
+        observed_at: &id022
           type: string
           format: date-time
-        statement_kind: &insightschema005
+        statement_kind: &id023
           type: string
           enum:
           - direct_statement
           - patient_approved_interpretation
-        confirmation: &insightschema006
+        confirmation: &id024
           const: true
       required:
       - session_id
@@ -6532,12 +6708,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        session_id: *insightschema001
-        theme: *insightschema002
-        text: *insightschema003
-        observed_at: *insightschema004
-        statement_kind: *insightschema005
-        confirmation: *insightschema006
+        session_id: *id019
+        theme: *id020
+        text: *id021
+        observed_at: *id022
+        statement_kind: *id023
+        confirmation: *id024
         expected_version:
           type: integer
           minimum: 1
@@ -6558,14 +6734,14 @@ components:
       type: object
       additionalProperties: false
       properties:
-        session_id: *insightschema001
-        theme: *insightschema002
-        text: *insightschema003
-        observed_at: *insightschema004
-        statement_kind: *insightschema005
-        insight_id: *insightschema007
-        patient_id: *insightschema007
-        confirmed_at: *insightschema004
+        session_id: *id019
+        theme: *id020
+        text: *id021
+        observed_at: *id022
+        statement_kind: *id023
+        insight_id: *id025
+        patient_id: *id025
+        confirmed_at: *id022
         version:
           type: integer
           minimum: 1
@@ -6574,7 +6750,7 @@ components:
           enum:
           - confirmed
           - superseded
-        supersedes_insight_id: *insightschema001
+        supersedes_insight_id: *id019
         sources:
           type: array
           items:
@@ -6647,7 +6823,7 @@ components:
         id:
           type: string
           maxLength: 100
-        record_id: &docid001
+        record_id: &id026
           type: string
           format: uuid
         kind:
@@ -6657,12 +6833,12 @@ components:
           - insight
           - observation
           - questionnaire
-        date: &docid002
+        date: &id027
           type: string
           format: date-time
         source_ids:
           type: array
-          items: *docid001
+          items: *id026
           maxItems: 20
         label:
           type: string
@@ -6674,7 +6850,7 @@ components:
           - type: 'null'
         value:
           anyOf:
-          - &docid005
+          - &id030
             type: number
           - type: 'null'
         unit:
@@ -6716,11 +6892,11 @@ components:
           items:
             $ref: '#/components/schemas/ReportEvidence'
           maxItems: 1600
-        current_start: *docid002
-        current_end: *docid002
+        current_start: *id027
+        current_end: *id027
         previous_start:
           anyOf:
-          - *docid002
+          - *id027
           - type: 'null'
         timezone:
           type: string
@@ -6729,31 +6905,31 @@ components:
           type: object
           additionalProperties: false
           properties:
-            current: &docid004
+            current: &id029
               type: object
               additionalProperties: false
               properties:
                 counts:
                   type: object
-                  additionalProperties: &docid003
+                  additionalProperties: &id028
                     type: integer
                     minimum: 0
-                active_days: *docid003
+                active_days: *id028
                 themes:
                   type: object
-                  additionalProperties: *docid003
+                  additionalProperties: *id028
               required:
               - counts
               - active_days
               - themes
             previous:
               anyOf:
-              - *docid004
+              - *id029
               - type: 'null'
           required:
           - current
           - previous
-        authorization_start: *docid002
+        authorization_start: *id027
       required:
       - evidence
       - current_start
@@ -6770,7 +6946,7 @@ components:
           type: string
           maxLength: 120
         section:
-          enum: &docid006
+          enum: &id031
           - overview
           - experiences
           - themes
@@ -6823,7 +6999,7 @@ components:
               label:
                 type: string
                 maxLength: 100
-              value: *docid005
+              value: *id030
               evidence_ids:
                 type: array
                 items:
@@ -6856,7 +7032,7 @@ components:
           const: editorial-v1
         evidence_snapshot_version:
           const: 1
-        evidence_snapshot_id: &docid007
+        evidence_snapshot_id: &id032
           type: string
           pattern: ^[0-9a-f]{64}$
         snapshot:
@@ -6878,7 +7054,7 @@ components:
             additionalProperties: false
             properties:
               id:
-                enum: *docid006
+                enum: *id031
               patient_title:
                 type: string
                 maxLength: 150
@@ -6892,9 +7068,9 @@ components:
           maxItems: 9
         regeneration_of:
           anyOf:
-          - *docid001
+          - *id026
           - type: 'null'
-        content_hash: *docid007
+        content_hash: *id032
       required:
       - schema_version
       - report_type
@@ -6908,3 +7084,122 @@ components:
       - sections
       - regeneration_of
       - content_hash
+    DailyCheckinState:
+      type: object
+      additionalProperties: false
+      properties:
+        local_day:
+          type: string
+          format: date
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 80
+        state:
+          type: string
+          enum:
+          - available
+          - declined
+          - completed
+        version: &id033
+          type: integer
+          minimum: 1
+        invitation_allowed:
+          type: boolean
+      required:
+      - local_day
+      - timezone
+      - state
+      - version
+      - invitation_allowed
+    CompanionContext:
+      type: object
+      additionalProperties: false
+      properties:
+        relationship_status:
+          type: string
+          enum:
+          - new
+          - returning
+          - unknown
+        memory_enabled:
+          type: boolean
+        version: *id033
+        daily_checkin:
+          $ref: '#/components/schemas/DailyCheckinState'
+        confirmed_notes:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/ConfirmedInsight'
+        recent_observations:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Observation'
+      required:
+      - relationship_status
+      - memory_enabled
+      - version
+      - daily_checkin
+      - confirmed_notes
+      - recent_observations
+    CompanionMemoryUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        memory_enabled:
+          type: boolean
+        expected_version: *id033
+      required:
+      - memory_enabled
+      - expected_version
+    DailyCheckinValues:
+      type: object
+      additionalProperties: false
+      properties:
+        mood:
+          type: number
+          minimum: 0
+          maximum: 10
+          multipleOf: 0.01
+        energy:
+          type: number
+          minimum: 0
+          maximum: 10
+          multipleOf: 0.01
+        sleep_hours:
+          type: number
+          minimum: 0
+          maximum: 24
+          multipleOf: 0.01
+      required:
+      - mood
+      - energy
+      - sleep_hours
+    DailyCheckinSubmit:
+      type: object
+      additionalProperties: false
+      properties:
+        local_day:
+          type: string
+          format: date
+        expected_version: *id033
+        decision:
+          type: string
+          enum:
+          - confirm
+          - decline
+        confirmation:
+          type: boolean
+        values:
+          $ref: '#/components/schemas/DailyCheckinValues'
+        session_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+      required:
+      - local_day
+      - expected_version
+      - decision

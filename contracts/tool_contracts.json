@@ -482,6 +482,9 @@
             "$ref": "#/$defs/Observation"
           },
           "maxItems": 30
+        },
+        "companion_context": {
+          "$ref": "#/$defs/CompanionContext"
         }
       },
       "required": [
@@ -2970,6 +2973,9 @@
         },
         "vision_access": {
           "const": "none"
+        },
+        "companion_context": {
+          "$ref": "#/$defs/CompanionContext"
         }
       },
       "required": [
@@ -3359,6 +3365,279 @@
       "required": [
         "items",
         "next_cursor"
+      ]
+    },
+    "DailyCheckinState": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "local_day": {
+          "type": "string",
+          "format": "date"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "available",
+            "declined",
+            "completed"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "invitation_allowed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "local_day",
+        "timezone",
+        "state",
+        "version",
+        "invitation_allowed"
+      ]
+    },
+    "CompanionContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "relationship_status": {
+          "type": "string",
+          "enum": [
+            "new",
+            "returning",
+            "unknown"
+          ]
+        },
+        "memory_enabled": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "daily_checkin": {
+          "$ref": "#/$defs/DailyCheckinState"
+        },
+        "confirmed_notes": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/ConfirmedInsight"
+          }
+        },
+        "recent_observations": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/$defs/Observation"
+          }
+        }
+      },
+      "required": [
+        "relationship_status",
+        "memory_enabled",
+        "version",
+        "daily_checkin",
+        "confirmed_notes",
+        "recent_observations"
+      ]
+    },
+    "CompanionMemoryUpdate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "memory_enabled": {
+          "type": "boolean"
+        },
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "memory_enabled",
+        "expected_version"
+      ]
+    },
+    "DailyCheckinValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mood": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "multipleOf": 0.01
+        },
+        "energy": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "multipleOf": 0.01
+        },
+        "sleep_hours": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 24,
+          "multipleOf": 0.01
+        }
+      },
+      "required": [
+        "mood",
+        "energy",
+        "sleep_hours"
+      ]
+    },
+    "DailyCheckinSubmit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "local_day": {
+          "type": "string",
+          "format": "date"
+        },
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "confirm",
+            "decline"
+          ]
+        },
+        "confirmation": {
+          "type": "boolean"
+        },
+        "values": {
+          "$ref": "#/$defs/DailyCheckinValues"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "local_day",
+        "expected_version",
+        "decision"
+      ]
+    },
+    "ConfirmedInsight": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "theme": {
+          "type": "string",
+          "enum": [
+            "fatigue",
+            "sleep",
+            "positive_experience",
+            "concern",
+            "clinician_question",
+            "reflection",
+            "goal"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "statement_kind": {
+          "type": "string",
+          "enum": [
+            "direct_statement",
+            "patient_approved_interpretation"
+          ]
+        },
+        "insight_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "confirmed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "confirmed",
+            "superseded"
+          ]
+        },
+        "supersedes_insight_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "minItems": 1,
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "session_id",
+        "theme",
+        "text",
+        "observed_at",
+        "statement_kind",
+        "insight_id",
+        "patient_id",
+        "confirmed_at",
+        "version",
+        "state",
+        "supersedes_insight_id",
+        "sources"
       ]
     }
   },

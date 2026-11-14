@@ -11,3 +11,12 @@ uv run --directory backend python -m app.migrate --migration 0002_confirmed_insi
 ```
 
 Do not rerun the baseline on an existing service. Runtime PostgreSQL schemas are never auto-created. The insight API and new report generation require migration 0002; old stored report reads remain compatible. Deletion removes approved text from its whole correction lineage and stored report payloads, preserving only metadata tombstones/audit IDs. Database backups follow the operator's independent retention policy; deletion here does not promise immediate backup erasure.
+
+
+`0003_companion_continuity.sql` adds backend-owned relationship state, explicit memory preference and once-per-patient-local-day check-in uniqueness. It stores no raw conversation history. Apply only after 0001 and 0002 have been recorded in the migration ledger:
+
+```sh
+uv run --directory backend python -m app.migrate --migration 0003_companion_continuity.sql
+```
+
+V2 API readiness requires these tables only when `RE_COMPANION_V2_ENABLED=true`. Keep that flag off until migration and the matching mobile client have been validated. This migration was tested on disposable PostgreSQL; it has **not** been applied to the configured Tiger Data production service. For a pre-ledger populated database, review existing DDL and the migration runner's explicit adoption options first; never rerun the baseline blindly.
