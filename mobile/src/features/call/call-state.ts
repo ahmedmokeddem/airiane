@@ -11,6 +11,10 @@ export function nextCompanionState(
   current: CompanionState,
   event: AgentEvent,
 ): CompanionState {
+  // SDK mode/transcript callbacks can arrive after disconnection. They must not
+  // make a closed call appear to be listening or hide its reconnect control.
+  if (current === "disconnected" && !["connecting", "connected", "disconnected", "error"].includes(event.type))
+    return current;
   switch (event.type) {
     case "connected":
       return "listening";
@@ -33,10 +37,10 @@ export function nextCompanionState(
 }
 export const stateLabels: Record<CompanionState, string> = {
   idle: "A little space for you",
-  connecting: "Connecting with RE…",
+  connecting: "Connecting with AIriane…",
   listening: "Listening with presence",
   thinking: "Taking a moment…",
-  speaking: "RE is speaking",
+  speaking: "AIriane is speaking",
   interrupted: "Take your time",
   disconnected: "Call ended",
 };

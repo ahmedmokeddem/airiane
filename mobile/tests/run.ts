@@ -24,3 +24,7 @@ import "./assessment.test";
 import "./nudges.test";
 
 import "./native-playback.test";
+
+import "./session-recovery.test";
+
+import "./product-loading.test";

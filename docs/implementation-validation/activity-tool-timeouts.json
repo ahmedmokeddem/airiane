@@ -1,0 +1,21 @@
+{
+  "agent": "AIriane V2",
+  "tools": [
+    {
+      "name": "present_activity_recommendations",
+      "before_seconds": 1,
+      "after_seconds": 45,
+      "saved_readback_verified": true
+    },
+    {
+      "name": "select_activity",
+      "before_seconds": 1,
+      "after_seconds": 45,
+      "saved_readback_verified": true
+    }
+  ],
+  "shared_with_other_agents": false,
+  "agent_platform_settings_unchanged": true,
+  "original_agent_untouched": true,
+  "patient_content_collected": false
+}

@@ -1,3 +1,4 @@
+import { loadSection } from "./load-section";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { mode, request } from "../../integration/api";
 import type { DTO } from "../../integration/types";
@@ -21,12 +22,14 @@ export function useProductData(signedIn: boolean) {
     useState<MedicationReminder | null>(null);
   const [hasConnectedDoctor, setHasConnectedDoctor] = useState<boolean>(true);
   const [streak, setStreak] = useState<DTO<"RecoveryStreak"> | null>(null);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const refresh = useCallback(async () => {
     if (!signedIn) return;
     const current = ++epoch.current;
     setLoading(true);
+    setActivitiesLoading(true);
     setError("");
     if (mode === "mock") {
       setActivities(
@@ -42,28 +45,23 @@ export function useProductData(signedIn: boolean) {
       });
       setInsights([]);
       setLoading(false);
+      setActivitiesLoading(false);
       return;
     }
+    const isCurrent = () => epoch.current === current;
     const results = await Promise.allSettled([
-      request<DTO<"Me">>("/me"),
-      request<{ items: DTO<"Activity">[] }>("/activities"),
-      request<DTO<"ConfirmedInsightPage">>("/confirmed-insights"),
-      request<{ reminder: MedicationReminder | null }>("/me/medication-reminder"),
-      request<DTO<"CareLinkPage">>("/care-links"),
-      request<DTO<"RecoveryStreak">>("/me/recovery-streak"),
+      loadSection(request<DTO<"Me">>("/me"), isCurrent, setProfile),
+      loadSection(request<{ items: DTO<"Activity">[] }>("/activities"), isCurrent,
+        value => setActivities(value.items), () => setActivitiesLoading(false)),
+      loadSection(request<DTO<"ConfirmedInsightPage">>("/confirmed-insights"), isCurrent,
+        value => setInsights(value.items)),
+      loadSection(request<{ reminder: MedicationReminder | null }>("/me/medication-reminder"), isCurrent,
+        value => setMedicationReminder(value.reminder)),
+      loadSection(request<DTO<"CareLinkPage">>("/care-links"), isCurrent,
+        value => setHasConnectedDoctor(value.items.some(l => l.state === "active"))),
+      loadSection(request<DTO<"RecoveryStreak">>("/me/recovery-streak"), isCurrent, setStreak),
     ]);
-    if (epoch.current !== current) return;
-    if (results[0].status === "fulfilled") setProfile(results[0].value);
-    if (results[1].status === "fulfilled")
-      setActivities(results[1].value.items);
-    if (results[2].status === "fulfilled") setInsights(results[2].value.items);
-    if (results[3].status === "fulfilled")
-      setMedicationReminder(results[3].value.reminder);
-    if (results[4].status === "fulfilled")
-      setHasConnectedDoctor(
-        results[4].value.items.some((l) => l.state === "active"),
-      );
-    if (results[5].status === "fulfilled") setStreak(results[5].value);
+    if (!isCurrent()) return;
     if (results.slice(0, 3).some((r) => r.status === "rejected"))
       setError(
         "Some saved records could not be loaded. Please refresh to try again.",
@@ -80,6 +78,7 @@ export function useProductData(signedIn: boolean) {
       // Authentication owns this cache; clear another patient's visible records on sign-out.
       setProfile(null);
       setActivities([]);
+      setActivitiesLoading(false);
       setInsights([]);
       setMedicationReminder(null);
       setHasConnectedDoctor(true);
@@ -97,6 +96,7 @@ export function useProductData(signedIn: boolean) {
     hasConnectedDoctor,
     streak,
     loading,
+    activitiesLoading: activitiesLoading && activities.length === 0,
     error,
     refresh,
   };

@@ -70,3 +70,15 @@ def test_creation_refuses_unimplemented_client_tools_and_missing_prompt():
         prepare(original, "Reviewed prompt")
     with pytest.raises(ValueError, match="complete reviewed"):
         prepare(source(), " ")
+
+
+def test_activity_tool_waits_cover_backend_and_ui_without_changing_source():
+    original = source()
+    for tool in original["conversation_config"]["agent"]["prompt"]["tools"]:
+        tool["response_timeout_secs"] = 1
+    snapshot = copy.deepcopy(original)
+    _, tools = prepare(original, "Reviewed prompt")
+    assert original == snapshot
+    for tool in tools:
+        if tool["name"] in {"present_activity_recommendations", "select_activity"}:
+            assert tool["response_timeout_secs"] == 45

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentRef } from "react";
 import {
   Alert,
   AppState,
@@ -61,8 +61,20 @@ type Props = {
 };
 export function CallScreen(p: Props) {
   const router = useRouter();
+  const panels = useRef<ComponentRef<typeof ScrollView>>(null);
+  const choices = useRef<ComponentRef<typeof ScrollView>>(null);
+  const [choicePosition, setChoicePosition] = useState({ id: "", index: 0 });
+  useEffect(() => {
+    if (p.recommendation) {
+      panels.current?.scrollTo({y:0,animated:false});
+      choices.current?.scrollTo({x:0,animated:false});
+    }
+  }, [p.recommendation]);
   const insets = useSafeAreaInsets();
   const { height, width } = useWindowDimensions();
+  const choiceWidth = Math.max(180, Math.min(width - 64, 380));
+  const choiceIndex = choicePosition.id === p.recommendation?.recommendation_id ? choicePosition.index : 0;
+  const [showChoiceCaptions, setShowChoiceCaptions] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
   // A disconnected native session must not reopen the route menu on retry.
   useEffect(() => {
@@ -204,15 +216,88 @@ export function CallScreen(p: Props) {
         )}
       </View>
       <View
-        style={[s.lower, { maxHeight: height * (p.inActivity ? 0.4 : 0.36) }]}
+        style={[s.lower, { maxHeight: height * (p.inActivity ? 0.4 : p.recommendation ? (showChoiceCaptions ? 0.5 : 0.42) : 0.36) }]}
       >
+          {!p.inActivity && !p.saved && p.recommendation && (
+            <View style={{gap:8,flexShrink:0}} testID="call-recommendation-carousel">
+              <Text style={s.overline}>
+                {p.recommendation.options.length ? "CHOOSE A MOMENT · SWIPE TO EXPLORE" : "NO CHOICES AVAILABLE RIGHT NOW"}
+              </Text>
+              <ScrollView
+                ref={choices}
+                horizontal
+                style={{height:210,flexGrow:0}}
+                snapToInterval={choiceWidth + 10}
+                decelerationRate="fast"
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{gap:10,paddingRight:20}}
+                onMomentumScrollEnd={event => setChoicePosition({
+                  id:p.recommendation!.recommendation_id,
+                  index:Math.max(0,Math.min(p.recommendation!.options.length-1,Math.round(event.nativeEvent.contentOffset.x/(choiceWidth+10)))),
+                })}
+              >
+                {p.recommendation.options.map(o => (
+                  <Pressable
+                    key={o.activity.activity_id}
+                    testID={`call-activity-${o.activity.activity_id}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Begin ${o.activity.title}, ${o.activity.duration_seconds/60} minutes. ${o.reason}`}
+                    disabled={p.busy || !p.connected}
+                    onPress={() => p.onSelect(o.activity.activity_id)}
+                    style={({pressed}) => [s.recommendation, {width:choiceWidth,flexDirection:"column",alignItems:"flex-start",gap:8}, pressed && s.pressed, (p.busy || !p.connected) && s.disabled]}
+                  >
+                    <View style={{flexDirection:"row",alignItems:"center",gap:12}}>
+                      <Text style={s.activitySymbol}>{activityCue(o.activity,0).symbol}</Text>
+                      <Text style={s.detail}>{o.activity.duration_seconds/60} min</Text>
+                    </View>
+                    <Text numberOfLines={2} style={[s.cardTitle,{fontSize:17}]}>{o.activity.title}</Text>
+                    <Text numberOfLines={2} style={s.detail}>{o.reason}</Text>
+                    <Text style={[s.detail,{color:"#a3eee2",marginTop:4}]}>Choose this activity ›</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+              {p.recommendation.options.length > 1 && (
+                <View style={{flexDirection:"row",alignItems:"center",justifyContent:"center"}}>
+                  {p.recommendation.options.map((o,index) => (
+                    <Pressable key={o.activity.activity_id}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Show activity ${index+1} of ${p.recommendation!.options.length}`}
+                      accessibilityState={{selected:index===choiceIndex}}
+                      onPress={() => {
+                        choices.current?.scrollTo({x:index*(choiceWidth+10),animated:true});
+                        setChoicePosition({id:p.recommendation!.recommendation_id,index});
+                      }}
+                      style={{width:44,height:36,alignItems:"center",justifyContent:"center"}}
+                    >
+                      <View style={{width:index===choiceIndex?18:6,height:6,borderRadius:3,backgroundColor:index===choiceIndex?"#a3eee2":"#516a7b"}} />
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+              <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
+                <Pressable accessibilityRole="button" accessibilityState={{expanded:showChoiceCaptions}}
+                  onPress={() => setShowChoiceCaptions(value=>!value)} style={{minHeight:44,justifyContent:"center",paddingHorizontal:8}}>
+                  <Text style={s.detail}>{showChoiceCaptions ? "Hide captions" : "Show captions"}</Text>
+                </Pressable>
+                {p.activity?.state === "started" && (
+                  <Pressable accessibilityRole="button" onPress={() => router.push("/breathing")}
+                    style={{minHeight:44,justifyContent:"center",paddingHorizontal:8}}>
+                    <Text style={s.detail}>Resume current activity</Text>
+                  </Pressable>
+                )}
+              </View>
+            </View>
+          )}
         <ScrollView
+          ref={panels}
+          style={{flexShrink:1,flexGrow:0,marginTop:p.recommendation?10:0}}
           contentContainerStyle={s.panels}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator
+          indicatorStyle="white"
           keyboardShouldPersistTaps="handled"
         >
           {p.reviewPanel}
-          {!!lastCaption && !p.inActivity && (
+          {!!lastCaption && !p.inActivity && (!p.recommendation || showChoiceCaptions) && (
             <View style={s.caption}>
               <Text style={s.overline}>AIriane</Text>
               <Text numberOfLines={3} style={s.captionText}>
@@ -403,7 +488,7 @@ export function CallScreen(p: Props) {
               </Text>
             </View>
           )}
-          {!p.inActivity && p.activity?.state === "started" && (
+          {!p.inActivity && !p.recommendation && p.activity?.state === "started" && (
             <Pressable
               testID="call-resume-activity"
               accessibilityRole="button"
@@ -418,36 +503,6 @@ export function CallScreen(p: Props) {
               <Text style={s.chevron}>›</Text>
             </Pressable>
           )}
-          {!p.inActivity &&
-            !p.saved &&
-            p.recommendation?.options.map((o) => (
-              <Pressable
-                key={o.activity.activity_id}
-                testID={`call-activity-${o.activity.activity_id}`}
-                accessibilityRole="button"
-                accessibilityLabel={`Begin ${o.activity.title}`}
-                disabled={p.busy || !p.connected}
-                onPress={() => p.onSelect(o.activity.activity_id)}
-                style={({ pressed }) => [
-                  s.recommendation,
-                  pressed && s.pressed,
-                  p.busy && s.disabled,
-                ]}
-              >
-                <View style={s.activityIcon}>
-                  <Text style={s.activitySymbol}>
-                    {activityCue(o.activity, 0).symbol}
-                  </Text>
-                </View>
-                <View style={{ flex: 1, gap: 4 }}>
-                  <Text style={s.cardTitle}>{o.activity.title}</Text>
-                  <Text style={s.detail}>
-                    {o.activity.duration_seconds / 60} min · {o.reason}
-                  </Text>
-                </View>
-                <Text style={s.chevron}>›</Text>
-              </Pressable>
-            ))}
           {(!!p.error || !!camera.error) && (
             <View style={s.caption}>
               <Text accessibilityRole="alert" style={s.error}>
@@ -485,7 +540,7 @@ export function CallScreen(p: Props) {
           >
             <Text style={s.cardTitle}>Call audio</Text>
             <Text style={s.detail}>
-              Choose where you hear RE. Headset microphone support depends on
+              Choose where you hear AIriane. Headset microphone support depends on
               your device.
             </Text>
             {["auto", ...routes.outputs].map((id) => (

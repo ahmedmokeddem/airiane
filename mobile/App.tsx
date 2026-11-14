@@ -1,3 +1,4 @@
+import { sessionForConnection } from "./src/integration/session-recovery";
 import "./src/features/opening/splash";
 import {CompanionControls} from "./src/features/companion/companion-controls";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -318,6 +319,8 @@ export default function App() {
       (r) =>
         new Promise<void>((resolve) => {
           renderAck.current = resolve;
+          setSavedInCall(false);
+          if (voiceCallRef.current) setScreen("voice");
           setRec(r);
         }),
       (a) => {
@@ -502,8 +505,20 @@ export default function App() {
     setMuted(false);
     if (kind === "voice") await requestVoicePermissions();
     if (epoch !== connectEpoch.current) return;
-    const s = await ensureSession(kind);
+    const s = realVoice && mode === "live"
+      ? await sessionForConnection(
+          session,
+          id => request<Session>(`/conversation-sessions/${id}`),
+          () => api.session(kind),
+        )
+      : await ensureSession(kind);
     if (epoch !== connectEpoch.current) return;
+    if (realVoice && mode === "live") {
+      if (session && s.session_id !== session.session_id) setRec(null);
+      setSession(s);
+      sessionRef.current = s;
+      makeBridge(s);
+    }
     if (!realVoice) {
       setConnected(true);
       setCallState("listening");
@@ -515,13 +530,11 @@ export default function App() {
       throw new Error(
         "ElevenLabs requires live FastAPI bootstrap; mock backend cannot issue credentials.",
       );
-    // Refresh because session version changes when provider connections are provisioned.
-    const fresh = await request<Session>(
-      `/conversation-sessions/${s.session_id}`,
-    );
+    // Recovery returned a freshly read or newly created session. Bootstrap still
+    // validates its version atomically; no duplicate GET is needed here.
     const b = await request<Bootstrap>(
       `/conversation-sessions/${s.session_id}/agent-connections`,
-      { mode: kind, expected_version: fresh.version },
+      { mode: kind, expected_version: s.version },
     );
     if (epoch !== connectEpoch.current) {
       await request(
@@ -1133,7 +1146,7 @@ export default function App() {
               profile={product.profile}
               activities={product.activities}
               journey={journey}
-              busy={busy || product.loading}
+              busy={busy}
               onText={openText}
               onVoice={() => void run(() => openConversation("voice"))}
               onActivities={() => setScreen("activities")}
@@ -1189,7 +1202,6 @@ export default function App() {
                     <Button secondary label="Switch without a recap" disabled={busy} onPress={()=>{setHandoffDraft(null);void run(()=>openConversation('voice'));}}/>
                     <Button secondary label="Keep chatting here" disabled={busy} onPress={()=>setHandoffDraft(null)}/>
                   </View>}
-                  {process.env.EXPO_PUBLIC_COMPANION_V2 === 'true' && <CompanionControls sessionId={session?.session_id ?? null} onChanged={()=>void refreshCompanionContext().catch(()=>{})}/>}
                   {reviewPanel}
                   {!connected && !busy && (
                     <Button label="Connect conversation" onPress={openText} />
@@ -1202,7 +1214,7 @@ export default function App() {
           {screen === "activities" && (
             <ActivitiesScreen
               activities={product.activities}
-              busy={busy || product.loading}
+              busy={busy || product.activitiesLoading}
               onBegin={(id) => void run(() => beginActivity(id))}
               onRefresh={() => void product.refresh()}
               error={product.error}
