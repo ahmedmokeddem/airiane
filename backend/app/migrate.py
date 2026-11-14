@@ -32,9 +32,24 @@ async def apply(connection, name, *, adopt=False, check=False):
         target = {
             "0001_baseline.sql": "re.users",
             "0002_confirmed_insights.sql": "re.confirmed_insights",
-            "0003_companion_continuity.sql": "re.companion_state",
+            "0004_companion_continuity.sql": "re.companion_state",
+            "0003_clinical_questionnaires.sql": "re.assessment_definitions",
+            "0005_medication_reminders.sql": "re.medication_reminders",
         }[name]
         exists = await connection.fetchval("SELECT to_regclass($1)", target)
+        if name == "0003_clinical_questionnaires.sql":
+            # This migration alters existing tables rather than creating its target.
+            exists = (
+                bool(exists)
+                and not await connection.fetchval(
+                    "SELECT 1 FROM pg_constraint WHERE conrelid='re.assessment_definitions'::regclass "
+                    "AND conname='assessment_definitions_clinical_instrument_check'"
+                )
+                and await connection.fetchval(
+                    "SELECT is_nullable='YES' FROM information_schema.columns "
+                    "WHERE table_schema='re' AND table_name='alert_recipients' AND column_name='consent_grant_id'"
+                )
+            )
         if exists and not adopt:
             raise RuntimeError(
                 "Existing untracked schema: review it before explicit --adopt-existing; baseline will not be rerun"
@@ -48,7 +63,7 @@ async def apply(connection, name, *, adopt=False, check=False):
             )
         ):
             raise RuntimeError("Apply or explicitly adopt the baseline first")
-        if name == "0003_companion_continuity.sql" and (
+        if name == "0004_companion_continuity.sql" and (
             not ledger
             or not await connection.fetchval(
                 "SELECT 1 FROM public.airiane_schema_migrations WHERE name='0002_confirmed_insights.sql'"
@@ -74,7 +89,15 @@ async def apply(connection, name, *, adopt=False, check=False):
                 else (
                     ["confirmed_insights"]
                     if name == "0002_confirmed_insights.sql"
-                    else ["companion_state", "daily_checkins"]
+                    else (
+                        ["assessment_definitions", "alert_recipients"]
+                        if name == "0003_clinical_questionnaires.sql"
+                        else (
+                            ["medication_reminders"]
+                            if name == "0005_medication_reminders.sql"
+                            else ["companion_state", "daily_checkins"]
+                        )
+                    )
                 )
             )
             for table in required:
@@ -108,7 +131,9 @@ async def main():
         choices=[
             "0001_baseline.sql",
             "0002_confirmed_insights.sql",
-            "0003_companion_continuity.sql",
+            "0003_clinical_questionnaires.sql",
+            "0004_companion_continuity.sql",
+            "0005_medication_reminders.sql",
         ],
     )
     parser.add_argument(

@@ -1,4 +1,5 @@
 import { ReportDocument } from './report-document';
+import { AssessmentResults } from './assessment-results';
 import type { Report } from '@/lib/types';
 import { confirmedInsights, metricLabel, metricUnit, observationSeries, reportOverview } from '@/lib/report-presentation';
 const date = (value: string, timezone: string) => new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeZone: timezone }).format(new Date(value));
@@ -8,12 +9,12 @@ function Sources({ sources }: { sources: Source[] }) {
   return <details className="evidence"><summary>{sources.length ? `${sources.length} supporting source reference${sources.length === 1 ? '' : 's'}` : 'No linked evidence supplied'}</summary>{sources.length > 0 && <ul>{sources.map(source => <li key={`${source.source_id}-${source.source_revision}`}><code>{source.source_id}</code> · revision {source.source_revision}</li>)}</ul>}</details>;
 }
 export function ReportView({ report }: { report: Report }) {
-  if(report.document && report.state==='ready')return <ReportDocument report={report}/>;
+  if(report.document && report.state==='ready')return <><AssessmentResults report={report}/><ReportDocument report={report}/></>;
   const { confirmed, completed, assessmentCount } = reportOverview(report);
   const series = observationSeries(report);
   const insights = confirmedInsights(report);
   const feedbackByActivity = new Map(report.feedback.map(item => [item.activity_session_id, item]));
-  return <article className="report" aria-labelledby="report-title">
+  return <><AssessmentResults report={report}/><article className="report" aria-labelledby="report-title">
     <header className="report-heading"><div><p className="subtle">Patient-shared report</p><h2 id="report-title">A shared picture of this period</h2><p>{date(report.period_start, report.timezone)} – {date(report.period_end, report.timezone)}</p></div><span className="status">{report.state === 'stale' ? 'Saved report · refresh pending' : 'Ready to review'}</span></header>
     <div className="report-summary"><div><strong>{completed.length}</strong><span>Completed activities</span></div><div><strong>{report.feedback.length}</strong><span>Patient feedback records</span></div><div><strong>{confirmed.length}</strong><span>Confirmed observations</span></div></div>
     <section><h3>Overview & coverage</h3><p className="report-intro">This report brings together records the patient chose to share. Activity participation and self-reported values describe this period; they do not establish treatment effectiveness or a diagnosis.</p><dl className="coverage-grid"><div><dt>Self-reported observations</dt><dd>{confirmed.length ? `${confirmed.length} confirmed record${confirmed.length === 1 ? '' : 's'}` : 'Not recorded'}</dd></div><div><dt>Completed assessments</dt><dd>{assessmentCount || 'Not recorded'}</dd></div><div><dt>Record cut-off</dt><dd>{time(report.data_cutoff, report.timezone)}</dd></div><div><dt>Report basis</dt><dd>Stored records · deterministic aggregation</dd></div>{report.factual_overview && <><div><dt>Days with recorded activity</dt><dd>{report.factual_overview.active_days}</dd></div><div><dt>Coverage</dt><dd>{report.factual_overview.coverage_note}</dd></div></>}</dl></section>
@@ -24,5 +25,5 @@ export function ReportView({ report }: { report: Report }) {
     <section><h3>Reflections & questions for follow-up</h3>{insights.length ? <ul className="record-list">{insights.map(item => <li key={item.insight_id}><div className="record-heading"><h4>{item.theme.replaceAll('_', ' ')}</h4><span className="record-tag">{item.statement_kind === 'direct_statement' ? 'Direct patient statement' : 'Patient-approved interpretation'}</span></div><blockquote>{item.text}</blockquote><p>Reported {time(item.observed_at, report.timezone)} · confirmed {time(item.confirmed_at, report.timezone)}</p><Sources sources={item.sources}/></li>)}</ul> : <p className="empty">No patient-confirmed reflections, goals or questions were recorded in this period. None have been inferred from conversation.</p>}</section>
     <aside className="limitations"><h3>Limits of this shared view</h3><ul>{report.limitations.map(item => <li key={item}>{item}</li>)}</ul><p>Data coverage may be partial. This report does not provide emergency monitoring, a diagnosis or evidence of treatment causation.</p></aside>
     <footer className="report-footnote"><p>Generated {time(report.generated_at, report.timezone)} · Version {report.version} · {report.timezone}</p><p>Calculation method: {report.calculation_version}</p><Sources sources={report.sources}/></footer>
-  </article>;
+  </article></>;
 }

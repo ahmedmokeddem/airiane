@@ -2394,7 +2394,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-permission: patient owner; nonclinical demo definitions
+      x-permission: patient owner; versioned questionnaire definitions
       x-idempotency: safe-read
   /v1/assessments/{assessment_id}/responses:
     post:
@@ -3449,6 +3449,64 @@ paths:
       x-permission: same as listDoctorReports; repeat authorization before response;
         no raw transcript access
       x-idempotency: safe-read
+  /v1/me/recovery-streak:
+    get:
+      operationId: getMyRecoveryStreak
+      summary: getMyRecoveryStreak
+      description: Consecutive local calendar days with at least one completed activity.
+        Encouragement only; never a clinical measure.
+      security:
+      - supabaseJWT: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryStreak'
+      x-permission: patient owner
+      x-idempotency: safe-read
+  /v1/me/medication-reminder:
+    get:
+      operationId: getMyMedicationReminder
+      summary: getMyMedicationReminder
+      description: Read the active daily medication reminder set by a connected clinician,
+        if any.
+      security:
+      - supabaseJWT: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationReminderResponse'
+  /v1/doctor/patients/{patient_id}/medication-reminder:
+    post:
+      operationId: setDoctorMedicationReminder
+      summary: setDoctorMedicationReminder
+      description: Set or update a patient's daily medication reminder on an active
+        care link.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationReminderSet'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationReminder'
   /v1/doctor/patients/{patient_id}/alerts:
     get:
       operationId: listDoctorAlerts
@@ -3531,6 +3589,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       x-permission: verified clinician + active link + active alerts grant
+      x-idempotency: safe-read
+  /v1/doctor/patients/{patient_id}/alerts/{alert_id}/assessment:
+    get:
+      operationId: getDoctorAlertAssessment
+      summary: getDoctorAlertAssessment
+      description: The questionnaire a patient's positive Q9 sent to this doctor,
+        with every answer.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema: *id001
+      - name: alert_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: verified clinician + active care link + questionnaire alert delivered
+        to that link
       x-idempotency: safe-read
   /v1/doctor/patients/{patient_id}/alerts/{alert_id}:
     patch:
@@ -4883,7 +4981,9 @@ components:
       type: object
       additionalProperties: false
       properties:
-        patient_id: *id001
+        patient_id:
+          type: string
+          format: uuid
         preferences:
           $ref: '#/components/schemas/PatientPreferences'
         recovery_plan:
@@ -5309,6 +5409,12 @@ components:
           type: integer
           minimum: 1
           maximum: 3
+        preferred_activity_id:
+          description: Activity the patient chose from the catalog; ranked first when
+            it is active.
+          anyOf:
+          - *id001
+          - type: 'null'
       required:
       - session_id
       - limit
@@ -5468,7 +5574,31 @@ components:
           minLength: 1
           maxLength: 160
         clinical_instrument:
-          const: false
+          type: boolean
+          description: True for screening questionnaires approved by the product owner
+            (e.g. PHQ-9).
+        instructions:
+          type: string
+          minLength: 1
+          maxLength: 500
+        estimated_minutes:
+          type: integer
+          minimum: 1
+          maximum: 60
+        validated:
+          type: boolean
+          description: False when wording is adapted and the instrument's cut-offs
+            are indicative only.
+        note:
+          type: string
+          minLength: 1
+          maxLength: 500
+        citations:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 10
         questions:
           type: array
           items:
@@ -5487,12 +5617,38 @@ components:
                 type: integer
               maximum:
                 type: integer
+              options:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    value:
+                      type: integer
+                    label:
+                      type: string
+                      minLength: 1
+                      maxLength: 80
+                  required:
+                  - value
+                  - label
+                maxItems: 11
+              scored:
+                type: boolean
+                description: Whether the answer counts towards the total.
+              follow_up_of:
+                description: Asked only when this question's answer is above 0.
+                anyOf:
+                - type: string
+                  minLength: 1
+                  maxLength: 80
+                - type: 'null'
             required:
             - question_id
             - wording
             - minimum
             - maximum
-          maxItems: 20
+          maxItems: 30
       required:
       - assessment_id
       - version
@@ -5508,6 +5664,10 @@ components:
           - *id001
           - type: 'null'
         assessment_version: *id006
+        share_if_safety_concern:
+          type: boolean
+          description: The patient was told before starting that answering Q9 above
+            0 sends all answers to their connected doctor.
         answers: &id009
           type: array
           items:
@@ -5525,7 +5685,7 @@ components:
             required:
             - question_id
             - value
-          maxItems: 20
+          maxItems: 30
         observed_at: *id007
       required:
       - session_id
@@ -5547,6 +5707,46 @@ components:
           maxLength: 160
         answers: *id009
         observed_at: *id007
+        answer_details:
+          description: Every answer with its full question and the option the patient
+            chose.
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              question_id:
+                type: string
+                minLength: 1
+                maxLength: 80
+              wording:
+                type: string
+                minLength: 1
+                maxLength: 500
+              value:
+                type: integer
+              label:
+                type: string
+                minLength: 1
+                maxLength: 80
+              scored:
+                type: boolean
+            required:
+            - question_id
+            - wording
+            - value
+            - label
+            - scored
+          maxItems: 30
+        shared_with_doctor:
+          type: boolean
+          description: True when a positive Q9 sent these answers to a connected doctor.
+        result:
+          description: Deterministic scoring of the answers, or null for unscored
+            questionnaires.
+          anyOf:
+          - $ref: '#/components/schemas/AssessmentResult'
+          - type: 'null'
       required:
       - assessment_response_id
       - assessment_id
@@ -5556,6 +5756,146 @@ components:
       - title
       - answers
       - observed_at
+    AssessmentResult:
+      type: object
+      additionalProperties: false
+      description: Screening information for a clinician; not a diagnosis.
+      properties:
+        instrument:
+          type: string
+          enum:
+          - phq9
+          - bdi_themes
+        total:
+          type: integer
+          minimum: 0
+        max_total:
+          type: integer
+          minimum: 1
+        level: &id010
+          type: string
+          enum:
+          - low
+          - mild
+          - moderate
+          - high
+        severity:
+          type: string
+          minLength: 1
+          maxLength: 160
+        suggested_action:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 300
+          - type: 'null'
+        interpretation:
+          type: string
+          minLength: 1
+          maxLength: 600
+        patient_next_step:
+          description: Sheet2's suggested action, worded for the patient.
+          type: string
+          minLength: 1
+          maxLength: 300
+        bands:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              min:
+                type: integer
+              max:
+                type: integer
+              level: *id010
+              label:
+                type: string
+                minLength: 1
+                maxLength: 160
+            required:
+            - min
+            - max
+            - level
+            - label
+          maxItems: 6
+        functional_impairment:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 80
+          - type: 'null'
+        domains:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 80
+              description:
+                type: string
+                minLength: 1
+                maxLength: 200
+              questions:
+                type: array
+                items:
+                  type: string
+                  minLength: 1
+                  maxLength: 10
+                maxItems: 30
+              score:
+                type: integer
+                minimum: 0
+              max:
+                type: integer
+                minimum: 1
+            required:
+            - name
+            - description
+            - questions
+            - score
+            - max
+          maxItems: 10
+        safety:
+          type: object
+          additionalProperties: false
+          properties:
+            item_positive:
+              type: boolean
+            follow_up:
+              anyOf:
+              - type: string
+                enum:
+                - 'no'
+                - 'yes'
+                - declined
+              - type: 'null'
+          required:
+          - item_positive
+          - follow_up
+        validated:
+          type: boolean
+        note:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+      - instrument
+      - total
+      - max_total
+      - level
+      - severity
+      - suggested_action
+      - interpretation
+      - bands
+      - functional_impairment
+      - domains
+      - safety
+      - validated
+      - note
     ReportRequest:
       type: object
       additionalProperties: false
@@ -5884,6 +6224,58 @@ components:
       required:
       - expected_version
       - state
+    MedicationReminder:
+      type: object
+      additionalProperties: false
+      properties:
+        reminder_id: *id001
+        patient_id: *id001
+        clinician_id: *id001
+        message:
+          type: string
+          minLength: 1
+          maxLength: 240
+        schedule_time:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        active:
+          type: boolean
+        updated_at: *id007
+      required:
+      - reminder_id
+      - patient_id
+      - clinician_id
+      - message
+      - schedule_time
+      - active
+      - updated_at
+    MedicationReminderSet:
+      type: object
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 240
+        schedule_time:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        active:
+          type: boolean
+      required:
+      - message
+      - schedule_time
+      - active
+    MedicationReminderResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        reminder:
+          oneOf:
+          - $ref: '#/components/schemas/MedicationReminder'
+          - type: 'null'
+      required:
+      - reminder
     DoctorPatient:
       type: object
       additionalProperties: false
@@ -5902,11 +6294,46 @@ components:
             - reports
             - alerts
           maxItems: 2
+        streak_days:
+          type: integer
+          minimum: 0
+        attention:
+          $ref: '#/components/schemas/AttentionSignal'
       required:
       - patient_id
       - display_name
       - care_link_id
       - scopes
+    AttentionSignal:
+      type: object
+      additionalProperties: false
+      description: Transparent rule-based triage from data the patient currently shares.
+        Not a diagnosis or a relapse prediction.
+      properties:
+        flagged:
+          type: boolean
+        reasons:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 120
+          maxItems: 6
+      required:
+      - flagged
+      - reasons
+    RecoveryStreak:
+      type: object
+      additionalProperties: false
+      properties:
+        streak_days:
+          type: integer
+          minimum: 0
+        active_today:
+          type: boolean
+      required:
+      - streak_days
+      - active_today
     GuidedQuestion:
       type: object
       additionalProperties: false
@@ -6414,7 +6841,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        context_version: &id010
+        context_version:
           type: integer
           minimum: 1
         summary:
@@ -6454,7 +6881,9 @@ components:
           enum:
           - voice
           - text
-        expected_version: *id010
+        expected_version: &id011
+          type: integer
+          minimum: 1
       required:
       - mode
       - expected_version
@@ -6464,29 +6893,29 @@ components:
       properties:
         session_id: *id008
         connection_id: *id008
-        connection_epoch: *id010
-        provider: &id012
+        connection_epoch: *id011
+        provider: &id013
           const: elevenlabs
-        agent_id: &id013
+        agent_id: &id014
           type: string
           minLength: 1
           maxLength: 200
-        agent_context: &id014
+        agent_context: &id015
           $ref: '#/components/schemas/AgentContext'
-        connect_before: &id011
+        connect_before: &id012
           type: string
           format: date-time
-        credential_expires_at: &id015
+        credential_expires_at: &id016
           anyOf:
-          - *id011
+          - *id012
           - type: 'null'
-        privacy_policy_version: &id016
+        privacy_policy_version: &id017
           type: string
           minLength: 1
           maxLength: 80
-        camera_policy: &id017
+        camera_policy: &id018
           const: local_preview_only_no_transmission
-        tool_contract_version: &id018
+        tool_contract_version: &id019
           const: 2.0.0
         mode:
           const: voice
@@ -6524,15 +6953,15 @@ components:
       properties:
         session_id: *id008
         connection_id: *id008
-        connection_epoch: *id010
-        provider: *id012
-        agent_id: *id013
-        agent_context: *id014
-        connect_before: *id011
-        credential_expires_at: *id015
-        privacy_policy_version: *id016
-        camera_policy: *id017
-        tool_contract_version: *id018
+        connection_epoch: *id011
+        provider: *id013
+        agent_id: *id014
+        agent_context: *id015
+        connect_before: *id012
+        credential_expires_at: *id016
+        privacy_policy_version: *id017
+        camera_policy: *id018
+        tool_contract_version: *id019
         mode:
           const: text
         transport:
@@ -6569,7 +6998,7 @@ components:
       properties:
         connection_id: *id008
         session_id: *id008
-        connection_epoch: *id010
+        connection_epoch: *id011
         provider:
           const: elevenlabs
         mode:
@@ -6596,8 +7025,8 @@ components:
             minLength: 1
             maxLength: 200
           - type: 'null'
-        context_version: *id010
-        version: *id010
+        context_version: *id011
+        version: *id011
       required:
       - connection_id
       - session_id
@@ -6613,7 +7042,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        expected_version: *id010
+        expected_version: *id011
         state:
           type: string
           enum:
@@ -6667,13 +7096,13 @@ components:
       type: object
       additionalProperties: false
       properties:
-        session_id: &id019
+        session_id: &id020
           anyOf:
-          - &id025
+          - &id026
             type: string
             format: uuid
           - type: 'null'
-        theme: &id020
+        theme: &id021
           type: string
           enum:
           - fatigue
@@ -6683,19 +7112,19 @@ components:
           - clinician_question
           - reflection
           - goal
-        text: &id021
+        text: &id022
           type: string
           minLength: 1
           maxLength: 500
-        observed_at: &id022
+        observed_at: &id023
           type: string
           format: date-time
-        statement_kind: &id023
+        statement_kind: &id024
           type: string
           enum:
           - direct_statement
           - patient_approved_interpretation
-        confirmation: &id024
+        confirmation: &id025
           const: true
       required:
       - session_id
@@ -6708,12 +7137,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        session_id: *id019
-        theme: *id020
-        text: *id021
-        observed_at: *id022
-        statement_kind: *id023
-        confirmation: *id024
+        session_id: *id020
+        theme: *id021
+        text: *id022
+        observed_at: *id023
+        statement_kind: *id024
+        confirmation: *id025
         expected_version:
           type: integer
           minimum: 1
@@ -6734,14 +7163,14 @@ components:
       type: object
       additionalProperties: false
       properties:
-        session_id: *id019
-        theme: *id020
-        text: *id021
-        observed_at: *id022
-        statement_kind: *id023
-        insight_id: *id025
-        patient_id: *id025
-        confirmed_at: *id022
+        session_id: *id020
+        theme: *id021
+        text: *id022
+        observed_at: *id023
+        statement_kind: *id024
+        insight_id: *id026
+        patient_id: *id026
+        confirmed_at: *id023
         version:
           type: integer
           minimum: 1
@@ -6750,7 +7179,7 @@ components:
           enum:
           - confirmed
           - superseded
-        supersedes_insight_id: *id019
+        supersedes_insight_id: *id020
         sources:
           type: array
           items:
@@ -6823,7 +7252,7 @@ components:
         id:
           type: string
           maxLength: 100
-        record_id: &id026
+        record_id: &id027
           type: string
           format: uuid
         kind:
@@ -6833,12 +7262,12 @@ components:
           - insight
           - observation
           - questionnaire
-        date: &id027
+        date: &id028
           type: string
           format: date-time
         source_ids:
           type: array
-          items: *id026
+          items: *id027
           maxItems: 20
         label:
           type: string
@@ -6850,7 +7279,7 @@ components:
           - type: 'null'
         value:
           anyOf:
-          - &id030
+          - &id031
             type: number
           - type: 'null'
         unit:
@@ -6892,11 +7321,11 @@ components:
           items:
             $ref: '#/components/schemas/ReportEvidence'
           maxItems: 1600
-        current_start: *id027
-        current_end: *id027
+        current_start: *id028
+        current_end: *id028
         previous_start:
           anyOf:
-          - *id027
+          - *id028
           - type: 'null'
         timezone:
           type: string
@@ -6905,31 +7334,31 @@ components:
           type: object
           additionalProperties: false
           properties:
-            current: &id029
+            current: &id030
               type: object
               additionalProperties: false
               properties:
                 counts:
                   type: object
-                  additionalProperties: &id028
+                  additionalProperties: &id029
                     type: integer
                     minimum: 0
-                active_days: *id028
+                active_days: *id029
                 themes:
                   type: object
-                  additionalProperties: *id028
+                  additionalProperties: *id029
               required:
               - counts
               - active_days
               - themes
             previous:
               anyOf:
-              - *id029
+              - *id030
               - type: 'null'
           required:
           - current
           - previous
-        authorization_start: *id027
+        authorization_start: *id028
       required:
       - evidence
       - current_start
@@ -6946,7 +7375,7 @@ components:
           type: string
           maxLength: 120
         section:
-          enum: &id031
+          enum: &id032
           - overview
           - experiences
           - themes
@@ -6999,7 +7428,7 @@ components:
               label:
                 type: string
                 maxLength: 100
-              value: *id030
+              value: *id031
               evidence_ids:
                 type: array
                 items:
@@ -7032,7 +7461,7 @@ components:
           const: editorial-v1
         evidence_snapshot_version:
           const: 1
-        evidence_snapshot_id: &id032
+        evidence_snapshot_id: &id033
           type: string
           pattern: ^[0-9a-f]{64}$
         snapshot:
@@ -7054,7 +7483,7 @@ components:
             additionalProperties: false
             properties:
               id:
-                enum: *id031
+                enum: *id032
               patient_title:
                 type: string
                 maxLength: 150
@@ -7068,9 +7497,9 @@ components:
           maxItems: 9
         regeneration_of:
           anyOf:
-          - *id026
+          - *id027
           - type: 'null'
-        content_hash: *id032
+        content_hash: *id033
       required:
       - schema_version
       - report_type
@@ -7101,7 +7530,7 @@ components:
           - available
           - declined
           - completed
-        version: &id033
+        version: &id034
           type: integer
           minimum: 1
         invitation_allowed:
@@ -7124,7 +7553,7 @@ components:
           - unknown
         memory_enabled:
           type: boolean
-        version: *id033
+        version: *id034
         daily_checkin:
           $ref: '#/components/schemas/DailyCheckinState'
         confirmed_notes:
@@ -7150,7 +7579,7 @@ components:
       properties:
         memory_enabled:
           type: boolean
-        expected_version: *id033
+        expected_version: *id034
       required:
       - memory_enabled
       - expected_version
@@ -7184,7 +7613,7 @@ components:
         local_day:
           type: string
           format: date
-        expected_version: *id033
+        expected_version: *id034
         decision:
           type: string
           enum:

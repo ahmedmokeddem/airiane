@@ -20,7 +20,7 @@ for attempt in $(seq 1 40);do if docker exec airiane-check-db pg_isready -h 127.
 if ! docker exec airiane-check-db pg_isready -h 127.0.0.1 -U re -d re_test >/dev/null 2>&1;then docker logs --tail 20 airiane-check-db;exit 1;fi
 docker run -d --name airiane-check-api --network "$network" --network-alias airiane-api --env-file "$fixture_dir/api.env" -v "$fixture_dir:/fixtures:ro" airiane-api:deployment-check >/dev/null
 # All migrations are explicit, only against pg.fixture.test. Second execution must be a no-op.
-for migration in 0001_baseline.sql 0002_confirmed_insights.sql 0003_companion_continuity.sql;do
+for migration in 0001_baseline.sql 0002_confirmed_insights.sql 0003_clinical_questionnaires.sql 0004_companion_continuity.sql 0005_medication_reminders.sql;do
  docker exec airiane-check-api python -m app.migrate --migration "$migration"
  docker exec airiane-check-api python -m app.migrate --migration "$migration"
 done

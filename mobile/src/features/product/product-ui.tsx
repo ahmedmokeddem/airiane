@@ -1,6 +1,5 @@
 import { Feather } from "@expo/vector-icons";
 import {
-  useAnimatedValue,
   AccessibilityInfo,
   Animated,
   Image,
@@ -120,9 +119,13 @@ export function SectionTitle({
     </View>
   );
 }
-export function ScreenScroll({ children }: PropsWithChildren) {
+export function ScreenScroll({
+  children,
+  style,
+}: PropsWithChildren<{ style?: object }>) {
   return (
     <ScrollView
+      style={style}
       contentContainerStyle={s.content}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
@@ -144,7 +147,8 @@ export function ProductShell({
   showHeader?: boolean;
 }>) {
   const insets = useSafeAreaInsets();
-  const opacity = useAnimatedValue(1);
+  // react-native-web (Safari/browser) has no useAnimatedValue; this is equivalent on every platform.
+  const [opacity] = useState(() => new Animated.Value(1));
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     void AccessibilityInfo.isReduceMotionEnabled().then(setReduced);

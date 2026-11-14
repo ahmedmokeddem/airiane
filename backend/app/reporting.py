@@ -5,6 +5,7 @@ from statistics import mean
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
+from .assessments import response_view
 from .care import CareService
 from .contracts import validate
 from .domain import DomainError, RecordStore, now, stamp
@@ -37,7 +38,7 @@ class ReportService:
     async def create(self, patient: str, body: dict) -> dict:
         start, end = utc(body["period_start"]), utc(body["period_end"])
         cutoff = now()
-        if end <= start or end > cutoff or end - start > timedelta(days=90):
+        if end <= start or end > cutoff + timedelta(seconds=60) or end - start > timedelta(days=90):
             raise DomainError("VALIDATION_ERROR", 422)
         regeneration = None
         if body.get("regeneration_of"):
@@ -45,6 +46,7 @@ class ReportService:
             if utc(regeneration["period_start"]) != start or utc(regeneration["period_end"]) != end:
                 raise DomainError("VALIDATION_ERROR", 422)
         version = regeneration["version"] + 1 if regeneration else 1
+        end = min(end, cutoff)
         profile = await self.store.get("patient_profiles", patient_id=patient)
         report_id = str(uuid4())
         generated = stamp()
@@ -164,23 +166,7 @@ class ReportService:
             if not definition:
                 raise DomainError("REPORT_NOT_READY")
             await source(row["source_id"])
-            assessment_views.append(
-                {
-                    "assessment_response_id": row["id"],
-                    **{
-                        k: row[k]
-                        for k in [
-                            "assessment_id",
-                            "assessment_version",
-                            "source_id",
-                            "complete",
-                            "answers",
-                            "observed_at",
-                        ]
-                    },
-                    "title": definition["title"],
-                }
-            )
+            assessment_views.append(response_view(row, definition["title"]))
         for collection, key in [
             (activities, "id"),
             (fb, "feedback_id"),

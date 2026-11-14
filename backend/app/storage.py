@@ -111,6 +111,15 @@ TABLES = {
     "observation_sources": table(
         "observation_sources", "observation_id:u source_id:u patient_id:u source_revision:i"
     ),
+    "alert_rules": table("alert_rules", "rule_key:s version:i enabled:b definition:j"),
+    "alerts": table(
+        "alerts",
+        "id:u patient_id:u session_id:u rule_key:s rule_version:i dedup_key:s state:s version:i source_ids:j created_at:t",
+    ),
+    "alert_recipients": table(
+        "alert_recipients",
+        "alert_id:u patient_id:u care_link_id:u consent_grant_id:u delivery_state:s acknowledged_at:t",
+    ),
     "confirmed_insights": table(
         "confirmed_insights",
         "id:u patient_id:u session_id:u theme:s text:s observed_at:t statement_kind:s confirmed_at:t state:s version:i supersedes_insight_id:u source_id:u created_at:t",
@@ -133,6 +142,10 @@ TABLES = {
     "audit_events": table(
         "audit_events",
         "id:u actor_id:u patient_id:u action:s resource_type:s resource_id:u request_id:u created_at:t",
+    ),
+    "medication_reminders": table(
+        "medication_reminders",
+        "id:u patient_id:u clinician_id:u message:s schedule_time:s active:b updated_at:t created_at:t",
     ),
 }
 

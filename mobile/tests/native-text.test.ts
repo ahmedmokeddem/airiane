@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import ts from "typescript";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 function files(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory()
@@ -15,7 +16,7 @@ function files(dir: string): string[] {
 test("patient view trees never render raw text outside a Text component", () => {
   const problems: string[] = [];
   for (const file of files(
-    new URL("../src/features", import.meta.url).pathname,
+    fileURLToPath(new URL("../src/features", import.meta.url)),
   )) {
     const source = readFileSync(file, "utf8");
     const ast = ts.createSourceFile(

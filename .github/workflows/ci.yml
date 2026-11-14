@@ -32,7 +32,13 @@ jobs:
       - run: psql -h localhost -U re -d re_test -v ON_ERROR_STOP=1 -f database/migrations/0002_confirmed_insights.sql
         env:
           PGPASSWORD: re_local_ci_only
-      - run: psql -h localhost -U re -d re_test -v ON_ERROR_STOP=1 -f database/migrations/0003_companion_continuity.sql
+      - run: psql -h localhost -U re -d re_test -v ON_ERROR_STOP=1 -f database/migrations/0003_clinical_questionnaires.sql
+        env:
+          PGPASSWORD: re_local_ci_only
+      - run: psql -h localhost -U re -d re_test -v ON_ERROR_STOP=1 -f database/migrations/0004_companion_continuity.sql
+        env:
+          PGPASSWORD: re_local_ci_only
+      - run: psql -h localhost -U re -d re_test -v ON_ERROR_STOP=1 -f database/migrations/0005_medication_reminders.sql
         env:
           PGPASSWORD: re_local_ci_only
       - run: uv run --directory backend pytest tests

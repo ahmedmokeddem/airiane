@@ -13,8 +13,14 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { DTO, Journey, Recommendation } from "../../integration/types";
-import { Companion } from "../call/companion";
+import { Companion, type CompanionTheme } from "../call/companion";
 import { theme as t } from "../../theme";
+import { activityCue } from "../activity/activity-cues";
+import {
+  NATURE_SOUNDSCAPES,
+  type NatureSoundscapeId,
+  useAudioTherapy,
+} from "../activity/audio-therapy";
 import {
   Brand,
   Button,
@@ -52,9 +58,22 @@ function ErrorNotice({ message }: { message?: string | null }) {
     </View>
   ) : null;
 }
-function Orb({ size = 140 }: { size?: number }) {
+function Orb({
+  size = 140,
+  accentTheme,
+}: {
+  size?: number;
+  accentTheme?: CompanionTheme;
+}) {
   const level = useRef(0);
-  return <Companion state="idle" levelRef={level} size={size} />;
+  return (
+    <Companion
+      state="idle"
+      levelRef={level}
+      size={size}
+      accentTheme={accentTheme}
+    />
+  );
 }
 function ActivityTile({
   activity,
@@ -119,6 +138,14 @@ export interface HomeScreenProps {
   onProfile: () => void;
   onBegin: (id: string) => void;
   onReports: () => void;
+  /** Daily check-in card, rendered under the hero. */
+  checkIn?: ReactNode;
+  /** Consecutive days with at least one completed activity. */
+  streak?: { streak_days: number; active_today: boolean } | null;
+  /** Daily reminder set by a connected doctor, if any. */
+  medication?: { message: string; schedule_time: string } | null;
+  /** True when no doctor is connected: show one gentle, optional invitation. */
+  careTeamHint?: boolean;
 }
 export function HomeScreen({
   profile,
@@ -131,6 +158,10 @@ export function HomeScreen({
   onJourney,
   onBegin,
   onReports,
+  checkIn,
+  streak,
+  medication,
+  careTeamHint,
 }: HomeScreenProps) {
   const completed =
     journey?.items.filter((item) => item.activity_session.state === "completed")
@@ -184,6 +215,55 @@ export function HomeScreen({
           </Pressable>
         </View>
       </View>
+      {streak && (
+        <View
+          testID="recovery-streak"
+          accessible
+          accessibilityLabel={
+            streak.streak_days > 0
+              ? `Recovery streak: ${streak.streak_days} ${streak.streak_days === 1 ? "day" : "days"}`
+              : "Recovery streak not started yet"
+          }
+          style={p.streak}
+        >
+          <View style={[p.streakBadge, streak.active_today && p.streakBadgeOn]}>
+            <Feather
+              name="sunrise"
+              size={22}
+              color={streak.active_today ? "#fff" : t.accent}
+            />
+          </View>
+          <View style={p.flex}>
+            <Text style={p.streakCount}>
+              {streak.streak_days > 0
+                ? `${streak.streak_days}-day recovery streak`
+                : "Start your recovery streak"}
+            </Text>
+            <Text style={s.small}>
+              {streak.active_today
+                ? "Today counts. One small step was enough."
+                : streak.streak_days > 0
+                  ? "One small activity today keeps it going. No pressure."
+                  : "One small activity a day adds a day. Any activity counts."}
+            </Text>
+          </View>
+        </View>
+      )}
+      {medication && (
+        <Surface style={{ backgroundColor: t.softLavender }}>
+          <View style={p.rowBetween}>
+            <Text style={s.eyebrow}>FROM YOUR DOCTOR · DAILY</Text>
+            <Text style={s.small}>{medication.schedule_time}</Text>
+          </View>
+          <Text testID="medication-reminder" style={p.activityTitle}>
+            {medication.message}
+          </Text>
+          <Text style={s.small}>
+            A reminder your doctor set for you. Ask them before changing how you take any medicine.
+          </Text>
+        </Surface>
+      )}
+      {checkIn}
       <View style={p.rowBetween}>
         <SectionTitle title="Gentle invitations" />
         <Pressable
@@ -246,6 +326,12 @@ export function HomeScreen({
         <Text style={p.textLink}>Your reports & sharing</Text>
         <Feather name="arrow-up-right" size={16} color={t.accent} />
       </Pressable>
+      {careTeamHint && (
+        <Text testID="care-team-hint" style={p.centerCopy}>
+          You’re doing this in your own way. If you’d ever like your doctor to follow along, you
+          can invite them from Reports & sharing. It’s always your choice.
+        </Text>
+      )}
     </ScreenScroll>
   );
 }
@@ -690,14 +776,22 @@ export function BreathingScreen({
 }: BreathingScreenProps) {
   const duration = activity.duration_seconds;
   const finished = elapsed >= duration;
-  const inhale = activity.config.inhale_seconds ?? 4;
-  const exhale = activity.config.exhale_seconds ?? 4;
-  const phase =
-    elapsed % (inhale + exhale) < inhale
+  // Prompts follow the activity kind: breath phases, listening steps or grounding steps.
+  const cue = activityCue(activity, elapsed);
+  const breathing = activity.kind === "breathing";
+  const phase = breathing
+    ? cue.cue === "Breathe in gently"
       ? "Breathe in, gently"
-      : "Let your breath out";
+      : "Let your breath out"
+    : cue.cue;
+  const sound = useAudioTherapy(!finished, activity, elapsed);
+  const natureTheme = activity.kind === "nature" ? sound.theme : undefined;
   return (
-    <ScreenScroll>
+    <ScreenScroll
+      style={
+        natureTheme ? { backgroundImage: natureTheme.bgGradient } : undefined
+      }
+    >
       <View style={p.rowBetween}>
         <Text style={s.eyebrow}>A MOMENT FOR YOU</Text>
         <IconButton name="x" label="Leave activity" onPress={onLeave} />
@@ -707,10 +801,12 @@ export function BreathingScreen({
         <Text style={p.heroCopy}>
           {finished
             ? "Your moment is complete."
-            : "Let your shoulders soften. Keep your breath comfortable."}
+            : breathing
+              ? "Let your shoulders soften. Keep your breath comfortable."
+              : activity.description}
         </Text>
         <View style={p.breathingOrb}>
-          <Orb size={180} />
+          <Orb size={180} accentTheme={natureTheme} />
         </View>
         <Text accessibilityLiveRegion="polite" style={p.breathingPhase}>
           {finished ? "Take your time returning" : phase}
@@ -749,11 +845,100 @@ export function BreathingScreen({
             ]}
           />
         </View>
-        {activity.config.instructions.map((instruction, index) => (
-          <Text key={index} style={p.heroCopy}>
-            {instruction}
+        {breathing &&
+          activity.config.instructions.map((instruction, index) => (
+            <Text key={index} style={p.heroCopy}>
+              {instruction}
+            </Text>
+          ))}
+        <Pressable
+          testID="activity-soundscape-toggle"
+          accessibilityRole="button"
+          accessibilityLabel={
+            sound.soundMuted ? "Unmute soundscape" : "Mute soundscape"
+          }
+          onPress={sound.toggleSound}
+          style={p.textButton}
+        >
+          <Text style={p.heroCopy}>
+            <Feather
+              name={sound.soundMuted ? "volume-x" : "volume-2"}
+              size={13}
+            />{" "}
+            {sound.soundMuted
+              ? "Soundscape muted · tap to unmute"
+              : activity.kind === "nature"
+                ? `${NATURE_SOUNDSCAPES[sound.soundscape].label} · tap to mute`
+                : `${sound.profile.label} · tap to mute`}
           </Text>
-        ))}
+        </Pressable>
+        {activity.kind === "nature" && (
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: 8,
+              marginTop: 4,
+            }}
+          >
+            {(Object.keys(NATURE_SOUNDSCAPES) as NatureSoundscapeId[]).map(
+              (id) => (
+                <Pressable
+                  key={id}
+                  testID={`activity-soundscape-chip-${id}`}
+                  accessibilityRole="button"
+                  onPress={() => sound.setSoundscape(id)}
+                  style={{
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor:
+                      sound.soundscape === id ? t.accent : t.border,
+                    backgroundColor:
+                      sound.soundscape === id ? `${t.accent}22` : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: sound.soundscape === id ? t.accent : t.muted,
+                    }}
+                  >
+                    {NATURE_SOUNDSCAPES[id].label}
+                  </Text>
+                </Pressable>
+              ),
+            )}
+            <Pressable
+              testID="activity-soundscape-bilateral-toggle"
+              accessibilityRole="button"
+              onPress={sound.toggleBilateral}
+              style={{
+                paddingVertical: 6,
+                paddingHorizontal: 12,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: sound.bilateralEnabled ? t.accent : t.border,
+                backgroundColor: sound.bilateralEnabled
+                  ? `${t.accent}22`
+                  : "transparent",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: sound.bilateralEnabled ? t.accent : t.muted,
+                }}
+              >
+                {sound.bilateralEnabled
+                  ? "Bilateral Pan: ON"
+                  : "Bilateral Pan: OFF"}
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </View>
       <Surface>
         <SectionTitle title="How did this feel?" />
@@ -803,6 +988,30 @@ export function BreathingScreen({
   );
 }
 const p = StyleSheet.create({
+  streak: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 16,
+    borderRadius: 22,
+    backgroundColor: t.sage,
+  },
+  streakBadge: {
+    height: 48,
+    width: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: t.surface,
+  },
+  streakBadgeOn: { backgroundColor: t.accent },
+  streakCount: {
+    fontFamily: t.type.display,
+    fontSize: 16,
+    fontWeight: "600",
+    color: t.ink,
+    lineHeight: 23,
+  },
   flex: { flex: 1 },
   greeting: { gap: 9 },
   hero: {

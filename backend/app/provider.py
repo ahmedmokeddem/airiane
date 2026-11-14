@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import httpx
 
+from . import guidance
 from .config import Settings
 from .domain import ConversationController, DomainError, now, stamp
 from .services import ActivityService, SessionService, uid
@@ -65,6 +66,10 @@ class ElevenLabsBootstrap:
             created_at=stamp(),
         )
         context = ConversationController().context(row["version"])
+        # Tell the agent which of today's three check-in answers are still missing.
+        context["guided_question"] = ConversationController().question(
+            row["version"], await guidance.missing_checkin_fields(self.store, patient)
+        )
         recommendations = await self.store.all(
             "recommendations", patient_id=patient, session_id=sid
         )

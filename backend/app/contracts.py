@@ -8,7 +8,9 @@ import yaml
 from .domain import DomainError
 from .schema_validation import PreciseValidator
 
-SPEC = yaml.safe_load((Path(__file__).resolve().parents[2] / "contracts/openapi.yaml").read_text())
+SPEC = yaml.safe_load(
+    (Path(__file__).resolve().parents[2] / "contracts/openapi.yaml").read_text(encoding="utf-8")
+)
 RESOLVER = jsonschema.RefResolver.from_schema(SPEC)
 
 

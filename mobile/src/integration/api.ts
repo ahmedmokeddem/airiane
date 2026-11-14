@@ -1,16 +1,30 @@
 import { uuid } from './runtime';
 import recommendationFixture from '../../../contracts/fixtures/recommendation.json';
 import type { DTO, Session, Recommendation, ActivitySession, Journey } from './types';
+import { missingToday, QUESTIONS } from '../features/checkin/checkin-state';
 export { uuid } from './runtime';
 export const mode = process.env.EXPO_PUBLIC_API_MODE === 'live' ? 'live' : 'mock';
-const origin = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000';
-if(typeof __DEV__!=='undefined'&&!__DEV__){
- if(process.env.EXPO_PUBLIC_APP_ENV!=='production'||mode!=='live'||process.env.EXPO_PUBLIC_DEMO_AUTH==='true'||process.env.EXPO_PUBLIC_VOICE_PROVIDER!=='elevenlabs'||!origin.startsWith('https://'))throw new Error('Configure the production HTTPS mobile environment before building a release.');
+// In a browser opened over the LAN, call the backend on the same host that served the page, so a
+// changed Wi-Fi IP doesn't leave the build pointing at a stale address. Native builds use the env URL.
+function apiOrigin(): string {
+  const configured = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000';
+  const page = (globalThis as { location?: { protocol: string; hostname: string } }).location;
+  if (!page || !/^https?:$/.test(page.protocol) || !page.hostname) return configured;
+  // Behind an HTTPS proxy (e.g. Tailscale Serve) /v1 is forwarded on the same origin; an http API
+  // URL here would be blocked as mixed content.
+  if (page.protocol === 'https:') return `https://${page.hostname}${(page as { port?: string }).port ? ':' + (page as { port?: string }).port : ''}`;
+  const url = new URL(configured);
+  url.hostname = page.hostname;
+  return url.origin;
 }
+const origin = apiOrigin();
 const eventBodies = new Map<string, DTO<'ActivityEventRequest'>>();
 const feedbackBodies = new Map<string, DTO<'FeedbackRequest'>>();
 let accessToken = '';
 let mockJourney: Journey = {items:[],next_cursor:null};
+export type Observation = DTO<'Observation'>;
+let mockObservations: Observation[] = [];
+const mockPatient = '11111111-1111-4111-8111-111111111111';
 const recommendation = recommendationFixture.data as Recommendation;
 export function setAccessToken(value: string) { accessToken = value; }
 export async function request<T>(path: string, body?: unknown, method = body ? 'POST' : 'GET', key: string = uuid()): Promise<T> {
@@ -25,7 +39,23 @@ export const api = {
     const created = await request<Session>('/conversation-sessions',{mode:kind});
     return request<Session>(`/conversation-sessions/${created.session_id}`,{state:'active',expected_version:created.version},'PATCH');
   },
-  async recommendations(sessionId:string,limit=3):Promise<Recommendation> {return mode==='mock'?{...recommendation,session_id:sessionId}:request('/activity-recommendations',{session_id:sessionId,limit});},
+  /** `preferred` is an activity the patient picked from the catalog; the backend ranks it first. */
+  async recommendations(sessionId:string,limit=3,preferred?:string):Promise<Recommendation> {return mode==='mock'?{...recommendation,session_id:sessionId}:request('/activity-recommendations',{session_id:sessionId,limit,...(preferred?{preferred_activity_id:preferred}:{})});},
+  /** Next daily check-in question, decided by the backend from today's confirmed answers. */
+  async nextCheckInQuestion(sessionId:string):Promise<{kind:Observation['kind']|null;wording:string|null}> {
+    if(mode==='live'){const q=await request<DTO<'GuidedQuestion'>>(`/conversation-sessions/${sessionId}/guided-question`);return {kind:q.question_id as Observation['kind']|null,wording:q.wording};}
+    const kind=missingToday(mockObservations,new Date())[0]??null;return {kind,wording:kind?QUESTIONS[kind]:null};
+  },
+  /** Questionnaires available for a full assessment conversation (live backend only). */
+  async assessments():Promise<DTO<'AssessmentDefinition'>[]>{return mode==='live'?(await request<DTO<'AssessmentDefinitionPage'>>('/assessments')).items:[];},
+  /** `shareIfSafetyConcern`: the patient was told a Q9 answer above 0 sends all answers to their doctor. */
+  async submitAssessment(definition:DTO<'AssessmentDefinition'>,answers:DTO<'AssessmentSubmit'>['answers'],sessionId:string|null,shareIfSafetyConcern:boolean,key:string=uuid()):Promise<DTO<'AssessmentResponse'>>{
+    return request(`/assessments/${definition.assessment_id}/responses`,{session_id:sessionId,assessment_version:definition.version,answers,observed_at:new Date().toISOString(),share_if_safety_concern:shareIfSafetyConcern},'POST',key);
+  },
+  async streak():Promise<DTO<'RecoveryStreak'>>{
+    if(mode==='live')return request('/me/recovery-streak');
+    const today=mockJourney.items.some(i=>i.activity_session.state==='completed');return {streak_days:today?1:0,active_today:today};
+  },
   async start(sessionId:string, rec:Recommendation, activityId:string, channel:'voice'|'touch'):Promise<ActivitySession> {
     const selected=rec.options.find(o=>o.activity.activity_id===activityId);
     if(!selected)throw new Error('Activity is not in the current recommendation.');
@@ -46,6 +76,21 @@ export const api = {
     mockJourney={items:[{activity_session:activity,activity:item.activity,feedback},...mockJourney.items.filter(x=>x.activity_session.activity_session_id!==activity.activity_session_id)],next_cursor:null};
   },
   async journey():Promise<Journey>{return mode==='mock'?mockJourney:request('/my-journey');},
+  async activities():Promise<DTO<'Activity'>[]>{return mode==='mock'?recommendation.options.map(o=>o.activity):(await request<DTO<'ActivityPage'>>('/activities')).items;},
+  /** Observations are always proposed first; only an explicit patient confirmation makes them count. */
+  async observations():Promise<Observation[]>{return mode==='mock'?[...mockObservations]:(await request<DTO<'ObservationPage'>>('/observations?limit=100')).items;},
+  async proposeObservation(kind:Observation['kind'],value:number,key:string=uuid()):Promise<Observation>{
+    const body:DTO<'ObservationCreate'>={session_id:null,kind,value,observed_at:new Date().toISOString(),sources:[]};
+    if(mode==='live')return request('/observations',body,'POST',key);
+    const created:Observation={...body,observation_id:uuid(),patient_id:mockPatient,state:'proposed',version:1,supersedes_observation_id:null};
+    mockObservations=[created,...mockObservations];return created;
+  },
+  async decideObservation(observation:Observation,decision:'confirm'|'reject'):Promise<Observation>{
+    const body:DTO<'ObservationConfirm'>={expected_version:observation.version,decision};
+    if(mode==='live')return request(`/observations/${observation.observation_id}/confirmation`,body);
+    const decided:Observation={...observation,state:decision==='confirm'?'confirmed':'rejected',version:observation.version+1,sources:decision==='confirm'?[{source_id:uuid(),source_revision:1}]:observation.sources};
+    mockObservations=mockObservations.map(o=>o.observation_id===decided.observation_id?decided:o);return decided;
+  },
 };
 
 /** Authenticated binary transport. Credentials never enter a share URL. */

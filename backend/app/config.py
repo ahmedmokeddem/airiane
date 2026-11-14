@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     elevenlabs_agent_id: str = ""
     provider_privacy_verified: bool = False
     provider_privacy_policy_version: str = ""
+    exa_api_key: str = ""
+    gemini_api_key: str = ""
     database_pool_size: int = Field(default=2, ge=1, le=10)
     database_max_overflow: int = Field(default=1, ge=0, le=5)
     database_pool_timeout: float = Field(default=5, ge=1, le=30)
