@@ -1,0 +1,852 @@
+{
+  "schema": "AssessmentDefinitionPage",
+  "fictional": false,
+  "note": "Generated from backend/app/assessments.py (assets/Book1.ods).",
+  "data": {
+    "items": [
+      {
+        "assessment_id": "33333333-3333-4333-8333-333333333341",
+        "version": 1,
+        "title": "PHQ-9 · Patient Health Questionnaire-9",
+        "clinical_instrument": true,
+        "instructions": "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+        "estimated_minutes": 3,
+        "validated": true,
+        "note": "PHQ-9 is a validated screening questionnaire. A score supports, but does not replace, a clinical assessment.",
+        "citations": [
+          "https://www.hiv.uw.edu/page/mental-health-screening/phq-9",
+          "https://www.healthquality.va.gov/guidelines/MH/mdd/VADoDMDDCPGFinal508.pdf",
+          "https://www.apa.org/depression-guideline/assessment",
+          "https://pmc.ncbi.nlm.nih.gov/articles/PMC3782729/"
+        ],
+        "questions": [
+          {
+            "question_id": "q1",
+            "wording": "Little interest or pleasure in doing things?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "Several days"
+              },
+              {
+                "value": 2,
+                "label": "More than half the days"
+              },
+              {
+                "value": 3,
+                "label": "Nearly every day"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q2",
+            "wording": "Feeling down, depressed, or hopeless?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "Several days"
+              },
+              {
+                "value": 2,
+                "label": "More than half the days"
+              },
+              {
+                "value": 3,
+                "label": "Nearly every day"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q3",
+            "wording": "Trouble falling or staying asleep, or sleeping too much?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "Several days"
+              },
+              {
+                "value": 2,
+                "label": "More than half the days"
+              },
+              {
+                "value": 3,
+                "label": "Nearly every day"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q4",
+            "wording": "Feeling tired or having little energy?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "Several days"
+              },
+              {
+                "value": 2,
+                "label": "More than half the days"
+              },
+              {
+                "value": 3,
+                "label": "Nearly every day"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q5",
+            "wording": "Poor appetite or overeating?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "Several days"
+              },
+              {
+                "value": 2,
+                "label": "More than half the days"
+              },
+              {
+                "value": 3,
+                "label": "Nearly every day"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q6",
+            "wording": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "Several days"
+              },
+              {
+                "value": 2,
+                "label": "More than half the days"
+              },
+              {
+                "value": 3,
+                "label": "Nearly every day"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q7",
+            "wording": "Trouble concentrating on things, such as reading the newspaper or watching television?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "Several days"
+              },
+              {
+                "value": 2,
+                "label": "More than half the days"
+              },
+              {
+                "value": 3,
+                "label": "Nearly every day"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q8",
+            "wording": "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around much more than usual?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "Several days"
+              },
+              {
+                "value": 2,
+                "label": "More than half the days"
+              },
+              {
+                "value": 3,
+                "label": "Nearly every day"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q9",
+            "wording": "Thoughts that you would be better off dead or of hurting yourself in some way?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "Several days"
+              },
+              {
+                "value": 2,
+                "label": "More than half the days"
+              },
+              {
+                "value": 3,
+                "label": "Nearly every day"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q10",
+            "wording": "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not difficult at all"
+              },
+              {
+                "value": 1,
+                "label": "Somewhat difficult"
+              },
+              {
+                "value": 2,
+                "label": "Very difficult"
+              },
+              {
+                "value": 3,
+                "label": "Extremely difficult"
+              }
+            ],
+            "scored": false,
+            "follow_up_of": "q9"
+          }
+        ]
+      },
+      {
+        "assessment_id": "33333333-3333-4333-8333-333333333342",
+        "version": 1,
+        "title": "Extended depression questions (BDI-II themes)",
+        "clinical_instrument": true,
+        "instructions": "Thinking about the past two weeks, choose the answer that fits best.",
+        "estimated_minutes": 8,
+        "validated": false,
+        "note": "These 21 questions are reworded from BDI-II themes; they are not the licensed BDI-II and have not been validated. Severity bands follow BDI-II cut-offs and are indicative only.",
+        "citations": [
+          "https://www.hiv.uw.edu/page/mental-health-screening/phq-9",
+          "https://www.healthquality.va.gov/guidelines/MH/mdd/VADoDMDDCPGFinal508.pdf",
+          "https://www.apa.org/depression-guideline/assessment",
+          "https://pmc.ncbi.nlm.nih.gov/articles/PMC3782729/"
+        ],
+        "questions": [
+          {
+            "question_id": "q1",
+            "wording": "How frequently have you experienced feelings of sadness or emotional distress during the past two weeks?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q2",
+            "wording": "How pessimistic have you felt about your future and the possibility of positive things happening in your life?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q3",
+            "wording": "To what extent have you felt unsuccessful or believed that you have failed in important areas of your life?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q4",
+            "wording": "How much enjoyment or satisfaction have you experienced from activities that previously made you happy?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "As much as usual"
+              },
+              {
+                "value": 1,
+                "label": "A little less"
+              },
+              {
+                "value": 2,
+                "label": "Much less"
+              },
+              {
+                "value": 3,
+                "label": "None at all"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q5",
+            "wording": "How frequently have you experienced feelings of guilt or blamed yourself for things that happened?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q6",
+            "wording": "Have you experienced feelings that you deserve to be punished or that something negative is happening to you as a form of punishment?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q7",
+            "wording": "How negatively have you felt about yourself, including feelings of disappointment or dissatisfaction with who you are?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q8",
+            "wording": "How frequently have you criticized yourself or blamed yourself for mistakes and shortcomings?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q9",
+            "wording": "Have you experienced thoughts about death, not wanting to live, or ending your own life?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q10",
+            "wording": "How frequently have you experienced episodes of crying or felt an increased urge to cry?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q11",
+            "wording": "How much has your interest in other people, social activities, hobbies, or everyday experiences decreased?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q12",
+            "wording": "How difficult has it been for you to make decisions, including relatively simple decisions in everyday life?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q13",
+            "wording": "To what extent have you felt worthless, inadequate, or less valuable as a person?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q14",
+            "wording": "How much has your overall energy level decreased, making everyday activities more difficult to complete?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q15",
+            "wording": "Have you experienced noticeable changes in your sleeping patterns, including sleeping less or more than usual?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q16",
+            "wording": "How easily have you become irritated, frustrated, or emotionally upset by situations that normally would not bother you?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q17",
+            "wording": "Have you experienced significant changes in your appetite, including eating less or more than your usual amount?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q18",
+            "wording": "How difficult has it been for you to maintain concentration, focus on tasks, or follow conversations?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q19",
+            "wording": "How frequently have you felt physically or mentally exhausted, even when you have not engaged in particularly demanding activities?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q20",
+            "wording": "To what extent has your interest in sexual activity or intimacy decreased compared with your usual level?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          },
+          {
+            "question_id": "q21",
+            "wording": "How frequently have you experienced restlessness, difficulty remaining still, or an increased need to move around?",
+            "minimum": 0,
+            "maximum": 3,
+            "options": [
+              {
+                "value": 0,
+                "label": "Not at all"
+              },
+              {
+                "value": 1,
+                "label": "A little"
+              },
+              {
+                "value": 2,
+                "label": "Quite a lot"
+              },
+              {
+                "value": 3,
+                "label": "Very much"
+              }
+            ],
+            "scored": true,
+            "follow_up_of": null
+          }
+        ]
+      }
+    ],
+    "next_cursor": null
+  }
+}

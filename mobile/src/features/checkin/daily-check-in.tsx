@@ -11,7 +11,7 @@ import { confirmedOn, fields, format, type Observation } from './checkin-state';
  * companion in conversation, not filled in here; this card only shows what the patient confirmed
  * today and offers to start. Answers are self-reported — nothing is measured automatically.
  */
-export function DailyCheckIn({ onStart, busy = false }: { onStart: () => void; busy?: boolean }) {
+export function DailyCheckIn({ onStart, onUpdate, onAssessment, busy = false }: { onStart: () => void; onUpdate?: () => void; onAssessment?: () => void; busy?: boolean }) {
   const [observations, setObservations] = useState<Observation[] | null>(null);
   useEffect(() => { let live = true; api.observations().then(all => { if (live) setObservations(all); }).catch(() => { if (live) setObservations([]); }); return () => { live = false; }; }, []);
   const today = confirmedOn(observations ?? [], new Date());
@@ -27,6 +27,8 @@ export function DailyCheckIn({ onStart, busy = false }: { onStart: () => void; b
       <Text style={s.subtitle}>AIriane will ask about your mood, energy and sleep, one at a time. Answer by voice or text, in your own words. These are your own estimates — nothing is measured automatically.</Text>
       <Button label={answered.length ? 'Continue check-in with AIriane' : 'Start check-in with AIriane'} icon="message-circle" disabled={busy || observations === null} onPress={onStart} />
     </>}
+    {done && onUpdate && <Button secondary label="Update with AIriane" icon="edit-3" disabled={busy} onPress={onUpdate} />}
+    {onAssessment && <Button secondary label="Fuller check (optional questionnaire)" icon="clipboard" disabled={busy} onPress={onAssessment} />}
   </Surface>;
 }
 const c = StyleSheet.create({

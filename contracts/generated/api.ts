@@ -780,6 +780,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/doctor/patients/{patient_id}/alerts/{alert_id}/assessment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getDoctorAlertAssessment
+         * @description The questionnaire a patient's positive Q9 sent to this doctor, with every answer.
+         */
+        get: operations["getDoctorAlertAssessment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/doctor/patients/{patient_id}/alerts/{alert_id}": {
         parameters: {
             query?: never;
@@ -1277,18 +1297,34 @@ export interface components {
             assessment_id: string;
             version: number;
             title: string;
-            /** @constant */
-            clinical_instrument: false;
+            /** @description True for screening questionnaires approved by the product owner (e.g. PHQ-9). */
+            clinical_instrument: boolean;
+            instructions?: string;
+            estimated_minutes?: number;
+            /** @description False when wording is adapted and the instrument's cut-offs are indicative only. */
+            validated?: boolean;
+            note?: string;
+            citations?: string[];
             questions: {
                 question_id: string;
                 wording: string;
                 minimum: number;
                 maximum: number;
+                options?: {
+                    value: number;
+                    label: string;
+                }[];
+                /** @description Whether the answer counts towards the total. */
+                scored?: boolean;
+                /** @description Asked only when this question's answer is above 0. */
+                follow_up_of?: string | null;
             }[];
         };
         AssessmentSubmit: {
             session_id: string | null;
             assessment_version: number;
+            /** @description The patient was told before starting that answering Q9 above 0 sends all answers to their connected doctor. */
+            share_if_safety_concern?: boolean;
             answers: {
                 question_id: string;
                 value: number;
@@ -1312,6 +1348,51 @@ export interface components {
             }[];
             /** Format: date-time */
             observed_at: string;
+            /** @description Every answer with its full question and the option the patient chose. */
+            answer_details?: {
+                question_id: string;
+                wording: string;
+                value: number;
+                label: string;
+                scored: boolean;
+            }[];
+            /** @description True when a positive Q9 sent these answers to a connected doctor. */
+            shared_with_doctor?: boolean;
+            /** @description Deterministic scoring of the answers, or null for unscored questionnaires. */
+            result?: components["schemas"]["AssessmentResult"] | null;
+        };
+        /** @description Screening information for a clinician; not a diagnosis. */
+        AssessmentResult: {
+            /** @enum {string} */
+            instrument: "phq9" | "bdi_themes";
+            total: number;
+            max_total: number;
+            /** @enum {string} */
+            level: "low" | "mild" | "moderate" | "high";
+            severity: string;
+            suggested_action: string | null;
+            interpretation: string;
+            bands: {
+                min: number;
+                max: number;
+                /** @enum {string} */
+                level: "low" | "mild" | "moderate" | "high";
+                label: string;
+            }[];
+            functional_impairment: string | null;
+            domains: {
+                name: string;
+                description: string;
+                questions: string[];
+                score: number;
+                max: number;
+            }[];
+            safety: {
+                item_positive: boolean;
+                follow_up: ("no" | "yes" | "declined") | null;
+            };
+            validated: boolean;
+            note: string;
         };
         ReportRequest: {
             /** Format: date-time */
@@ -6319,6 +6400,47 @@ export interface operations {
             };
             /** @description Provider or infrastructure unavailable; no success implied */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getDoctorAlertAssessment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                alert_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentResponse"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

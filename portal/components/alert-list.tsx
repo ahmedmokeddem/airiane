@@ -1,7 +1,7 @@
 import type { Alert } from '@/lib/types';
 const when = (value: string) => `${new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(value))} UTC`;
 const stateLabel: Record<Alert['state'], string> = { open: 'Open', acknowledged: 'Acknowledged', resolved: 'Resolved' };
-const describe = (alert: Alert) => alert.rule_key === 'patient_requested_review' ? 'Patient asked for a clinician check-in' : 'Patient-shared request';
+const describe = (alert: Alert) => alert.rule_key === 'patient_requested_review' ? 'Patient asked for a clinician check-in' : alert.rule_key === 'questionnaire_safety_item' ? 'Questionnaire: self-harm question answered above 0 · all answers sent' : 'Patient-shared request';
 export function AlertList({ patientId, alerts, unavailable, readOnly }: { patientId: string; alerts: Alert[]; unavailable?: string; readOnly?: boolean }) {
   return <section className="alerts" aria-labelledby="alerts-title">
     <h2 id="alerts-title">Check-in requests</h2>

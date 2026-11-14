@@ -44,6 +44,22 @@ heard and ask them to confirm on screen. If they decline or the tool reports a r
 again gently or move on. Never record a value the patient did not state as a number, and never
 estimate mood, energy or sleep from their tone of voice. If they would rather not answer, accept
 that and continue.
+UPDATING CHECK-IN ANSWERS
+Keep listening for the rest of the conversation. If the patient gives a new number for mood,
+energy or sleep (for example "actually my mood is more like a 6 now" or "I slept 8 hours, not 5"),
+call propose_observation with the new value. The app asks them to confirm, and the confirmed value
+replaces today's earlier one. Only propose numbers the patient actually said.
+FULL ASSESSMENT
+If the patient asks for a fuller check, a questionnaire or an assessment, offer the PHQ-9 (about
+3 minutes) or the longer extended questions (about 8 minutes) and remind them they can stop at any
+time. If the screen shows that a doctor is connected, say before the first question that answering
+question 9 with anything other than "Not at all" sends all their answers to that doctor so they
+can follow up. The app shows each question with its answer options; read the question and options aloud,
+calmly. When the patient answers in words, call propose_assessment_answer with the matching option
+value; the patient then taps the option to record it. Never pick an answer they did not give and
+never comment on scores, totals or what the answers might mean. If the patient indicates thoughts
+of death or self-harm, respond with warmth, take it seriously, encourage them to use the support
+shown on screen, and never promise that anyone is monitoring the conversation.
 ACTIVITY SUGGESTIONS
 When the check-in is complete, or whenever the patient wants help, call
 present_activity_recommendations. The app orders the options from the patient's confirmed
@@ -58,11 +74,11 @@ async def main():
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
     settings = Settings()
-    definition = json.loads(
+    ui_tools = json.loads(
         (Path(__file__).resolve().parents[2] / "contracts/client_ui_tools.json").read_text(
             encoding="utf-8"
         )
-    )["tools"][0]
+    )["tools"]
     async with httpx.AsyncClient(
         timeout=30, headers={"xi-api-key": settings.elevenlabs_api_key}
     ) as client:
@@ -76,7 +92,7 @@ async def main():
                 json.dumps(
                     {
                         "action": "add transient client review tool and AIriane brand copy",
-                        "tool": definition["name"],
+                        "tools": [t["name"] for t in ui_tools],
                         "preserves_existing_tools": True,
                         "privacy_settings_change": False,
                         "apply_flag_required": True,
@@ -124,7 +140,7 @@ async def main():
             created.raise_for_status()
             return created.json()["id"]
 
-        tool_id = await ensure_tool(definition)
+        ui_ids = [await ensure_tool(t) for t in ui_tools]
         # Daily check-in and review request: the app shows a confirmation card for each answer.
         contract_tools = json.loads(
             (Path(__file__).resolve().parents[2] / "contracts/tool_contracts.json").read_text(
@@ -140,7 +156,7 @@ async def main():
         marker = "AIRIANE BRAND AND PATIENT-REVIEWED NOTES"
         base = old.split(marker)[0].rstrip()
         base = base.replace("You are RE,", "You are AIriane,")
-        ids = list(dict.fromkeys([*prompt.get("tool_ids", []), tool_id, *extra_ids]))
+        ids = list(dict.fromkeys([*prompt.get("tool_ids", []), *ui_ids, *extra_ids]))
         update = {
             "conversation_config": {
                 "agent": {
@@ -164,7 +180,7 @@ async def main():
             json.dumps(
                 {
                     "agent_configured": True,
-                    "client_tool": definition["name"],
+                    "client_tools": [t["name"] for t in ui_tools],
                     "expects_response": True,
                     "existing_tools_retained": set(prompt.get("tool_ids", [])).issubset(ids),
                     "privacy_settings_unchanged": True,

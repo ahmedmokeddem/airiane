@@ -15,3 +15,6 @@ import "./wellbeing.test";
 import "./opening.test";
 
 import "./report-export.test";
+
+import "./noise-filter.test";
+import "./assessment.test";

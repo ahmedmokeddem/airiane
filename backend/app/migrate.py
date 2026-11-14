@@ -15,7 +15,11 @@ async def main():
     parser.add_argument(
         "--migration",
         default="0001_baseline.sql",
-        choices=["0001_baseline.sql", "0002_confirmed_insights.sql"],
+        choices=[
+            "0001_baseline.sql",
+            "0002_confirmed_insights.sql",
+            "0003_clinical_questionnaires.sql",
+        ],
     )
     args = parser.parse_args()
     url = postgres_dsn(Settings().database_url)

@@ -238,13 +238,43 @@ def streak(sessions: list[dict], timezone_name: str | None) -> tuple[int, bool]:
     return count, today in days
 
 
-def attention(observations: list[dict] | None, open_request: bool) -> dict:
+def attention(
+    observations: list[dict] | None,
+    open_request: bool,
+    assessments: list[dict] | None = None,
+    safety_shared: bool = False,
+) -> dict:
     """Reasons a clinician may want to look at this patient first.
 
     `observations` are confirmed rows the clinician is currently permitted to read, or None when
     reports are not shared (then only an explicit patient request can raise attention).
     """
     reasons = []
+    # Questionnaire results (scored views), most important first.
+    recent_results = sorted(
+        (
+            a
+            for a in assessments or []
+            if a.get("result") and _utc(a["observed_at"]) >= now() - timedelta(days=30)
+        ),
+        key=lambda a: a["observed_at"],
+        reverse=True,
+    )
+    if safety_shared:
+        reasons.append("Self-harm question answered above 0 · all answers sent to you")
+    elif any(a["result"]["safety"]["item_positive"] for a in recent_results):
+        reasons.append("Self-harm question answered above 0 in a recent questionnaire")
+    latest_by_instrument = {}
+    for a in recent_results:
+        latest_by_instrument.setdefault(a["result"]["instrument"], a["result"])
+    phq = latest_by_instrument.get("phq9")
+    if phq and phq["total"] >= 10:
+        reasons.append(f"PHQ-9 {phq['total']}/27: {phq['severity'].lower()}")
+    extended = latest_by_instrument.get("bdi_themes")
+    if extended and extended["level"] in ("moderate", "high"):
+        reasons.append(
+            f"Extended questions {extended['total']}/63: {extended['severity'].lower()} (indicative)"
+        )
     if open_request:
         reasons.append("Patient asked for a check-in")
     rows = sorted(observations or [], key=lambda r: r["observed_at"])

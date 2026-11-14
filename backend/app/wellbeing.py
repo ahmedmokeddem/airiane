@@ -12,6 +12,8 @@ from .domain import DomainError, RecordStore, now, stamp
 from .services import SessionService, uid, utc
 
 REVIEW_RULE = "patient_requested_review"
+# A questionnaire whose self-harm question was answered above 0, sent to connected doctors.
+SAFETY_RULE = "questionnaire_safety_item"
 SCALE_LIMITS = {"mood": 10, "energy": 10, "sleep_hours": 24}
 
 
@@ -135,12 +137,43 @@ class ObservationService:
             )
         else:
             changes.update(state="rejected")
+        if body["decision"] == "confirm":
+            # An update: the patient's newer answer for the same day replaces the earlier one,
+            # so each day keeps one current value per kind (the earlier row stays as history).
+            earlier = await self.same_day_confirmed(patient, row["kind"], changes["observed_at"])
+            if earlier:
+                changes["supersedes_observation_id"] = earlier[-1]["id"]
+            for old in earlier:
+                await self.store.update(
+                    "observations",
+                    {"id": old["id"], "patient_id": patient, "state": "confirmed"},
+                    {"state": "superseded", "version": old["version"] + 1},
+                )
         await self.store.update(
             "observations",
             {"id": observation_id, "patient_id": patient, "version": row["version"]},
             changes,
         )
         return await self.view(await self.owned(patient, observation_id))
+
+    async def same_day_confirmed(self, patient: str, kind: str, observed_at: str) -> list[dict]:
+        """Confirmed values of `kind` on the same local day as `observed_at`, oldest first."""
+        from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+        profile = await self.store.get("patient_profiles", patient_id=patient)
+        try:
+            zone = ZoneInfo(profile["timezone"])
+        except (ZoneInfoNotFoundError, TypeError, KeyError):
+            zone = ZoneInfo("UTC")
+        day = utc(observed_at).astimezone(zone).date()
+        rows = [
+            r
+            for r in await self.store.all(
+                "observations", patient_id=patient, kind=kind, state="confirmed"
+            )
+            if utc(r["observed_at"]).astimezone(zone).date() == day
+        ]
+        return sorted(rows, key=lambda r: (r["observed_at"], r["id"]))
 
 
 class AlertService:
@@ -231,8 +264,72 @@ class AlertService:
         await self.care.audit(patient, patient, "review_requested", "alert", alert_id)
         return await self.view(row)
 
+    async def share_questionnaire(self, patient: str, source_id: str, session_id) -> bool:
+        """Send a questionnaire to every connected doctor; the patient agreed before starting."""
+        links = await self.store.all("care_links", patient_id=patient, state="active")
+        if not links:
+            return False
+        alert_id = uid()
+        row = await self.store.add(
+            "alerts",
+            id=alert_id,
+            patient_id=patient,
+            session_id=session_id,
+            rule_key=SAFETY_RULE,
+            rule_version=1,
+            dedup_key=source_id,
+            state="open",
+            version=1,
+            source_ids=[source_id],
+            created_at=stamp(),
+        )
+        for link in links:
+            grant = next(
+                (
+                    g
+                    for g in await self.store.all(
+                        "consent_grants",
+                        patient_id=patient,
+                        care_link_id=link["id"],
+                        scope="alerts",
+                    )
+                    if self.care.active_grant(g)
+                ),
+                None,
+            )
+            await self.store.add(
+                "alert_recipients",
+                alert_id=alert_id,
+                patient_id=patient,
+                care_link_id=link["id"],
+                consent_grant_id=grant["id"] if grant else None,
+                delivery_state="visible",
+                acknowledged_at=None,
+            )
+        await self.care.audit(patient, patient, "questionnaire_shared", "alert", row["id"])
+        return True
+
     async def visible(self, clinician: str, patient: str) -> tuple[dict, list[dict]]:
-        link, grant = await self.care.authorize_scope(clinician, patient, "alerts")
+        """Alerts this doctor may see: check-in requests need an alerts grant; questionnaires
+        sent after a positive Q9 need only the active connection the patient agreed to."""
+        await self.care.clinician(clinician)
+        profile = await self.store.get("patient_profiles", patient_id=patient)
+        user = await self.store.get("users", id=patient)
+        link = await self.store.get(
+            "care_links", patient_id=patient, clinician_id=clinician, state="active"
+        )
+        if not profile or not user or user["disabled_at"] or not link:
+            raise DomainError("CONSENT_REQUIRED", 403)
+        grant = next(
+            (
+                g
+                for g in await self.store.all(
+                    "consent_grants", patient_id=patient, care_link_id=link["id"], scope="alerts"
+                )
+                if self.care.active_grant(g)
+            ),
+            None,
+        )
         rows = []
         for row in await self.store.all("alerts", patient_id=patient):
             recipient = await self.store.get(
@@ -240,8 +337,16 @@ class AlertService:
             )
             if not recipient or recipient["delivery_state"] != "visible":
                 continue
-            if grant["data_from"] is None or utc(row["created_at"]) >= utc(grant["data_from"]):
+            if (
+                row["rule_key"] == SAFETY_RULE
+                or grant
+                and (
+                    grant["data_from"] is None or utc(row["created_at"]) >= utc(grant["data_from"])
+                )
+            ):
                 rows.append(row)
+        if grant is None and not rows:
+            raise DomainError("CONSENT_REQUIRED", 403)
         return link, rows
 
     async def doctor_update(self, clinician: str, patient: str, alert_id: str, body: dict) -> dict:

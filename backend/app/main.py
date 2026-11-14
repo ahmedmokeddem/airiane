@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.exc import IntegrityError
 
-from . import care_routes, guidance, replay
+from . import assessments, care_routes, guidance, replay
 from .auth import Authenticator
 from .care import CareService, current_user
 from .config import Settings
@@ -21,7 +21,7 @@ from .provider import ElevenLabsBootstrap
 from .reports import routes as pdf_routes
 from .services import CATALOG, ActivityService, PatientService, SessionService, utc
 from .storage import SqlStore, engine_for, metadata
-from .wellbeing import REVIEW_RULE, AlertService, ObservationService
+from .wellbeing import REVIEW_RULE, SAFETY_RULE, AlertService, ObservationService
 
 TOOL_NAMES = [
     "present_activity_recommendations",
@@ -50,6 +50,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 await connection.run_sync(metadata.create_all)
         async with engine.begin() as connection:
             store = SqlStore(connection)
+            await assessments.seed(store)
             for row in CATALOG:
                 existing = await store.get("activity_catalog", id=row["id"])
                 if not existing:
@@ -68,6 +69,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                             "title": row["title"],
                         },
                     )
+            if not await store.get("alert_rules", rule_key=SAFETY_RULE, version=1):
+                await store.add(
+                    "alert_rules",
+                    rule_key=SAFETY_RULE,
+                    version=1,
+                    enabled=True,
+                    definition={
+                        "trigger": "questionnaire_item_9_above_0",
+                        "patient_informed": True,
+                    },
+                )
             if not await store.get("alert_rules", rule_key=REVIEW_RULE, version=1):
                 await store.add(
                     "alert_rules",

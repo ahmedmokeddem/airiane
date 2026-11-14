@@ -61,9 +61,17 @@ import type {
   Recommendation,
   Session,
 } from "./src/integration/types";
+import { primeNoiseFilter } from "./src/features/call/noise-filter";
 import { ReportsSharing } from "./src/features/reports/reports-sharing";
 import { DailyCheckIn } from "./src/features/checkin/daily-check-in";
 import { CheckInProposals } from "./src/features/checkin/check-in-proposals";
+import { AssessmentPanel } from "./src/features/assessment/assessment-panel";
+import { useAssessment } from "./src/features/assessment/use-assessment";
+import {
+  checkInUpdate,
+  matchOption,
+  wantsAssessment,
+} from "./src/features/assessment/assessment-flow";
 import {
   fields as checkInFields,
   format as formatCheckIn,
@@ -135,6 +143,33 @@ export default function App() {
   const checkInKind = useRef<CheckInKind | null>(null);
   const say = (textValue: string) =>
     setMessages((m) => [...m, { role: "agent", text: textValue }]);
+  const assessment = useAssessment((question, definition, number, total) => {
+    const options = (question.options ?? []).map((o) => o.label).join(" · ");
+    if (realVoice) {
+      // Give the live companion the exact question and options to read aloud.
+      try {
+        adapter.current?.updateContext(
+          JSON.stringify({
+            assessment: {
+              title: definition.title,
+              progress: `${number} of ${total}`,
+              question_id: question.question_id,
+              question: question.wording,
+              options: question.options,
+            },
+          }),
+        );
+      } catch {
+        setConnected(false);
+      }
+      return;
+    }
+    say(`${number} of ${total}. ${question.wording} (${options})`);
+  });
+  const assessmentRef = useRef(assessment);
+  useEffect(() => {
+    assessmentRef.current = assessment;
+  }, [assessment]);
   const dispatchTool = useRef<
     | ((
         name: string,
@@ -353,7 +388,7 @@ export default function App() {
     say(
       greet
         ? "Welcome back. Your check-in for today is saved. Here are a few small things that might help right now."
-        : "Thank you, that’s today’s check-in saved. Based on what you shared, here are a few small things that might help.",
+        : "Thank you, that’s today’s check-in saved. Based on what you shared, here are a few small things that might help. If you’d like a fuller check at some point, just say “full assessment”.",
     );
     await bridge.current?.present();
   };
@@ -377,12 +412,23 @@ export default function App() {
       }
       return;
     }
+    if (!checkInKind.current) {
+      // A mid-conversation update, not part of the three questions.
+      say(
+        observation.state === "confirmed"
+          ? `Updated. Your ${label.toLowerCase()} for today is now ${formatCheckIn(observation.kind, observation.value)}.`
+          : "No problem, I’ve left it as it was.",
+      );
+      return;
+    }
     if (observation.state !== "confirmed")
       say(`No problem, let’s try ${label.toLowerCase()} again.`);
     const parent = sessionRef.current;
     if (parent) await askNextCheckIn(parent.session_id);
   };
   const openConversation = async (kind: "voice" | "text") => {
+    // Must run inside the tap, before any await, so the browser allows the audio filter to start.
+    if (kind === "voice") primeNoiseFilter();
     const epoch = ++connectEpoch.current;
     voiceCallRef.current = kind === "voice";
     setVoiceCall(kind === "voice");
@@ -505,6 +551,25 @@ export default function App() {
         );
         return JSON.stringify(result.result);
       },
+      // The questionnaire: voice only highlights an option; the patient taps to record it.
+      propose_assessment_answer: async (args) =>
+        JSON.stringify({
+          highlighted: assessmentRef.current.suggest(
+            String(args.question_id),
+            Number(args.value),
+          ),
+          awaiting_patient_tap: true,
+        }),
+      open_assessment: async (args) => {
+        const definitions = await assessmentRef.current.offer();
+        const wanted = definitions.find((d) =>
+          args.assessment === "phq9"
+            ? d.title.startsWith("PHQ-9")
+            : !d.title.startsWith("PHQ-9"),
+        );
+        if (wanted) assessmentRef.current.begin(wanted);
+        return JSON.stringify({ opened: !!wanted });
+      },
       select_activity: async (args) => {
         if (!bridge.current?.recommendation)
           throw new Error("No current recommendations");
@@ -554,8 +619,44 @@ export default function App() {
     if (!connected) await openConversation("text");
     setMessages((m) => [...m, { role: "user", text: value }]);
     setText("");
+    const flow = assessment.state;
+    if (flow.phase === "asking") {
+      // Highlight what the patient said; they tap the option to record it.
+      const heard = matchOption(flow.question, value);
+      if (heard !== null) assessment.suggest(flow.question.question_id, heard);
+      if (realVoice) adapter.current!.sendText(value);
+      else
+        say(
+          heard !== null
+            ? `I heard “${flow.question.options?.find((o) => o.value === heard)?.label}”. Tap it to confirm, or choose another.`
+            : "Thank you. Which option fits best? You can tap it below.",
+        );
+      return;
+    }
+    if (wantsAssessment(value)) {
+      await assessment.offer();
+      if (realVoice) adapter.current!.sendText(value);
+      else
+        say(
+          "Of course. Here are two optional questionnaires. You can stop at any time, and nothing is saved until you finish.",
+        );
+      return;
+    }
     if (realVoice) adapter.current!.sendText(value);
-    else if (checkInKind.current) {
+    else if (!checkInKind.current && checkInUpdate(value)) {
+      // Simulated companion: the patient states a new check-in value mid-conversation.
+      const update = checkInUpdate(value)!;
+      const answer = parseAnswer(update.kind, value);
+      if (answer === null) {
+        say("I didn’t catch the new number. A rough number is fine.");
+        return;
+      }
+      await api.proposeObservation(update.kind, answer);
+      setProposalsKey((k) => k + 1);
+      say(
+        `Thanks for letting me know. Shall I update your ${checkInFields.find((f) => f.kind === update.kind)!.label.toLowerCase()} to ${formatCheckIn(update.kind, answer)}? You can confirm below.`,
+      );
+    } else if (checkInKind.current) {
       // Simulated companion: read the answer, then ask the patient to confirm it.
       const kind = checkInKind.current;
       const answer = parseAnswer(kind, value);
@@ -639,6 +740,29 @@ export default function App() {
       }
     });
   };
+  // Open the chat for something the patient chose on Home.
+  const openChatFor = (simulatedLine: string, liveLine: string, then?: () => Promise<unknown>) => {
+    setScreen("text");
+    void run(async () => {
+      if (!connected) await openConversation("text");
+      if (then) await then();
+      if (realVoice) {
+        setMessages((m) => [...m, { role: "user", text: liveLine }]);
+        adapter.current!.sendText(liveLine);
+      } else say(simulatedLine);
+    });
+  };
+  const startUpdate = () =>
+    openChatFor(
+      "Of course. Tell me the new number, for example “my mood is 6 now” or “I slept 7 hours”.",
+      "I’d like to update my check-in.",
+    );
+  const startAssessment = () =>
+    openChatFor(
+      "Here are two optional questionnaires. You can stop at any time, and nothing is saved until you finish.",
+      "I’d like to do a full assessment.",
+      () => assessment.offer(),
+    );
   const beginActivity = async (id: string) => {
     if (activity?.state === "started" && activity.activity_id === id) {
       setScreen("breathing");
@@ -722,6 +846,23 @@ export default function App() {
   // Check-in confirmations sit above insight review, in chat and on a call alike.
   const reviewPanel = (
     <>
+      <AssessmentPanel
+        assessment={assessment}
+        busy={busy}
+        dark={immersive}
+        hasDoctor={mode === "live" && product.hasConnectedDoctor}
+        onAnswer={(value) =>
+          void run(async () => {
+            await assessment.answer(
+              value,
+              sessionRef.current?.session_id ?? null,
+              mode === "live" && product.hasConnectedDoctor,
+            );
+            void product.refresh();
+          })
+        }
+        onAskCareTeam={() => void run(assessment.askCareTeam)}
+      />
       <CheckInProposals
         refreshKey={proposalsKey}
         dark={immersive}
@@ -833,7 +974,14 @@ export default function App() {
               onProfile={() => setScreen("profile")}
               onBegin={(id) => void run(() => beginActivity(id))}
               onReports={() => setScreen("reports")}
-              checkIn={<DailyCheckIn onStart={startCheckIn} busy={busy} />}
+              checkIn={
+                <DailyCheckIn
+                  onStart={startCheckIn}
+                  onUpdate={startUpdate}
+                  onAssessment={startAssessment}
+                  busy={busy}
+                />
+              }
               streak={product.streak}
               medication={product.medicationReminder}
               careTeamHint={mode === "live" && !product.hasConnectedDoctor}

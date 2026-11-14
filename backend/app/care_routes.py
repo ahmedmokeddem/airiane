@@ -3,12 +3,13 @@
 from uuid import uuid4
 
 from . import guidance
+from .assessments import AssessmentService, response_view
 from .care import CareService
 from .domain import DomainError, stamp
 from .insights import InsightService
 from .reporting import ReportService, authorization_start
 from .services import utc
-from .wellbeing import AlertService, ObservationService
+from .wellbeing import REVIEW_RULE, SAFETY_RULE, AlertService, ObservationService
 
 SHARED_OPERATIONS = {
     "getMe",
@@ -19,6 +20,7 @@ SHARED_OPERATIONS = {
     "getDoctorReport",
     "listDoctorAlerts",
     "updateDoctorAlert",
+    "getDoctorAlertAssessment",
     "setDoctorMedicationReminder",
 }
 OPERATIONS = {
@@ -45,7 +47,10 @@ OPERATIONS = {
     "listPatientAlerts": (None, "AlertPage", 200),
     "listDoctorAlerts": (None, "AlertPage", 200),
     "updateDoctorAlert": ("AlertPatch", "Alert", 200),
+    "getDoctorAlertAssessment": (None, "AssessmentResponse", 200),
     "getMyMedicationReminder": (None, "MedicationReminderResponse", 200),
+    "listAssessments": (None, "AssessmentDefinitionPage", 200),
+    "submitAssessment": ("AssessmentSubmit", "AssessmentResponse", 201),
     "setDoctorMedicationReminder": ("MedicationReminderSet", "MedicationReminder", 200),
 }
 
@@ -116,7 +121,14 @@ async def dispatch(op, store, actor, p, body, query, pages):
                     )
                     if g["scope"] in ["reports", "alerts"] and care.active_grant(g)
                 }
-                if not grants:
+                try:
+                    _, visible_alerts = await alerts.visible(actor, link["patient_id"])
+                except DomainError:
+                    visible_alerts = []
+                safety_shared = any(
+                    a["rule_key"] == SAFETY_RULE and a["state"] == "open" for a in visible_alerts
+                )
+                if not grants and not safety_shared:
                     continue
                 entry = {
                     "patient_id": link["patient_id"],
@@ -141,11 +153,20 @@ async def dispatch(op, store, actor, p, body, query, pages):
                         ),
                         profile["timezone"],
                     )[0]
-                open_request = False
-                if "alerts" in grants:
-                    _, visible = await alerts.visible(actor, link["patient_id"])
-                    open_request = any(row["state"] == "open" for row in visible)
-                entry["attention"] = guidance.attention(shared, open_request)
+                open_request = "alerts" in grants and any(
+                    a["rule_key"] == REVIEW_RULE and a["state"] == "open" for a in visible_alerts
+                )
+                scored = None
+                if "reports" in grants:
+                    start = grants["reports"]["data_from"]
+                    scored = [
+                        response_view(row, "")
+                        for row in await store.all(
+                            "assessment_responses", patient_id=link["patient_id"], complete=True
+                        )
+                        if start is None or utc(row["observed_at"]) >= utc(start)
+                    ]
+                entry["attention"] = guidance.attention(shared, open_request, scored, safety_shared)
                 patients.append(entry)
             return page(patients, key=lambda r: (r["patient_id"],), descending=False)
         case "listDoctorReports":
@@ -183,6 +204,14 @@ async def dispatch(op, store, actor, p, body, query, pages):
             return built
         case "updateDoctorAlert":
             return await alerts.doctor_update(actor, p["patient_id"], p["alert_id"], body)
+        case "getDoctorAlertAssessment":
+            return await AssessmentService(store).doctor_alert_assessment(
+                actor, p["patient_id"], p["alert_id"]
+            )
+        case "listAssessments":
+            return await AssessmentService(store).list()
+        case "submitAssessment":
+            return await AssessmentService(store).submit(actor, p["assessment_id"], body)
         case "getMyMedicationReminder":
             active_links = {
                 link["clinician_id"]

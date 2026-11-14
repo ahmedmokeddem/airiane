@@ -88,3 +88,21 @@ test('report excludes superseded insights while preserving direct versus approve
  report.confirmed_insights=[base,{...base,insight_id:'old',state:'superseded'},{...base,insight_id:'approved',statement_kind:'patient_approved_interpretation'}];
  assert.deepEqual(confirmedInsights(report).map(item=>item.statement_kind),['direct_statement','patient_approved_interpretation']);
 });
+
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { AssessmentResults } from '../components/assessment-results';
+test('questionnaire results show every band, the total, the action and the item-9 safety note',()=>{
+ const report=structuredClone(fixture.report) as Report;
+ const bands=[{min:0,max:9,level:'low' as const,label:'Minimal to mild depressive symptoms'},{min:10,max:14,level:'moderate' as const,label:'Moderate depressive symptoms'},{min:15,max:27,level:'high' as const,label:'Moderately severe to severe depressive symptoms'}];
+ report.assessments=[{assessment_response_id:'r',assessment_id:'a',assessment_version:1,source_id:'s',complete:true,title:'PHQ-9 · Patient Health Questionnaire-9',answers:[{question_id:'q9',value:1}],observed_at:'2026-11-14T10:00:00Z',result:{instrument:'phq9',total:10,max_total:27,level:'moderate',severity:'Moderate depressive symptoms',suggested_action:'Recommend further assessment by a qualified therapist or mental health professional',interpretation:'The respondent reports a noticeable level of depressive symptoms.',bands,functional_impairment:'Somewhat difficult',domains:[],safety:{item_positive:true,follow_up:null},validated:true,note:'PHQ-9 is a validated screening questionnaire.'},answer_details:[{question_id:'q9',wording:'Thoughts that you would be better off dead or of hurting yourself in some way?',value:1,label:'Several days',scored:true},{question_id:'q10',wording:'If you checked off any problems, how difficult have these problems made it for you?',value:1,label:'Somewhat difficult',scored:false}]}];
+ const html=renderToStaticMarkup(createElement(AssessmentResults,{report}));
+ for(const text of ['<strong>10</strong> / 27','Moderate depressive symptoms','Recommend further assessment','Item 9 answered above 0','Every answer is listed below','Thoughts that you would be better off dead','<b>Several days</b>','not scored','<details open="">','0–9','10–14','15–27','Somewhat difficult','Validated questionnaire']) assert.ok(html.includes(text),text);
+ assert.equal(renderToStaticMarkup(createElement(AssessmentResults,{report:{...report,assessments:[]}})),'');
+});
+
+test('the doctor client reads a questionnaire sent after a positive Q9 from the alert path',async()=>{
+ let url='';const api=new ClinicianApi('http://127.0.0.1:8000','fictional',async input=>{url=String(input);return Response.json({});});
+ await api.alertAssessment('patient-id','alert-id');
+ assert.equal(url,'http://127.0.0.1:8000/v1/doctor/patients/patient-id/alerts/alert-id/assessment');
+});

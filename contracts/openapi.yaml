@@ -2394,7 +2394,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-permission: patient owner; nonclinical demo definitions
+      x-permission: patient owner; versioned questionnaire definitions
       x-idempotency: safe-read
   /v1/assessments/{assessment_id}/responses:
     post:
@@ -3586,6 +3586,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       x-permission: verified clinician + active link + active alerts grant
+      x-idempotency: safe-read
+  /v1/doctor/patients/{patient_id}/alerts/{alert_id}/assessment:
+    get:
+      operationId: getDoctorAlertAssessment
+      summary: getDoctorAlertAssessment
+      description: The questionnaire a patient's positive Q9 sent to this doctor, with every answer.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema: *id001
+      - name: alert_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: verified clinician + active care link + questionnaire alert delivered to that link
       x-idempotency: safe-read
   /v1/doctor/patients/{patient_id}/alerts/{alert_id}:
     patch:
@@ -5357,7 +5395,29 @@ components:
           minLength: 1
           maxLength: 160
         clinical_instrument:
-          const: false
+          type: boolean
+          description: True for screening questionnaires approved by the product owner (e.g. PHQ-9).
+        instructions:
+          type: string
+          minLength: 1
+          maxLength: 500
+        estimated_minutes:
+          type: integer
+          minimum: 1
+          maximum: 60
+        validated:
+          type: boolean
+          description: False when wording is adapted and the instrument's cut-offs are indicative only.
+        note:
+          type: string
+          minLength: 1
+          maxLength: 500
+        citations:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 10
         questions:
           type: array
           items:
@@ -5376,12 +5436,38 @@ components:
                 type: integer
               maximum:
                 type: integer
+              options:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    value:
+                      type: integer
+                    label:
+                      type: string
+                      minLength: 1
+                      maxLength: 80
+                  required:
+                  - value
+                  - label
+                maxItems: 11
+              scored:
+                type: boolean
+                description: Whether the answer counts towards the total.
+              follow_up_of:
+                description: Asked only when this question's answer is above 0.
+                anyOf:
+                - type: string
+                  minLength: 1
+                  maxLength: 80
+                - type: 'null'
             required:
             - question_id
             - wording
             - minimum
             - maximum
-          maxItems: 20
+          maxItems: 30
       required:
       - assessment_id
       - version
@@ -5397,6 +5483,9 @@ components:
           - *id001
           - type: 'null'
         assessment_version: *id004
+        share_if_safety_concern:
+          type: boolean
+          description: The patient was told before starting that answering Q9 above 0 sends all answers to their connected doctor.
         answers: &id007
           type: array
           items:
@@ -5414,7 +5503,7 @@ components:
             required:
             - question_id
             - value
-          maxItems: 20
+          maxItems: 30
         observed_at: *id005
       required:
       - session_id
@@ -5436,6 +5525,44 @@ components:
           maxLength: 160
         answers: *id007
         observed_at: *id005
+        answer_details:
+          description: Every answer with its full question and the option the patient chose.
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              question_id:
+                type: string
+                minLength: 1
+                maxLength: 80
+              wording:
+                type: string
+                minLength: 1
+                maxLength: 500
+              value:
+                type: integer
+              label:
+                type: string
+                minLength: 1
+                maxLength: 80
+              scored:
+                type: boolean
+            required:
+            - question_id
+            - wording
+            - value
+            - label
+            - scored
+          maxItems: 30
+        shared_with_doctor:
+          type: boolean
+          description: True when a positive Q9 sent these answers to a connected doctor.
+        result:
+          description: Deterministic scoring of the answers, or null for unscored questionnaires.
+          anyOf:
+          - $ref: '#/components/schemas/AssessmentResult'
+          - type: 'null'
       required:
       - assessment_response_id
       - assessment_id
@@ -5445,6 +5572,141 @@ components:
       - title
       - answers
       - observed_at
+    AssessmentResult:
+      type: object
+      additionalProperties: false
+      description: Screening information for a clinician; not a diagnosis.
+      properties:
+        instrument:
+          type: string
+          enum:
+          - phq9
+          - bdi_themes
+        total:
+          type: integer
+          minimum: 0
+        max_total:
+          type: integer
+          minimum: 1
+        level: &id_assess_level
+          type: string
+          enum:
+          - low
+          - mild
+          - moderate
+          - high
+        severity:
+          type: string
+          minLength: 1
+          maxLength: 160
+        suggested_action:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 300
+          - type: 'null'
+        interpretation:
+          type: string
+          minLength: 1
+          maxLength: 600
+        bands:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              min:
+                type: integer
+              max:
+                type: integer
+              level: *id_assess_level
+              label:
+                type: string
+                minLength: 1
+                maxLength: 160
+            required:
+            - min
+            - max
+            - level
+            - label
+          maxItems: 6
+        functional_impairment:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 80
+          - type: 'null'
+        domains:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 80
+              description:
+                type: string
+                minLength: 1
+                maxLength: 200
+              questions:
+                type: array
+                items:
+                  type: string
+                  minLength: 1
+                  maxLength: 10
+                maxItems: 30
+              score:
+                type: integer
+                minimum: 0
+              max:
+                type: integer
+                minimum: 1
+            required:
+            - name
+            - description
+            - questions
+            - score
+            - max
+          maxItems: 10
+        safety:
+          type: object
+          additionalProperties: false
+          properties:
+            item_positive:
+              type: boolean
+            follow_up:
+              anyOf:
+              - type: string
+                enum:
+                - 'no'
+                - 'yes'
+                - declined
+              - type: 'null'
+          required:
+          - item_positive
+          - follow_up
+        validated:
+          type: boolean
+        note:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+      - instrument
+      - total
+      - max_total
+      - level
+      - severity
+      - suggested_action
+      - interpretation
+      - bands
+      - functional_impairment
+      - domains
+      - safety
+      - validated
+      - note
     ReportRequest:
       type: object
       additionalProperties: false

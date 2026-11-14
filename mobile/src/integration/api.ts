@@ -46,6 +46,12 @@ export const api = {
     if(mode==='live'){const q=await request<DTO<'GuidedQuestion'>>(`/conversation-sessions/${sessionId}/guided-question`);return {kind:q.question_id as Observation['kind']|null,wording:q.wording};}
     const kind=missingToday(mockObservations,new Date())[0]??null;return {kind,wording:kind?QUESTIONS[kind]:null};
   },
+  /** Questionnaires available for a full assessment conversation (live backend only). */
+  async assessments():Promise<DTO<'AssessmentDefinition'>[]>{return mode==='live'?(await request<DTO<'AssessmentDefinitionPage'>>('/assessments')).items:[];},
+  /** `shareIfSafetyConcern`: the patient was told a Q9 answer above 0 sends all answers to their doctor. */
+  async submitAssessment(definition:DTO<'AssessmentDefinition'>,answers:DTO<'AssessmentSubmit'>['answers'],sessionId:string|null,shareIfSafetyConcern:boolean,key:string=uuid()):Promise<DTO<'AssessmentResponse'>>{
+    return request(`/assessments/${definition.assessment_id}/responses`,{session_id:sessionId,assessment_version:definition.version,answers,observed_at:new Date().toISOString(),share_if_safety_concern:shareIfSafetyConcern},'POST',key);
+  },
   async streak():Promise<DTO<'RecoveryStreak'>>{
     if(mode==='live')return request('/me/recovery-streak');
     const today=mockJourney.items.some(i=>i.activity_session.state==='completed');return {streak_days:today?1:0,active_today:today};

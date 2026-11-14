@@ -21,6 +21,12 @@ import { Companion, AudioWave } from "./companion";
 import { CallControls } from "./call-controls";
 import { useLocalCamera } from "./use-local-camera";
 import { useAudioRoutes } from "./use-audio-routes";
+import { noiseFilterSupported } from "./noise-filter";
+import {
+  NOISE_FILTER_MODES,
+  setNoiseFilterMode,
+  useNoiseFilterMode,
+} from "./noise-filter-mode";
 import { activityCue, type ActivityDetail } from "../activity/activity-cues";
 import {
   NATURE_SOUNDSCAPES,
@@ -66,6 +72,7 @@ export function CallScreen(p: Props) {
   const camera = useLocalCamera(!p.ending && p.state !== "disconnected");
   const isPermissionPending = camera.isPermissionPending;
   const routes = useAudioRoutes(p.connected && !p.ending);
+  const filterMode = useNoiseFilterMode();
   const [seconds, setSeconds] = useState(0);
   const start = useRef(0);
   useEffect(() => {
@@ -489,6 +496,43 @@ export function CallScreen(p: Props) {
               <Text style={s.detail}>Use your device’s audio controls.</Text>
             )}
             {!!routes.error && <Text style={s.error}>{routes.error}</Text>}
+            <View testID="noise-filter-options" style={{ gap: 8, marginTop: 6 }}>
+              <Text style={s.cardTitle}>Background noise filter</Text>
+              {noiseFilterSupported ? (
+                <>
+                  <Text style={s.detail}>
+                    Helps AIriane listen to you, not the room. It turns down sound that is
+                    much quieter than your voice, such as a TV or people further away.
+                  </Text>
+                  <View style={{ flexDirection: "row", gap: 6 }}>
+                    {NOISE_FILTER_MODES.map((option) => (
+                      <Pressable
+                        key={option.mode}
+                        testID={`noise-filter-${option.mode}`}
+                        accessibilityRole="radio"
+                        accessibilityLabel={`Noise filter ${option.label}`}
+                        accessibilityState={{ selected: filterMode === option.mode }}
+                        onPress={() => setNoiseFilterMode(option.mode)}
+                        style={[
+                          s.route,
+                          { flex: 1, alignItems: "center" },
+                          filterMode === option.mode && s.routeChosen,
+                        ]}
+                      >
+                        <Text style={s.captionText}>{option.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <Text style={s.detail}>
+                    {NOISE_FILTER_MODES.find((o) => o.mode === filterMode)?.detail}
+                  </Text>
+                </>
+              ) : (
+                <Text style={s.detail}>
+                  Your phone’s built-in voice noise reduction is on for this call.
+                </Text>
+              )}
+            </View>
             <Pressable
               accessibilityRole="button"
               style={s.quiet}

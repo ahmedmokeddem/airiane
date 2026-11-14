@@ -32,6 +32,7 @@ def metadata(op: str, result: dict) -> dict:
         "observation_id",
         "alert_id",
         "insight_id",
+        "assessment_response_id",
     ]
     return {key: result[key] for key in keys if key in result}
 
@@ -73,6 +74,10 @@ async def restore(op: str, meta: dict, store, patient: str) -> dict:
             },
             "active": bool(row["active"]),
         }
+    if "assessment_response_id" in meta:
+        from .assessments import AssessmentService
+
+        return await AssessmentService(store).owned(patient, meta["assessment_response_id"])
     if "observation_id" in meta:
         from .wellbeing import ObservationService
 
