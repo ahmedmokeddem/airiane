@@ -129,7 +129,16 @@ async def dispatch(op, store, actor, p, body, query, pages):
                     a["rule_key"] == SAFETY_RULE and a["state"] == "open" for a in visible_alerts
                 )
                 if not grants and not safety_shared:
-                    continue
+                    # An explicit insight share allows discovery of that patient, not
+                    # access to ordinary reports, alerts or questionnaire records.
+                    insight_shared = await store.has_table("insight_reports") and await store.get(
+                        "insight_reports",
+                        patient_id=link["patient_id"],
+                        shared_care_link_id=link["id"],
+                        status="shared",
+                    )
+                    if not insight_shared:
+                        continue
                 entry = {
                     "patient_id": link["patient_id"],
                     "display_name": profile["display_name"],

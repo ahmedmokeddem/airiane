@@ -1,0 +1,15 @@
+{
+  "artifact": "build/artifacts/AIriane-pr13-internal-arm64.apk",
+  "bytes": 64077298,
+  "sha256": "87a6fc65eb8732802542e6cb07cd8b2f61f3691057d49d1ac7d80e3b6dde4ba1",
+  "package": "dev.re.patient",
+  "debuggable": false,
+  "api": "https://openly-evolving-hog.eur-1.aiven.app",
+  "demo_auth": false,
+  "server_credentials_detected": false,
+  "feature": "Controlled by deployed backend runtime flag; no flag changed by this build",
+  "source_commit": "4234e2de340393fe811e89d8ed80afc697a17238",
+  "built_date": "2026-11-15",
+  "installed_on_device": false,
+  "distribution": "Internal development-signed ARM64 release, not store submission"
+}

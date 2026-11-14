@@ -3,7 +3,7 @@
   "pr": 13,
   "pr_head": "9397f19",
   "base": "087c2b0",
-  "backend_postgresql_tests": 120,
+  "backend_postgresql_tests": 121,
   "mobile_tests": 160,
   "portal_tests": 19,
   "contract_fixtures": 11,
@@ -32,6 +32,12 @@
     "duplicate message ID rejection",
     "row-lock share and relationship authorization",
     "clear insight shares on relationship revocation",
-    "pending insight migration returns 503 without breaking existing care-link revocation"
-  ]
+    "pending insight migration returns 503 without breaking existing care-link revocation",
+    "insight-only share exposes patient directory entry with no ordinary report/alert scopes"
+  ],
+  "additional_sqlite_regressions": 38,
+  "portal_standalone_build": "passed from main checkout with no outside-root tracing warning",
+  "android_build": "ARM64 release BUILD SUCCESSFUL in 1m20s; signature and credential scan passed; not installed",
+  "pr_merged": true,
+  "merge_commit": "4234e2de340393fe811e89d8ed80afc697a17238"
 }

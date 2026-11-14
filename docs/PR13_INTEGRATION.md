@@ -12,18 +12,20 @@
 
 - Both branches had different migration 0007 files. The already-applied `0007_generated_activities.sql` is byte-for-byte preserved. The PR's new table is `0008_insight_reports.sql`; migration runner and references match.
 - Both backend route installers and both mobile nudge exclusions are retained.
+- A patient sharing only an insight report is discoverable in the clinician directory with empty ordinary report/alert scopes; unrelated records remain denied. Revoking the insight removes that discovery path.
 - Messages capture their session, timestamp and voice/text channel when received. Insight submission excludes other sessions and unknown provenance rather than attaching old messages to the current session. Duplicate submitted message IDs are rejected.
 - Sharing and clinician reads lock the care relationship; sharing also locks the report. Revoking the relationship clears its old insight shares, so re-invitation does not restore them. A new explicit report share is required.
 - Missing migration 0008 disables only the new insight routes (HTTP 503). Existing care-link revocation still works before that migration.
 
 ## Verification
 
-- Complete backend suite: **120 passed** with disposable PostgreSQL 16 configured. All eight migrations applied and 0007/0008 replayed without rerunning DDL. Two existing upstream deprecation warnings.
+- Complete backend suite: **121 passed** with disposable PostgreSQL 16 configured. All eight migrations applied and 0007/0008 replayed without rerunning DDL. Two existing upstream deprecation warnings.
 - Mobile: **160 tests**, typecheck and lint passed; all routes compiled in mock-mode web export.
-- Portal: **19 tests**, lint, typecheck and production compilation passed. The isolated worktree build warned that symlinked dependencies were outside its tracing root; that output is not a deployment artifact.
+- Portal: **19 tests**, lint, typecheck and production compilation passed. The initial isolated worktree build warned about symlinked dependencies outside its tracing root. A second production build from the main checkout passed without that warning.
 - Browser, 390×844: Assessment Center rendered; fictional zero-response PHQ-9 and adapted BDI completed separately and rendered their privacy/disclaimer/result screens without settled horizontal overflow. No real account or patient data used.
 - Existing shared contracts: **11 fixtures** passed. [Sanitized receipt and protected-file hashes](implementation-validation/pr13/verification.json).
-- No new real Android conversation, Bluetooth, camera, native assessment or generated-voice acceptance is claimed by these checks.
+- ARM64 internal release APK built in **1m20s**, signature matched and configured server credentials were absent. [APK receipt](implementation-validation/pr13/apk.json). Not installed or device-tested; no new real Android conversation, Bluetooth, camera, native assessment or generated-voice acceptance is claimed.
+- 38 focused backend regressions also passed on disposable SQLite.
 
 ## Rollout and remaining limits
 

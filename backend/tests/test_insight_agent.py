@@ -384,3 +384,34 @@ def test_pending_insight_migration_does_not_break_existing_features(report_clien
         c.patch(f"/v1/care-links/{link}", json={"action": "revoke"}, headers=headers()).status_code
         == 200
     )
+
+
+def test_insight_only_share_is_discoverable_without_granting_other_reports(report_client):  # noqa: F811
+    c = report_client
+    sid = start(c)
+    pid = c.get("/v1/me", headers=headers()).json()["user_id"]
+    rid = create(c, sid, sample(sid)).json()["report_id"]
+    link, grant = sharing(c)
+    assert c.delete(f"/v1/consents/{grant}", headers=headers()).status_code == 204
+    assert (
+        c.post(
+            f"/v1/insight-reports/{rid}/share",
+            json={"care_link_id": link, "consent": True},
+            headers=headers(),
+        ).status_code
+        == 200
+    )
+    patients = c.get("/v1/doctor/patients", headers=headers(DOCTOR))
+    assert patients.status_code == 200
+    entry = next(row for row in patients.json()["items"] if row["patient_id"] == pid)
+    assert entry["scopes"] == []
+    assert c.get(f"/v1/doctor/patients/{pid}/reports", headers=headers(DOCTOR)).status_code == 403
+    assert (
+        c.get(
+            f"/v1/doctor/patients/{pid}/insight-reports/{rid}", headers=headers(DOCTOR)
+        ).status_code
+        == 200
+    )
+    assert c.post(f"/v1/insight-reports/{rid}/revoke", headers=headers()).status_code == 200
+    patients = c.get("/v1/doctor/patients", headers=headers(DOCTOR))
+    assert pid not in {row["patient_id"] for row in patients.json()["items"]}
