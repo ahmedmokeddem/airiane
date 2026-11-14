@@ -943,8 +943,12 @@
     for (var ci2 = 0; ci2 < values.length - 1; ci2++) {
       var x1 = ci2 * stepX, y1 = 140 - values[ci2] * 140, x2 = (ci2 + 1) * stepX, y2 = 140 - values[ci2 + 1] * 140;
       var dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx * dx + dy * dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
-      var seg = bar(Math.max(len, 1), 3); seg.cornerRadius = 1.5; setFill(seg, ci2 === values.length - 2 ? 'accent' : 'ink');
-      add(chartArea, seg); place(seg, x1, y1 - 1.5); seg.rotation = ang;
+      var thick = 3;
+      // Figma rotates a node around the center of its UNROTATED bounding box,
+      // not its top-left corner — so place by center, not by (x1, y1).
+      var cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+      var seg = bar(Math.max(len, 1), thick); seg.cornerRadius = thick / 2; setFill(seg, ci2 === values.length - 2 ? 'accent' : 'ink');
+      add(chartArea, seg); place(seg, cx - len / 2, cy - thick / 2); seg.rotation = ang;
     }
     values.forEach(function (v, idx) {
       var dot = ellipse(10, 10, idx === values.length - 1 ? 'accent' : 'ink');
