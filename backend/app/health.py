@@ -2,6 +2,7 @@
 
 import asyncio
 import hashlib
+import json
 import logging
 import re
 import ssl
@@ -98,6 +99,12 @@ def install_health(app, engine, settings):
                         "Readiness failed: %s %s",
                         reason,
                         tls_diagnostic(error, settings.database_ca_pem),
+                    )
+                    from .database_tls import exception_facts
+
+                    logger.warning(
+                        "PostgreSQL TLS exception chain: %s",
+                        json.dumps(exception_facts(error, settings)),
                     )
                 else:
                     logger.warning("Readiness failed: %s", reason)

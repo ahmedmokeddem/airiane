@@ -192,16 +192,47 @@ def engine_for(url: str, settings=None):
 
         dsn = postgres_dsn(url)
 
+        last_tls_report = float("-inf")
+
         async def connect():
+            nonlocal last_tls_report
             kwargs = {
                 "timeout": settings.database_connect_timeout if settings else 15,
                 "command_timeout": settings.database_command_timeout if settings else 15,
             }
-            if settings and settings.environment == "production":
-                import ssl
+            driver_invoked = False
+            try:
+                if settings and settings.environment == "production":
+                    from .database_tls import production_ssl_context
 
-                kwargs["ssl"] = ssl.create_default_context(cadata=settings.database_ca_pem or None)
-            return await asyncpg.connect(dsn, **kwargs)
+                    kwargs["ssl"] = production_ssl_context(settings)
+                driver_invoked = True
+                return await asyncpg.connect(dsn, **kwargs)
+            except Exception as error:
+                if settings and settings.environment == "production":
+                    import json
+                    import logging
+                    import time
+
+                    from .database_tls import classify, context_facts, exception_facts
+
+                    if time.monotonic() - last_tls_report >= 30:
+                        records = exception_facts(error, settings)
+                        report = {
+                            "event": "postgres_driver_connection_failure",
+                            "exceptions": records,
+                            "classification": classify(records),
+                            "driver_invoked": driver_invoked,
+                            "effective_context_passed_to_asyncpg": (
+                                context_facts(kwargs["ssl"], settings) if "ssl" in kwargs else None
+                            ),
+                            "context_construction_failed": "ssl" not in kwargs,
+                        }
+                        logging.getLogger("uvicorn.error").warning(
+                            "PostgreSQL TLS diagnostic: %s", json.dumps(report)
+                        )
+                        last_tls_report = time.monotonic()
+                raise
 
         # Native asyncpg parses provider SSL parameters; engine logs contain no credentials.
         return create_async_engine(
