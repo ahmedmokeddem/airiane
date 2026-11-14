@@ -1,12 +1,14 @@
 import { useCameraPermissions } from "expo-camera";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AppState } from "react-native";
+import { AppState, Linking, Platform } from "react-native";
 
 export function useLocalCamera(allowed: boolean) {
   const [permission, request] = useCameraPermissions();
   const [enabled, setEnabled] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  // Denied for good: the OS will not prompt again, only system settings can change it.
+  const [settingsRequired, setSettingsRequired] = useState(false);
   const epoch = useRef(0);
   const permissionPendingRef = useRef(false);
   const resume = useRef<number | null>(null);
@@ -65,6 +67,7 @@ export function useLocalCamera(allowed: boolean) {
   const toggle = async () => {
     if (permissionPendingRef.current) return;
     setError("");
+    setSettingsRequired(false);
     if (enabled) {
       epoch.current++;
       resume.current = null;
@@ -79,6 +82,9 @@ export function useLocalCamera(allowed: boolean) {
       const result = permission?.granted ? permission : await request();
       if (current === epoch.current && allowedRef.current) {
         if (result.granted) {
+          // Let the just-returned-from-background state settle (avoids a flash /
+          // race where the camera mounts a beat before the OS finishes handing
+          // focus back after the permission dialog) before actually enabling.
           resume.current = current;
           if (AppState.currentState === "active") {
             settleTimer.current = setTimeout(() => {
@@ -94,7 +100,15 @@ export function useLocalCamera(allowed: boolean) {
               }
             }, 300);
           }
-        } else setError("Camera access is off. Your voice call can continue.");
+        } else if (result.canAskAgain) {
+          setError("Camera access is off. Your voice call can continue.");
+        } else {
+          // No further in-app prompt is possible: point at system settings.
+          setSettingsRequired(true);
+          setError(
+            "Camera access is off in your settings. Your voice call can continue.",
+          );
+        }
       }
     } catch {
       setError("Preview unavailable. Your voice call can continue.");
@@ -105,6 +119,23 @@ export function useLocalCamera(allowed: boolean) {
       }
     }
   };
+  // The preview itself could not start (no camera, hardware busy, unsupported
+  // device). Explain it instead of re-running toggle(), which would re-enable
+  // the camera whenever `enabled` had already gone false and remount a
+  // CameraView that fails the same way.
+  const fail = useCallback((message: string) => {
+    epoch.current++;
+    resume.current = null;
+    setEnabled(false);
+    setError(message);
+  }, []);
+  const openSettings = useCallback(() => {
+    // react-native-web has no openSettings(); the browser owns this permission.
+    if (Platform.OS === "web") return;
+    void Promise.resolve()
+      .then(() => Linking.openSettings())
+      .catch(() => {});
+  }, []);
   const isPermissionPending = useCallback(
     () => permissionPendingRef.current,
     [],
@@ -113,17 +144,10 @@ export function useLocalCamera(allowed: boolean) {
     enabled: allowed && enabled && !!permission?.granted,
     pending,
     error,
+    needsSettings: settingsRequired && Platform.OS !== "web",
     toggle,
+    fail,
+    openSettings,
     isPermissionPending,
-    fail: () => {
-      epoch.current++;
-      resume.current = null;
-      permissionPendingRef.current = false;
-      setPending(false);
-      setEnabled(false);
-      setError(
-        "Camera preview could not start. Tap the camera control to try again. Your voice call can continue.",
-      );
-    },
   };
 }

@@ -113,3 +113,24 @@ test('late SDK mode and transcript events cannot revive a disconnected call labe
  assert.equal(nextCompanionState('disconnected',{type:'connecting'}),'connecting');
  assert.equal(nextCompanionState('disconnected',{type:'connected'}),'listening');
 });
+test("the local camera preview is independent of the voice connection state", () => {
+  const screen = readFileSync(
+    new URL("../src/features/call/call-screen.tsx", import.meta.url),
+    "utf8",
+  );
+  // docs/FRONTEND_SPEC.md: "A preview can be previewing while voice is
+  // connecting/disconnected"; a failed voice start must not disable the camera.
+  assert.ok(screen.includes("useLocalCamera(!p.ending)"));
+  assert.ok(screen.includes("cameraAvailable={!p.ending}"));
+  assert.ok(!screen.includes('p.state !== "disconnected"'));
+  // A failed preview mount explains itself instead of re-running toggle().
+  assert.ok(screen.includes("camera.fail("));
+  assert.ok(!/onMountError=\{\(\) => \{\s*void camera\.toggle\(\)/.test(screen));
+  const hook = readFileSync(
+    new URL("../src/features/call/use-local-camera.ts", import.meta.url),
+    "utf8",
+  );
+  // A permanently denied permission gets a settings route, not a dead button.
+  assert.ok(hook.includes("result.canAskAgain"));
+  assert.ok(hook.includes("Linking.openSettings()"));
+});
