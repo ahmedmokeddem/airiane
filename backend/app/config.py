@@ -21,6 +21,35 @@ class Settings(BaseSettings):
     provider_privacy_policy_version: str = ""
     exa_api_key: str = ""
     gemini_api_key: str = ""
+    database_pool_size: int = Field(default=2, ge=1, le=10)
+    database_max_overflow: int = Field(default=1, ge=0, le=5)
+    database_pool_timeout: float = Field(default=5, ge=1, le=30)
+    database_connect_timeout: float = Field(default=10, ge=1, le=30)
+    database_command_timeout: float = Field(default=15, ge=1, le=60)
+    database_ca_pem: str = Field(default="", repr=False)
+    readiness_timeout: float = Field(default=3, ge=0.1, le=10)
+    pdf_max_concurrent: int = Field(default=1, ge=1, le=2)
+
+    @field_validator("database_ca_pem", mode="before")
+    @classmethod
+    def normalize_database_ca(cls, value):
+        if not isinstance(value, str) or not value.strip():
+            return value
+        # Console inputs may flatten PEM lines or preserve literal newline escapes.
+        value = value.replace("\\r\\n", "\n").replace("\\n", "\n").strip()
+        pattern = r"-----BEGIN CERTIFICATE-----([A-Za-z0-9+/=\s]+)-----END CERTIFICATE-----"
+        blocks = list(re.finditer(pattern, value))
+        if not blocks or re.sub(pattern, "", value).strip():
+            raise ValueError("RE_DATABASE_CA_PEM must contain PEM certificates only")
+        normalized = []
+        for block in blocks:
+            body = re.sub(r"\s+", "", block.group(1))
+            normalized.append(
+                "-----BEGIN CERTIFICATE-----\n"
+                + "\n".join(body[i : i + 64] for i in range(0, len(body), 64))
+                + "\n-----END CERTIFICATE-----\n"
+            )
+        return "".join(normalized)
 
     def model_post_init(self, context: object) -> None:
         if self.environment not in ("development", "production", "test"):
