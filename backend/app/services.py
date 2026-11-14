@@ -453,7 +453,9 @@ class ActivityService:
         if row["state"] != "started":
             raise DomainError("INVALID_TRANSITION")
         at = utc(body["event_at"])
-        if at > now() + timedelta(seconds=30) or at < utc(row["started_at"]) - timedelta(seconds=30):
+        if at > now() + timedelta(seconds=30) or at < utc(row["started_at"]) - timedelta(
+            seconds=30
+        ):
             raise DomainError("VALIDATION_ERROR", 422)
         source = await self.source(patient, row["session_id"], "activity_event", body["event_at"])
         await self.store.add(
