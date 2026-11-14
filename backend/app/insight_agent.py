@@ -433,6 +433,7 @@ def build_insight_report(
         "This report is not a diagnosis, a risk classification, or a treatment recommendation.",
         "Absence of a statement is not evidence of absence, and no symptom is inferred from silence.",
         "Only questionnaire records persisted by the existing backend are included; device-only standalone results are unavailable.",
+        "Conversation message identifiers and timestamps are supplied by the authenticated client for the current excerpt; they are not a server-side transcript record.",
         "The report does not combine, average or convert PHQ-9 and BDI-II scores.",
     ]
 

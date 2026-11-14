@@ -143,6 +143,29 @@ def test_prompt_injection_is_treated_as_data(report_client):  # noqa: F811
     assert report["limitations"]
 
 
+def test_contradictory_positive_and_negative_statements_remain_separate_evidence(
+    report_client,  # noqa: F811
+):
+    c = report_client
+    sid = start(c)
+    r = create(
+        c,
+        sid,
+        [
+            turn(sid, "patient", "I feel much better today and my friend supported me."),
+            turn(sid, "patient", "I still feel hopeless and I cannot sleep."),
+        ],
+    )
+    assert r.status_code == 201, r.text
+    report = r.json()["report"]
+    emotional = next(item for item in report["dimensions"] if item["key"] == "emotional")
+    positive = report["positive_experiences"]
+    assert emotional["status"] == "user_reported"
+    assert positive["status"] == "user_reported"
+    assert report["safety"]["present"] is False
+    assert "diagnosis" in " ".join(report["limitations"]).lower()
+
+
 def test_negated_safety_and_symptom_phrases_are_not_counted(report_client):  # noqa: F811
     c = report_client
     sid = start(c)
