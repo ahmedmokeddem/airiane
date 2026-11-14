@@ -1093,7 +1093,12 @@
       figma.closePlugin('Could not create a new page — ' + e.message + ' (check your Figma plan\'s page limit).');
       return;
     }
-    figma.currentPage = page;
+    try {
+      await figma.setCurrentPageAsync(page);
+    } catch (e) {
+      note('setCurrentPageAsync failed, falling back to direct assignment: ' + e.message);
+      figma.currentPage = page;
+    }
 
     var available = await figma.listAvailableFontsAsync();
     var resolved = resolveFonts(available);

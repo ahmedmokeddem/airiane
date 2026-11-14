@@ -143,6 +143,7 @@ function buildFigmaMock() {
     get root() { return root; },
     get currentPage() { return state.currentPage; },
     set currentPage(p) { state.currentPage = p; },
+    setCurrentPageAsync(p) { state.currentPage = p; return Promise.resolve(); },
     createPage() {
       const p = { id: newId(), type: 'PAGE', name: '', children: [] };
       p.remove = function () {
