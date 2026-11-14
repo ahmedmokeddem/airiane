@@ -1,6 +1,12 @@
 # AIriane implementation status
 
 
+## Pushed release candidate and APK — 15 November 2026
+
+Feature commit `09ab58ff23ed06225821175dc1a35f717a1ce30d` was pushed to `main` in both `khoidm2004/Junction` and `ahmedmokeddem/Junction`; remote references were read back and matched. The updated internal ARM64 release APK built successfully in **31 seconds** with the public Aiven API, real authentication and V2 client support. It contains the pinned caption layout and “Create another activity” action. Signing matches the previous internal APK; configured server credentials were absent from the inspected archive. [Current APK receipt](implementation-validation/generative/apk.json).
+
+Artifact: `build/artifacts/AIriane-generative-internal-arm64.apk` (also copied to `AIriane-latest-internal-arm64.apk`), 63,988,522 bytes, SHA-256 `198b35372af8bedc325af80e2c335ec39995378955e3b988e857003fb53cd9e6`. This build was **not installed or device-tested** in this pass; earlier installation receipts below describe previous builds. Generation availability is controlled by Aiven's backend flag; no hosted environment/deployment was changed. Migration 0007 is already applied. Current rechecks: mobile typecheck/lint/80 tests, 19 focused backend tests, Ruff and 11 contract fixtures passed; portal typecheck/lint/17 tests/production build passed in the preceding landing pass. Native voice generation and consecutive-game acceptance remain pending.
+
 ## Hosted generated-activity migration — 15 November 2026
 
 With explicit user authorization, migration `0007_generated_activities.sql` was applied to the configured Tiger Data PostgreSQL service. All four tables are present and the migration checksum matches the ledger. Connection used the previously verified Timescale CA with certificate and hostname verification enabled; local environment values and feature flag were unchanged. The first local configured context failed certificate verification; supplying that same verified CA explicitly for this migration succeeded. [Sanitized receipt](implementation-validation/generative/production-migration.json).
