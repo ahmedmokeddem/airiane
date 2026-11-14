@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 240" role="img" aria-labelledby="title desc">
+  <title id="title">AIriane — symbol and wordmark</title>
+  <desc id="desc">AIriane horizontal brand mark with a thread-inspired A icon and AIriane typography.</desc>
+  <defs>
+    <linearGradient id="thread" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#123B4B"/>
+      <stop offset="1" stop-color="#268F89"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(10 4) scale(.88)">
+    <path d="M55 175 C54 153 60 134 77 124 C95 113 112 125 130 147 C141 160 153 172 169 175 C176 176 181 174 186 170" fill="none" stroke="#102F40" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M83 126 C92 93 109 51 137 48 C163 45 181 75 190 109 C199 142 203 171 207 192" fill="none" stroke="url(#thread)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="207" cy="210" r="8" fill="#78DCC8"/>
+  </g>
+  <text x="255" y="156" font-size="112" font-weight="600" font-family="Inter, Avenir Next, Arial, sans-serif" letter-spacing="-5"><tspan fill="#258E88">AI</tspan><tspan fill="#102F40">riane</tspan></text>
+</svg>

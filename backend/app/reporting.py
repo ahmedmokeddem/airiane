@@ -3,10 +3,12 @@
 from datetime import timedelta
 from statistics import mean
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 from .care import CareService
 from .contracts import validate
 from .domain import DomainError, RecordStore, now, stamp
+from .insights import InsightService
 from .services import ActivityService, utc
 
 
@@ -75,7 +77,17 @@ class ReportService:
             )
             if inside(row["observed_at"]) and known(row)
         ]
-        if max(len(activities), len(feedback), len(observations)) > 500 or len(assessments) > 100:
+        insights = [
+            row
+            for row in await self.store.all(
+                "confirmed_insights", patient_id=patient, state="confirmed"
+            )
+            if inside(row["observed_at"]) and known(row)
+        ]
+        if (
+            max(len(activities), len(feedback), len(observations), len(insights)) > 500
+            or len(assessments) > 100
+        ):
             raise DomainError("REPORT_TOO_LARGE", 422)
         sources = {}
         limitations = []
@@ -93,6 +105,11 @@ class ReportService:
         ):
             if event["activity_session_id"] in ids:
                 await source(event["source_id"])
+        insight_views = []
+        for row in insights:
+            await source(row["source_id"])
+            insight_views.append(InsightService.view(row))
+        insight_views.sort(key=lambda r: (r["observed_at"], r["insight_id"]))
         fb = []
         for row in feedback:
             await source(row["source_id"])
@@ -166,6 +183,24 @@ class ReportService:
         ]:
             collection.sort(key=lambda r: r[key])
         trends = []
+        completion_refs = [
+            sources[event["source_id"]]
+            for event in await self.store.all(
+                "activity_events", patient_id=patient, event_type="complete"
+            )
+            if event["activity_session_id"] in ids
+        ]
+        trends.append(
+            {
+                "metric": "activity_completions",
+                "unit": "count",
+                "count": len(activities),
+                "mean": None,
+                "delta": None,
+                "coverage": f"{len(activities)} completed activities in requested period; no scheduled participation denominator is available",
+                "sources": completion_refs,
+            }
+        )
         for metric, unit, values, refs in [
             (
                 "activity_rating",
@@ -201,13 +236,15 @@ class ReportService:
                 "Only accepted records available at generation are included; missing data is not a negative result.",
                 "Ratings are patient-reported; no clinical inference or treatment-effect claim is made.",
                 "Trend deltas are unavailable until a prior-period comparison is calculated.",
+                "Conversation insights are patient-approved summaries, not diagnoses or independently verified clinical findings.",
+                "No prior-period evidence is included outside this report's consent-bounded period.",
             ]
         )
         payload = {
             "report_id": report_id,
             "patient_id": patient,
             "version": 1,
-            "calculation_version": "facts-v1",
+            "calculation_version": "facts-v2",
             "period_start": body["period_start"],
             "period_end": body["period_end"],
             "timezone": profile["timezone"],
@@ -215,6 +252,25 @@ class ReportService:
             "data_cutoff": cutoff.isoformat(),
             "state": "ready",
             "observations": obs,
+            "confirmed_insights": insight_views,
+            "factual_overview": {
+                "confirmed_insight_count": len(insight_views),
+                "completed_activity_count": len(activities),
+                "feedback_count": len(fb),
+                "assessment_count": len(assessment_views),
+                "active_days": len(
+                    {
+                        utc(value).astimezone(ZoneInfo(profile["timezone"])).date()
+                        for value in [
+                            *[r["ended_at"] for r in activities],
+                            *[r["observed_at"] for r in observations],
+                            *[r["observed_at"] for r in insights],
+                            *[r["observed_at"] for r in assessments],
+                        ]
+                    }
+                ),
+                "coverage_note": "Counts reflect available confirmed records only; days without records do not imply non-participation.",
+            },
             "completed_activities": [activity_service.view(row) for row in activities],
             "feedback": fb,
             "assessments": assessment_views,
@@ -229,7 +285,7 @@ class ReportService:
             id=report_id,
             patient_id=patient,
             version=1,
-            calculation_version="facts-v1",
+            calculation_version="facts-v2",
             **body,
             state="pending",
             generated_at=None,

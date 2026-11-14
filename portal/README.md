@@ -42,3 +42,11 @@ Implemented canonical reads: doctor patients, report list and individual report;
 ## Verification and limits
 
 Typecheck, lint, six portal tests and production build pass. Browser sign-in and actual stored report rendering have been exercised against FastAPI/Tiger Data with fictional development identities. Backend tests separately verify completed activity/feedback reports, source references, period restrictions, expiry, revocation and cross-patient denial on PostgreSQL. Real Supabase account sign-in and production cookie/proxy deployment remain unverified. Alerts, PDF/export and clinical claims are outside this slice.
+
+## AIriane report presentation
+
+The clinician UI uses the official horizontal AIriane mark (`public/brand/airiane-wordmark.png`), rendered from the unchanged source SVG with Inter by the shared brand export workflow. Report sections distinguish direct patient records, patient-approved interpretations and deterministic summaries. Charts show actual confirmed numeric samples only and appear with at least two samples; they do not interpolate missing days or establish clinical improvement. Source details and record cut-off are inspectable. Empty themes, goals and assessments remain explicit.
+
+Authorization remains server-enforced through `ClinicianApi`: bearer credentials stay on the server, reads disable caching and redirects, and permission failures never fall back to fixture data. `PORTAL_DATA_MODE=mock` is explicitly labelled fictional. Existing care-link acceptance and report grant/revocation requirements are unchanged.
+
+Hosted development database latency can exceed ten seconds. Backend identity and report reads have a bounded 30-second timeout; independent identity, care-link and patient-list reads run concurrently. This does not bypass clinician verification or patient consent. The Supabase credential exchange retains its existing ten-second timeout.

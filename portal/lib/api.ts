@@ -8,7 +8,7 @@ export class ClinicianApi {
   private async get<T>(path: string): Promise<T> {
     const response = await this.fetcher(new URL(path, this.baseUrl), {
       headers: { Authorization: `Bearer ${this.token}`, Accept: 'application/json' },
-      cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(10_000),
+      cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(30_000),
     });
     if (!response.ok) throw new ApiError(response.status);
     return await response.json() as T;

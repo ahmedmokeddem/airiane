@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">AIriane — continuous thread symbol</title>
+  <desc id="desc">A flowing open letter A formed by teal and navy thread curves with a small mint endpoint.</desc>
+  <defs>
+    <linearGradient id="thread" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#123B4B"/>
+      <stop offset="1" stop-color="#268F89"/>
+    </linearGradient>
+  </defs>
+  <path d="M55 175 C54 153 60 134 77 124 C95 113 112 125 130 147 C141 160 153 172 169 175 C176 176 181 174 186 170" fill="none" stroke="#102F40" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M83 126 C92 93 109 51 137 48 C163 45 181 75 190 109 C199 142 203 171 207 192" fill="none" stroke="url(#thread)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="207" cy="210" r="8" fill="#78DCC8"/>
+</svg>

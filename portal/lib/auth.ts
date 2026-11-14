@@ -21,7 +21,7 @@ export async function authenticate(form: FormData, fetcher: typeof fetch = fetch
     const session = await response.json(); token = session.access_token; expires = Math.min(Number(session.expires_in) || 3600, 3600);
     if (typeof token !== 'string' || !token) throw new Error('Sign-in failed.');
   }
-  const response = await fetcher(new URL('/v1/me', process.env.RE_API_URL ?? 'http://127.0.0.1:8000'), { headers: {Authorization: `Bearer ${token}`}, cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(10000) });
+  const response = await fetcher(new URL('/v1/me', process.env.RE_API_URL ?? 'http://127.0.0.1:8000'), { headers: {Authorization: `Bearer ${token}`}, cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(30_000) });
   if (!response.ok) throw new Error('A verified clinician account is required.');
   const me = await response.json() as Me;
   if (me.role !== 'clinician' || !me.clinician_verified) throw new Error('A verified clinician account is required.');

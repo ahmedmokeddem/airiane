@@ -99,12 +99,7 @@ async def _summarize_with_gemini(
         )
         response.raise_for_status()
         data = response.json()
-    text = (
-        data.get("candidates", [{}])[0]
-        .get("content", {})
-        .get("parts", [{}])[0]
-        .get("text", "")
-    )
+    text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
     lines = [
         _clean_story(line.lstrip("-*0123456789. ").strip())
         for line in text.splitlines()

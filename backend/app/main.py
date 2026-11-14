@@ -291,7 +291,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                                 replay.metadata(operation, result)
                                 if result is not None
                                 else {
-                                    "consent_grant_id": params["consent_grant_id"],
+                                    (
+                                        "insight_id"
+                                        if operation == "deleteInsight"
+                                        else "consent_grant_id"
+                                    ): params[
+                                        "insight_id"
+                                        if operation == "deleteInsight"
+                                        else "consent_grant_id"
+                                    ],
                                     "deleted": True,
                                 }
                             ),
@@ -328,6 +336,8 @@ IMPLEMENTED = {
     "onboardPatient": ("OnboardingRequest", "Me", 201),
     "getMe": (None, "Me", 200),
     "getPatientContext": (None, "PatientContext", 200),
+    "updateProfile": ("ProfilePatch", "Me", 200),
+    "updatePatientContext": ("ContextPatch", "PatientContext", 200),
     "createConversation": ("SessionCreate", "ConversationSession", 201),
     "getConversation": (None, "ConversationSession", 200),
     "updateConversation": ("SessionPatch", "ConversationSession", 200),
@@ -363,13 +373,11 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                 }
             return await PatientService(store).me(subject)
         case "getPatientContext":
-            return {
-                "patient_id": pid,
-                "preferences": {},
-                "recovery_plan": None,
-                "memories": [],
-                "recent_observations": [],
-            }
+            return await PatientService(store).context(pid)
+        case "updateProfile":
+            return await PatientService(store).patch(subject, body)
+        case "updatePatientContext":
+            return await PatientService(store).patch_context(pid, body)
         case "createConversation":
             return await sessions.create(pid, body)
         case "getConversation":
@@ -438,13 +446,7 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                         await activities.owned(pid, prior["result_resource_id"])
                     )
                 elif name == "get_patient_context":
-                    result = {
-                        "patient_id": pid,
-                        "preferences": {},
-                        "recovery_plan": None,
-                        "memories": [],
-                        "recent_observations": [],
-                    }
+                    result = await PatientService(store).context(pid)
                 elif name == "propose_observation":
                     observations = ObservationService(store)
                     result = await observations.view(
@@ -468,13 +470,7 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                     pid, dict(session_id=sid, selection_channel="voice", **body["arguments"])
                 )
             elif name == "get_patient_context":
-                result = {
-                    "patient_id": pid,
-                    "preferences": {},
-                    "recovery_plan": None,
-                    "memories": [],
-                    "recent_observations": [],
-                }
+                result = await PatientService(store).context(pid)
             elif name == "propose_observation":
                 # Voice can only propose; the patient confirms in the explicit check-in UI.
                 result = await ObservationService(store).create(

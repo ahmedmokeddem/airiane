@@ -26,10 +26,39 @@ No original `.riv`, font files, or original animated character files were found.
 
 ## Reproducible SDK fix
 
-Installed `@elevenlabs/react-native` **1.2.40** contains `preferredOutputList: ["speaker"]` in `dist/index.react-native.js`, matching [upstream issue #881](https://github.com/elevenlabs/packages/issues/881). Configuring before SDK startup would be overwritten. `mobile/scripts/patch-elevenlabs.mjs` runs on npm postinstall, checks the exact SDK version and expected replacement, and changes the list at the SDK's own lifecycle point to Bluetooth → wired headset → earpiece → speaker. Communication preset and SDK cleanup stay intact. `npm ci` and CI apply it reproducibly; changes to the pinned SDK require patch review. No native dependency versions were upgraded.
+Installed `@elevenlabs/react-native` **1.2.40** contains `preferredOutputList: ["speaker"]` in `dist/index.react-native.js`, matching [upstream issue #881](https://github.com/elevenlabs/packages/issues/881). Configuring before SDK startup would be overwritten. `mobile/scripts/patch-elevenlabs.mjs` runs on npm postinstall, checks the exact SDK version and expected replacement, and changes the list at the SDK's own lifecycle point to Bluetooth → wired headset → speaker → earpiece. Communication preset and SDK cleanup stay intact. `npm ci` and CI apply it reproducibly; changes to the pinned SDK require patch review. No native dependency versions were upgraded.
 
 LiveKit's installed Android audio manager requests/abandons focus and uses voice communication mode, but its default focus-change callback is empty and no public JS interruption callback is exposed. AppState interruption handling is implemented; telephony/audio-focus behavior still requires real-device testing. No undocumented native override or independent microphone-selection claim is made.
 
 ## Verification
 
-See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for actual results and remaining blockers. Screenshots must be captured with local camera preview disabled; no camera imagery or transcripts are included as evidence.
+See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for actual results and remaining blockers. Screenshots must be captured with local camera preview disabled; no camera imagery or voice recordings are captured. UI screenshots can contain RE’s visible captions.
+
+## Screenshot comparison
+
+These are real screenshots, not mockups. The reference is the original HTML voice screen; Android images were captured with camera preview off. The activity screenshot includes the real save-in-progress state; a subsequent database receipt and saved-call screenshot verify completion. Device status-bar icons belong to Android.
+
+| Original Stitch call | Android native call | Android activity overlay | Saved result in call |
+| --- | --- | --- | --- |
+| ![Original Stitch voice](implementation-validation/native-call/stitch-call-detail.png) | ![Native voice call](implementation-validation/native-call/android-call.png) | ![Native activity with persistent controls](implementation-validation/native-call/android-activity.png) | ![Saved activity in call composition](implementation-validation/native-call/android-call-saved.png) |
+
+Compared visually on the phone: navy atmosphere, teal/lavender living orb and face, compact rounded cards, and persistent bottom controls now follow the reference. PiP location was checked in the native view tree and actual camera service, without capturing camera imagery. Android uses four required controls instead of the prototype's extra captions/text shortcuts. System fonts and native radial-gradient rendering remain visual differences. No original Rive character or measured release-performance result is claimed.
+
+## Files changed in this refactor
+
+- `mobile/App.tsx`: dedicated call composition branch; adapter events; mic-only startup; cancellation cleanup; seamless activity save/return; removes patient-facing provider/placeholder/Working labels. Existing authentication, bootstrap, bridge and persistence paths retained.
+- `mobile/src/features/call/call-screen.tsx`: full-screen composition, safe areas, cards/activity/feedback, resume/reconnect controls and route selector.
+- `mobile/src/features/call/call-controls.tsx`: fixed accessible compact toolbar and drawn control icons.
+- `mobile/src/features/call/companion.tsx`: native gradient orb fallback, actual audio-level response, reduced-motion support.
+- `mobile/src/features/call/call-state.ts`: provider-independent state reducer and route preference.
+- `mobile/src/features/call/audio-session.ts`, `audio-session.native.ts`: platform boundary; independent microphone/Bluetooth permissions; public LiveKit outputs/session release.
+- `mobile/src/features/call/use-audio-routes.ts`: native availability refresh, user selection, automatic hotplug fallback and cleanup.
+- `mobile/src/features/call/use-local-camera.ts`: independent local preview lifetime, permission-dialog handling, background/end cleanup.
+- `mobile/src/integration/eleven-provider.tsx`, `voice-agent-adapter.ts`: real mode/interruption/metering events and cancellation of pending connection waits; text audio-control regression safeguards preserved.
+- `mobile/src/features/reports/reports-sharing.tsx`: removes one stray JSX text node exposed by native testing; report behavior unchanged.
+- `mobile/scripts/patch-elevenlabs.mjs`, `mobile/package.json`, `mobile/package-lock.json`: guarded reproducible postinstall route patch, exact existing SDK pin and test command.
+- `mobile/app.json`: declared microphone and Android Bluetooth-connect permissions; no new native dependency version.
+- `mobile/tests/call.test.ts`, `mobile/tests/run.ts`: event/route/cancellation/installed-patch/privacy-boundary checks plus existing bridge regressions.
+- `mobile/README.md`, `docs/FRONTEND_SPEC.md`, `docs/IMPLEMENTATION_STATUS.md`, this review, `docs/DEVICE_VERIFICATION.md`, and `docs/implementation-validation/native-call/`: setup, comparison and actual evidence/limitations.
+
+No backend source, wire contract, database migration, original Stitch asset or Gemini architecture decision was changed. Existing unrelated working-tree changes are preserved. The patch mechanism is supplied as repository source; this session did not create a separate Git commit.

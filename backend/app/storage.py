@@ -119,6 +119,10 @@ TABLES = {
         "alert_recipients",
         "alert_id:u patient_id:u care_link_id:u consent_grant_id:u delivery_state:s acknowledged_at:t",
     ),
+    "confirmed_insights": table(
+        "confirmed_insights",
+        "id:u patient_id:u session_id:u theme:s text:s observed_at:t statement_kind:s confirmed_at:t state:s version:i supersedes_insight_id:u source_id:u created_at:t",
+    ),
     "assessment_definitions": table(
         "assessment_definitions", "id:u version:i title:s clinical_instrument:b questions:j"
     ),

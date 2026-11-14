@@ -60,3 +60,31 @@ test('missing alert consent denies alerts without fallback data', async () => {
   const fetcher: typeof fetch = async () => new Response('', {status:403});
   await assert.rejects(new ClinicianApi('http://127.0.0.1:8000', 'fictional-test-token', fetcher).alerts('patient-id'), (error: unknown) => error instanceof ApiError && error.status === 403);
 });
+
+import fixture from '../fixtures/clinician.json';
+import type { Report } from '../lib/types';
+import { confirmedInsights, observationSeries, reportOverview } from '../lib/report-presentation';
+test('report presentation excludes unconfirmed observations and unfinished participation', () => {
+ const report = structuredClone(fixture.report) as Report;
+ const observation = {observation_id:'o',patient_id:'p',session_id:null,kind:'mood' as const,value:5,observed_at:'2026-11-10T10:00:00Z',state:'confirmed' as const,version:1,supersedes_observation_id:null,sources:[]};
+ report.observations = [observation, {...observation, observation_id:'proposed', state:'proposed'}, {...observation, observation_id:'rejected',state:'rejected'}];
+ const result=reportOverview(report);assert.equal(result.confirmed.length,1);assert.equal(observationSeries(report)[0].points.length,1);
+ report.completed_activities=report.completed_activities.map(item=>({...item,state:'started'}));assert.equal(reportOverview(report).completed.length,0);
+});
+test('observation series keeps real dates and values in chronological order without filling gaps',()=>{
+ const report=structuredClone(fixture.report) as Report;
+ const base={patient_id:'p',session_id:null,kind:'energy' as const,state:'confirmed' as const,version:1,supersedes_observation_id:null,sources:[]};
+ report.observations=[{...base,observation_id:'later',value:7,observed_at:'2026-11-12T10:00:00Z'},{...base,observation_id:'earlier',value:2,observed_at:'2026-11-01T10:00:00Z'}];
+ assert.deepEqual(observationSeries(report)[0].points.map(item=>[item.observation_id,item.value]),[['earlier',2],['later',7]]);
+});
+test('all protected clinician reads reject revoked permission with no fixture substitution',async()=>{
+ const api=new ClinicianApi('http://127.0.0.1:8000','fictional',async()=>new Response('',{status:403}));
+ for(const read of [()=>api.patients(),()=>api.reports('patient'),()=>api.report('patient','report')]) await assert.rejects(read,(error:unknown)=>error instanceof ApiError&&error.status===403);
+});
+
+test('report excludes superseded insights while preserving direct versus approved interpretation provenance',()=>{
+ const report=structuredClone(fixture.report) as Report;
+ const base={insight_id:'i',patient_id:'p',session_id:null,theme:'reflection' as const,text:'A patient confirmed reflection',observed_at:'2026-11-12T10:00:00Z',confirmed_at:'2026-11-12T10:01:00Z',statement_kind:'direct_statement' as const,version:1,state:'confirmed' as const,supersedes_insight_id:null,sources:[]};
+ report.confirmed_insights=[base,{...base,insight_id:'old',state:'superseded'},{...base,insight_id:'approved',statement_kind:'patient_approved_interpretation'}];
+ assert.deepEqual(confirmedInsights(report).map(item=>item.statement_kind),['direct_statement','patient_approved_interpretation']);
+});

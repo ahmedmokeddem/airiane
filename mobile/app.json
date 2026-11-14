@@ -1,25 +1,23 @@
 {
   "expo": {
-    "name": "RE",
+    "name": "AIriane",
     "slug": "re-patient",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/brand/launcher.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "dev.re.patient",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "Allow RE voice conversations.",
-        "NSCameraUsageDescription": "Allow local preview only. RE cannot see your video."
+        "NSMicrophoneUsageDescription": "Allow AIriane voice conversations.",
+        "NSCameraUsageDescription": "Allow local preview only. AIriane cannot see your video."
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#faf9f6",
+        "foregroundImage": "./assets/brand/adaptive-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "dev.re.patient",
@@ -29,7 +27,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/brand/launcher.png"
     },
     "plugins": [
       [
@@ -43,11 +41,33 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "microphonePermission": "Allow RE voice conversations.",
+          "microphonePermission": "Allow AIriane voice conversations.",
           "cameraPermission": "Allow local preview only."
         }
       ],
-      "expo-router"
+      "expo-router",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/PlusJakartaSans.ttf",
+            "./assets/fonts/Manrope.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/brand/airiane-wordmark.png",
+          "imageWidth": 300,
+          "resizeMode": "contain",
+          "backgroundColor": "#faf9f6",
+          "dark": {
+            "image": "./assets/brand/wordmark-plate.png",
+            "backgroundColor": "#102235"
+          }
+        }
+      ]
     ],
     "scheme": "re-patient"
   }
