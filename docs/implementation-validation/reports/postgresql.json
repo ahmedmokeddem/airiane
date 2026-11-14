@@ -1,0 +1,13 @@
+{
+  "database_dialect": "postgresql",
+  "report_id": "b328f6a2-2076-401d-8bd3-039a7a327480",
+  "version": 2,
+  "state": "ready",
+  "generator_version": "deterministic-v3.1",
+  "content_hash": "5193034930c4cdbbd1b38ca63c53f5efc002de2dd5be17846fd92d0cd6a4e142",
+  "evidence_count": 11,
+  "confirmed_notes": 1,
+  "completed_activities": 5,
+  "feedback_count": 5,
+  "external_llm_calls": false
+}

@@ -50,3 +50,7 @@ The clinician UI uses the official horizontal AIriane mark (`public/brand/airian
 Authorization remains server-enforced through `ClinicianApi`: bearer credentials stay on the server, reads disable caching and redirects, and permission failures never fall back to fixture data. `PORTAL_DATA_MODE=mock` is explicitly labelled fictional. Existing care-link acceptance and report grant/revocation requirements are unchanged.
 
 Hosted development database latency can exceed ten seconds. Backend identity and report reads have a bounded 30-second timeout; independent identity, care-link and patient-list reads run concurrently. This does not bypass clinician verification or patient consent. The Supabase credential exchange retains its existing ten-second timeout.
+
+### PDF downloads
+
+The report screen provides an explicit clinician PDF download through `/reports/[patientId]/[reportId]/pdf`. The server forwards the HttpOnly session credential to the backend's authorized PDF endpoint, never in a URL, with no-store responses and no fixture fallback. Existing snapshots without the new supported document need patient regeneration. Revocation prevents future application downloads; it cannot revoke independent downloaded copies. See [report implementation](../docs/REPORTS_IMPLEMENTATION.md).

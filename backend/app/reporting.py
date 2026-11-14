@@ -39,6 +39,12 @@ class ReportService:
         cutoff = now()
         if end <= start or end > cutoff + timedelta(seconds=60) or end - start > timedelta(days=90):
             raise DomainError("VALIDATION_ERROR", 422)
+        regeneration = None
+        if body.get("regeneration_of"):
+            regeneration = await self.owned(patient, body["regeneration_of"])
+            if utc(regeneration["period_start"]) != start or utc(regeneration["period_end"]) != end:
+                raise DomainError("VALIDATION_ERROR", 422)
+        version = regeneration["version"] + 1 if regeneration else 1
         end = min(end, cutoff)
         profile = await self.store.get("patient_profiles", patient_id=patient)
         report_id = str(uuid4())
@@ -244,8 +250,8 @@ class ReportService:
         payload = {
             "report_id": report_id,
             "patient_id": patient,
-            "version": 1,
-            "calculation_version": "facts-v2",
+            "version": version,
+            "calculation_version": "facts-v3",
             "period_start": body["period_start"],
             "period_end": body["period_end"],
             "timezone": profile["timezone"],
@@ -279,15 +285,25 @@ class ReportService:
             "sources": list(sources.values()),
             "limitations": limitations,
         }
+        from .reports.evidence import EvidenceAggregator
+        from .reports.narrative import document
+
+        snapshot = await EvidenceAggregator(self.store).build(
+            payload, body.get("compare_previous", False)
+        )
+        payload["document"] = document(snapshot, regeneration_of=body.get("regeneration_of"))
+        payload["evidence_period_start"] = snapshot["authorization_start"]
+        payload["limitations"] = [x for x in payload["limitations"] if "prior-period" not in x]
         validate("Report", payload)
         # Pending and ready transitions execute in one bounded, atomic application transaction.
         row = await self.store.add(
             "reports",
             id=report_id,
             patient_id=patient,
-            version=1,
-            calculation_version="facts-v2",
-            **body,
+            version=version,
+            calculation_version="facts-v3",
+            period_start=body["period_start"],
+            period_end=body["period_end"],
             state="pending",
             generated_at=None,
             data_cutoff=None,
@@ -304,18 +320,25 @@ class ReportService:
                 "payload": payload,
             },
         )
-        for ref in sources.values():
+        for ref in payload["sources"]:
             await self.store.add("report_sources", report_id=report_id, patient_id=patient, **ref)
         await CareService(self.store).audit(
             patient, patient, "report_generated", "report", report_id
         )
-        return {"report_id": report_id, "version": 1, "state": "ready"}
+        return {"report_id": report_id, "version": version, "state": "ready"}
 
     async def doctor_read(self, clinician: str, patient: str, report_id: str) -> dict:
         row = await self.owned(patient, report_id)
         care = CareService(self.store)
-        await care.authorize_report(clinician, patient, row["period_start"])
+        await care.authorize_report(clinician, patient, authorization_start(row))
         payload = await self.read(patient, report_id)
-        await care.authorize_report(clinician, patient, row["period_start"])
+        await care.authorize_report(clinician, patient, authorization_start(row))
         await care.audit(clinician, patient, "report_read", "report", report_id)
         return payload
+
+
+def authorization_start(row: dict) -> str:
+    payload = row.get("payload") or {}
+    return payload.get("evidence_period_start") or payload.get("document", {}).get(
+        "snapshot", {}
+    ).get("authorization_start", row["period_start"])

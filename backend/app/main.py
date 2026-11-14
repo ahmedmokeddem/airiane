@@ -18,6 +18,7 @@ from .contracts import SPEC, validate
 from .domain import ConversationController, DomainError, now, stamp
 from .pagination import Pages
 from .provider import ElevenLabsBootstrap
+from .reports import routes as pdf_routes
 from .services import CATALOG, ActivityService, PatientService, SessionService, utc
 from .storage import SqlStore, engine_for, metadata
 from .wellbeing import REVIEW_RULE, AlertService, ObservationService
@@ -88,6 +89,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             operation["x-implementation-status"] = (
                 "implemented-first-slice"
                 if operation["operationId"] in IMPLEMENTED
+                or operation["operationId"] in pdf_routes.OPERATIONS
                 else "planned-not-routed"
             )
     app.openapi = lambda: exposed_contract
@@ -328,6 +330,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     name=operation["operationId"],
                     status_code=IMPLEMENTED[operation["operationId"]][2],
                 )
+    pdf_routes.install(app, engine, auth)
     return app
 
 

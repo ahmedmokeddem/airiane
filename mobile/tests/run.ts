@@ -13,3 +13,5 @@ import "./native-text.test";
 
 import "./wellbeing.test";
 import "./opening.test";
+
+import "./report-export.test";

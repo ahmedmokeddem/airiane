@@ -75,3 +75,14 @@ export const api = {
     mockObservations=mockObservations.map(o=>o.observation_id===decided.observation_id?decided:o);return decided;
   },
 };
+
+/** Authenticated binary transport. Credentials never enter a share URL. */
+export async function reportPdfBytes(reportId:string):Promise<Uint8Array> {
+ if(mode!=='live')throw new Error('PDF export requires a connected account.');
+ const response=await fetch(`${origin}/v1/reports/${encodeURIComponent(reportId)}/pdf`,{headers:{Authorization:`Bearer ${accessToken}`,Accept:'application/pdf'},signal:AbortSignal.timeout(60000),redirect:'error'});
+ if(!response.ok){const error=await response.json().catch(()=>({code:'EXPORT_FAILED'}));throw new Error(`${error.code ?? response.status}: Please refresh your report and retry.`);}
+ if(!response.headers.get('content-type')?.startsWith('application/pdf'))throw new Error('The server did not return a PDF.');
+ const bytes=new Uint8Array(await response.arrayBuffer());
+ if(bytes.length>20*1024*1024||String.fromCharCode(...bytes.slice(0,4))!=='%PDF')throw new Error('The PDF response could not be verified.');
+ return bytes;
+}
