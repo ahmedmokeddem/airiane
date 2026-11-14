@@ -55,3 +55,38 @@ or a Metro-only asset require inside the Node test process and can break
 `require(...)` inside `try/catch`, and tests inject fakes through the
 `AudioTherapyOptions` constructor parameter (`platform`, `nativeBackend`,
 `nativeAssets`) instead of mocking modules.
+
+## Steady-state cost of the native soundscape player (measured in expo-audio 58.0.12)
+
+`createAudioPlayer(source)` defaults to `updateInterval = 500` ms
+(`node_modules/expo-audio/build/ExpoAudio.js` `createAudioPlayer`). iOS registers an
+AVPlayer periodic time observer on the main queue that builds a 17-field status
+dictionary and emits it to JS (`ios/AudioPlayer.swift` `registerTimeObserver` ->
+`updateStatus` -> `currentStatus`); Android runs the same loop in a
+`Dispatchers.Main` coroutine (`android/.../BaseAudioPlayer.kt` `startUpdating`).
+Nothing in this app subscribes to `playbackStatusUpdate`, so the engine now asks
+for a 60 s interval (`NATIVE_STATUS_INTERVAL_MS` in `audio-therapy.ts`). Never use
+`0`: Android would `delay(0)` in a tight loop and iOS rejects a zero `CMTime`.
+Every expo-audio property write is also a blocking hop to the native main thread
+(each `Property` in `android/.../AudioModule.kt` is wrapped in `runOnMain`), which
+is why `setMuted()` only writes when the value changed, and why muting pauses the
+player instead of leaving it decoding at volume 0.
+
+Known, still open (not caused by the branch, not fixed here):
+
+- `mobile/App.tsx:249-252` ticks `elapsed` once a second, re-rendering the whole
+  App tree (call screen and activity screen alike). Moving the tick into the
+  screens is blocked by `elapsed` being read inside the completion/abandon
+  payloads (`App.tsx:685,821,920,1271`), so it needs its own task.
+- During a call the call screen also polls LiveKit audio devices at 1 Hz
+  (`use-audio-routes.ts:58`), the provider volume at 10 Hz
+  (`eleven-provider.tsx:95`), and restarts two `Animated.timing`s every 120 ms
+  (`companion.tsx:74,240`).
+- The bundled loops are 8 s long (`assets/audio/manifest.json`), and in a
+  development build `createAudioPlayer(assetId)` resolves to the Metro dev-server
+  URL (`expo-audio/build/utils/resolveSource.js` -> `asset.localUri ?? asset.uri`)
+  while iOS builds a fresh `AVPlayerItem` per loop iteration
+  (`ios/AudioPlayer.swift` `enqueueNextLoopItem`). A dev build therefore re-fetches
+  ~0.7-1.8 MB from the dev server about every 8 s. Fixing it means downloading the
+  asset through `expo-asset` before creating the player, i.e. async work inside a
+  synchronous engine; release builds read the embedded file instead.

@@ -203,6 +203,17 @@ export type AudioTherapyOptions = {
 const NATIVE_SOUNDSCAPE_VOLUME = 0.85;
 
 /**
+ * expo-audio gives every player a 500 ms `playbackStatusUpdate` loop by default
+ * (node_modules/expo-audio/build/ExpoAudio.js createAudioPlayer): iOS adds an
+ * AVPlayer periodic time observer on the main queue and Android runs a
+ * Dispatchers.Main coroutine, each building a 17-field status object and emitting
+ * it into JS twice a second. This engine never subscribes to it, so stretch the
+ * interval to one minute instead of paying for it for a whole activity.
+ * Never 0: Android would `delay(0)` in a tight loop and iOS rejects a zero CMTime.
+ */
+const NATIVE_STATUS_INTERVAL_MS = 60_000;
+
+/**
  * Bundled ambient bed for asset_ids that assets/audio/manifest.json does not
  * list (`harmonic-breath-v1`, `reflection-pad-v1`, a null/unknown backend id).
  * Without this, breathing and reflection activities would stay silent on native.
@@ -227,11 +238,17 @@ function defaultNativeBackend(): NativeAudioBackend | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require('expo-audio') as {
-      createAudioPlayer: (source: unknown) => NativeAudioPlayerHandle;
+      createAudioPlayer: (
+        source: unknown,
+        options?: { updateInterval?: number },
+      ) => NativeAudioPlayerHandle;
       setAudioModeAsync: (mode: Record<string, unknown>) => Promise<void>;
     };
     cachedBackend = {
-      createPlayer: source => mod.createAudioPlayer(source),
+      createPlayer: source =>
+        mod.createAudioPlayer(source, {
+          updateInterval: NATIVE_STATUS_INTERVAL_MS,
+        }),
       configureAudioMode: () => {
         // playsInSilentMode: audible even with the iOS ringer switch on silent.
         // mixWithOthers: never yank the session from another audio producer.
@@ -331,8 +348,9 @@ export class AudioTherapySynthesizer {
 
     if (this.platform !== 'web') {
       const nextFile = resolveNativeSoundscapeFile(activity, profile.id, nextSoundscape);
-      // The hook calls start() on every elapsed tick and whenever `activity`
-      // changes identity: only restart when the looping file actually changes.
+      // start() re-runs whenever the hook's start effect re-runs (activity
+      // identity, soundscape, mute or bilateral) - never per elapsed tick, which
+      // only drives syncElapsed(). Only restart when the looping file changes.
       // `bilateral` has no native equivalent (it is baked into the bundled mix),
       // so toggling it must not restart the loop.
       if (
@@ -434,7 +452,9 @@ export class AudioTherapySynthesizer {
       player.loop = true;                               // set before play()
       player.volume = this._muted ? 0 : NATIVE_SOUNDSCAPE_VOLUME;
       player.muted = this._muted;
-      player.play();
+      // Muted means paused, not "playing into a zero gain": a silent player
+      // would still decode and emit status for the whole activity.
+      if (!this._muted) player.play();
       this.nativePlayer = player;
       this.activeNativeFile = file;
       this.disposers.push(() => {
@@ -449,12 +469,18 @@ export class AudioTherapySynthesizer {
   }
 
   setMuted(muted: boolean): void {
+    const changed = muted !== this._muted;
     this._muted = muted;
-    if (this.nativePlayer) {
+    // Every expo-audio property write is a blocking hop onto the native main
+    // thread (android AudioModule.kt wraps each Property in runOnMain), so only
+    // write when the value actually changed. New players already get the current
+    // mute state applied in startNativeSoundscape().
+    if (this.nativePlayer && changed) {
       try {
         this.nativePlayer.muted = muted;
         this.nativePlayer.volume = muted ? 0 : NATIVE_SOUNDSCAPE_VOLUME;
-        if (!muted) this.nativePlayer.play();
+        if (muted) this.nativePlayer.pause();
+        else this.nativePlayer.play();
       } catch {
         // Player already released.
       }

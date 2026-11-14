@@ -88,15 +88,15 @@ test('audio therapy synthesizer maps each activity to its therapeutic soundscape
 test('on native the soundscape loops a bundled asset through a real player, not the Web Audio API', () => {
   type FakePlayer = {
     source: unknown; loop: boolean; muted: boolean; volume: number;
-    plays: number; removes: number; play(): void; pause(): void; remove(): void;
+    plays: number; pauses: number; removes: number; play(): void; pause(): void; remove(): void;
   };
   const players: FakePlayer[] = [];
   let audioModeCalls = 0;
   const backend = {
     createPlayer(source: number | string | { uri: string }) {
       const player: FakePlayer = {
-        source, loop: false, muted: false, volume: 1, plays: 0, removes: 0,
-        play() { this.plays++; }, pause() {}, remove() { this.removes++; },
+        source, loop: false, muted: false, volume: 1, plays: 0, pauses: 0, removes: 0,
+        play() { this.plays++; }, pause() { this.pauses++; }, remove() { this.removes++; },
       };
       players.push(player);
       return player;
@@ -129,8 +129,12 @@ test('on native the soundscape loops a bundled asset through a real player, not 
 
   synth.setMuted(true);
   assert.equal(players[0].muted, true);
+  assert.equal(players[0].pauses, 1);   // muted: stop decoding, do not idle at volume 0
+  synth.setMuted(true);
+  assert.equal(players[0].pauses, 1);   // unchanged value: no extra native writes
   synth.setMuted(false);
   assert.equal(players[0].muted, false);
+  assert.equal(players[0].plays, 2);
 
   // Switching the soundscape swaps the file and releases the previous player.
   synth.start(nature, { soundscape: 'gentle_rain' });
@@ -149,6 +153,16 @@ test('on native the soundscape loops a bundled asset through a real player, not 
   synth.stop();
   assert.equal(synth.running, false);
   assert.equal(players[2].removes, 1);
+});
+
+test('the native soundscape player does not poll its own status twice a second', () => {
+  const source = readFileSync(new URL('../src/features/activity/audio-therapy.ts', import.meta.url), 'utf8');
+  // expo-audio's default updateInterval (500 ms) emits a status object into JS
+  // from the native main thread for the whole activity; nothing here listens.
+  assert.ok(source.includes('const NATIVE_STATUS_INTERVAL_MS = 60_000;'));
+  assert.ok(source.includes('updateInterval: NATIVE_STATUS_INTERVAL_MS'));
+  // 0 would be a tight loop on Android and an invalid CMTime on iOS.
+  assert.ok(!source.includes('updateInterval: 0'));
 });
 
 test('chat check-in reads spoken or typed answers and never guesses', async () => {
