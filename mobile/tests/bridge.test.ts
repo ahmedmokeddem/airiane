@@ -47,3 +47,20 @@ test('saving an activity after voice disconnect does not call the closed provide
  adapter.updateContext('accepted activity');assert.equal(contexts.at(-1),'accepted activity');
  await adapter.disconnect();const count=contexts.length;adapter.updateContext('accepted feedback');assert.equal(contexts.length,count);
 });
+
+test('overlapping recommendation tools commit each exact result without overwriting callbacks',async()=>{
+ const events:string[]=[];const commits:(()=>void)[]=[];let count=0;
+ const bridge=new MobileUIBridge({recommendations:async()=>({...rec,recommendation_id:`result-${++count}`}),start:async()=>activity.data as ActivitySession},'session',r=>new Promise<void>(resolve=>{events.push(r.recommendation_id);commits.push(resolve);}),()=>{});
+ const first=bridge.present(1);const second=bridge.present(2);
+ await new Promise(resolve=>setTimeout(resolve,0));
+ assert.deepEqual(events,['result-1']);commits.shift()!();
+ assert.equal((await first).recommendation_id,'result-1');
+ await new Promise(resolve=>setTimeout(resolve,0));
+ assert.deepEqual(events,['result-1','result-2']);commits.shift()!();
+ assert.equal((await second).recommendation_id,'result-2');
+});
+test('a failed recommendation request does not poison subsequent presentations',async()=>{
+ let tries=0;
+ const bridge=new MobileUIBridge({recommendations:async()=>{if(++tries===1)throw Error('offline');return rec;},start:async()=>activity.data as ActivitySession},'session',async()=>{},()=>{});
+ await assert.rejects(bridge.present(),/offline/);assert.equal(await bridge.present(),rec);
+});

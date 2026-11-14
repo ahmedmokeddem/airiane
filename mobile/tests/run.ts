@@ -31,3 +31,7 @@ import "./insight-report.test";
 import "./nudges.test";
 
 import "./native-playback.test";
+
+import "./session-recovery.test";
+
+import "./product-loading.test";

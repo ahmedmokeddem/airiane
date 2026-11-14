@@ -34,6 +34,9 @@ def prepare(source: dict, prompt: str) -> tuple[dict, list[dict]]:
             "Source client tools differ from the implemented mobile baseline; review required"
         )
     for tool in tools:
+        if tool["name"] in {"present_activity_recommendations", "select_activity"}:
+            # Network + authenticated backend + committed cards cannot fit a 1s wait.
+            tool["response_timeout_secs"] = 45
         if tool.get("expects_response") is not True:
             raise ValueError("Every client tool must wait for the application response")
     contract = json.loads(
@@ -167,6 +170,10 @@ async def main():
                 if (
                     old.get("type") != "client"
                     or old.get("expects_response") is not True
+                    or (
+                        tool["name"] in {"present_activity_recommendations", "select_activity"}
+                        and old.get("response_timeout_secs") != 45
+                    )
                     or old.get("parameters", {}).get("properties")
                     != tool["parameters"].get("properties")
                     or old.get("parameters", {}).get("required", [])

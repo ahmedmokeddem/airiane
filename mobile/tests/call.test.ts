@@ -106,6 +106,13 @@ test("installed SDK patch is active; voice permission path never requests camera
     ),
   );
 });
+
+test('late SDK mode and transcript events cannot revive a disconnected call label',()=>{
+ for(const event of [{type:'mode',mode:'listening'},{type:'thinking'},{type:'interrupted'},{type:'message_final',role:'user'}] as const)
+  assert.equal(nextCompanionState('disconnected',event),'disconnected');
+ assert.equal(nextCompanionState('disconnected',{type:'connecting'}),'connecting');
+ assert.equal(nextCompanionState('disconnected',{type:'connected'}),'listening');
+});
 test("the local camera preview is independent of the voice connection state", () => {
   const screen = readFileSync(
     new URL("../src/features/call/call-screen.tsx", import.meta.url),

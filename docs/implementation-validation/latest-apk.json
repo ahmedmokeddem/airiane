@@ -1,0 +1,19 @@
+{
+  "artifact": "build/artifacts/AIriane-latest-internal-arm64.apk",
+  "sha256": "b2b024f51430bd6369228ce257fb8e04b612c21970276322cf62e1d404dae9df",
+  "bytes": 63949486,
+  "package": "dev.re.patient",
+  "architecture": "arm64-v8a",
+  "debuggable": false,
+  "signing": "existing development key; internal test APK",
+  "api": "https://openly-evolving-hog.eur-1.aiven.app",
+  "v2_enabled_build_environment": true,
+  "v2_ui_code_present": true,
+  "private_credential_scan_passed": true,
+  "native_device_test": false,
+  "source_commit": "eccb4d23ac1af7adfe69e63b350d0e21c8c21613",
+  "mobile_tests_passed": 75,
+  "targeted_backend_tests_passed": 3,
+  "original_main_camera_fixes_included": true,
+  "six_bundled_recordings_verified": true
+}
