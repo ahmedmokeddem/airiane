@@ -10,3 +10,5 @@ import "./navigation.test";
 import "./brand.test";
 
 import "./native-text.test";
+
+import "./opening.test";
