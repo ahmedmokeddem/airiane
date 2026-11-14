@@ -6,7 +6,7 @@ import { symbolSourceHash, symbolStrokes } from '../src/features/opening/symbol.
 import { openingTiming as t, shouldAnimateOpening } from '../src/features/opening/timing';
 
 test('opening reveals the two approved SVG strokes byte-for-byte, never an invented morph', () => {
-  const svg = readFileSync(new URL('../../assets/brand/logo/airiane-symbol.svg', import.meta.url),'utf8');
+  const svg = readFileSync(new URL('../../assets/brand/logo/airiane-symbol.svg', import.meta.url),'utf8').replace(/\r\n/g,'\n');
   assert.equal(symbolSourceHash,createHash('sha256').update(svg).digest('hex'));
   assert.deepEqual(symbolStrokes.map(p=>p.d),[...svg.matchAll(/<path d="([^"]+)"/g)].map(m=>m[1]));
   assert.ok(symbolStrokes.every(p=>p.length>100&&p.length<400));

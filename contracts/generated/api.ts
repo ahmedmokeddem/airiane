@@ -700,6 +700,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/recovery-streak": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getMyRecoveryStreak
+         * @description Consecutive local calendar days with at least one completed activity. Encouragement only; never a clinical measure.
+         */
+        get: operations["getMyRecoveryStreak"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/medication-reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getMyMedicationReminder
+         * @description Read the active daily medication reminder set by a connected clinician, if any.
+         */
+        get: operations["getMyMedicationReminder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/doctor/patients/{patient_id}/medication-reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * setDoctorMedicationReminder
+         * @description Set or update a patient's daily medication reminder on an active care link.
+         */
+        post: operations["setDoctorMedicationReminder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/doctor/patients/{patient_id}/alerts": {
         parameters: {
             query?: never;
@@ -712,6 +772,26 @@ export interface paths {
          * @description See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
          */
         get: operations["listDoctorAlerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/doctor/patients/{patient_id}/alerts/{alert_id}/assessment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getDoctorAlertAssessment
+         * @description The questionnaire a patient's positive Q9 sent to this doctor, with every answer.
+         */
+        get: operations["getDoctorAlertAssessment"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1143,6 +1223,8 @@ export interface components {
             /** Format: uuid */
             session_id: string;
             limit: number;
+            /** @description Activity the patient chose from the catalog; ranked first when it is active. */
+            preferred_activity_id?: string | null;
         };
         RecommendationOption: {
             activity: components["schemas"]["Activity"];
@@ -1215,18 +1297,34 @@ export interface components {
             assessment_id: string;
             version: number;
             title: string;
-            /** @constant */
-            clinical_instrument: false;
+            /** @description True for screening questionnaires approved by the product owner (e.g. PHQ-9). */
+            clinical_instrument: boolean;
+            instructions?: string;
+            estimated_minutes?: number;
+            /** @description False when wording is adapted and the instrument's cut-offs are indicative only. */
+            validated?: boolean;
+            note?: string;
+            citations?: string[];
             questions: {
                 question_id: string;
                 wording: string;
                 minimum: number;
                 maximum: number;
+                options?: {
+                    value: number;
+                    label: string;
+                }[];
+                /** @description Whether the answer counts towards the total. */
+                scored?: boolean;
+                /** @description Asked only when this question's answer is above 0. */
+                follow_up_of?: string | null;
             }[];
         };
         AssessmentSubmit: {
             session_id: string | null;
             assessment_version: number;
+            /** @description The patient was told before starting that answering Q9 above 0 sends all answers to their connected doctor. */
+            share_if_safety_concern?: boolean;
             answers: {
                 question_id: string;
                 value: number;
@@ -1250,6 +1348,53 @@ export interface components {
             }[];
             /** Format: date-time */
             observed_at: string;
+            /** @description Every answer with its full question and the option the patient chose. */
+            answer_details?: {
+                question_id: string;
+                wording: string;
+                value: number;
+                label: string;
+                scored: boolean;
+            }[];
+            /** @description True when a positive Q9 sent these answers to a connected doctor. */
+            shared_with_doctor?: boolean;
+            /** @description Deterministic scoring of the answers, or null for unscored questionnaires. */
+            result?: components["schemas"]["AssessmentResult"] | null;
+        };
+        /** @description Screening information for a clinician; not a diagnosis. */
+        AssessmentResult: {
+            /** @enum {string} */
+            instrument: "phq9" | "bdi_themes";
+            total: number;
+            max_total: number;
+            /** @enum {string} */
+            level: "low" | "mild" | "moderate" | "high";
+            severity: string;
+            suggested_action: string | null;
+            interpretation: string;
+            /** @description Sheet2's suggested action, worded for the patient. */
+            patient_next_step?: string;
+            bands: {
+                min: number;
+                max: number;
+                /** @enum {string} */
+                level: "low" | "mild" | "moderate" | "high";
+                label: string;
+            }[];
+            functional_impairment: string | null;
+            domains: {
+                name: string;
+                description: string;
+                questions: string[];
+                score: number;
+                max: number;
+            }[];
+            safety: {
+                item_positive: boolean;
+                follow_up: ("no" | "yes" | "declined") | null;
+            };
+            validated: boolean;
+            note: string;
         };
         ReportRequest: {
             /** Format: date-time */
@@ -1381,6 +1526,27 @@ export interface components {
             /** @enum {string} */
             state: "acknowledged" | "resolved";
         };
+        MedicationReminder: {
+            /** Format: uuid */
+            reminder_id: string;
+            /** Format: uuid */
+            patient_id: string;
+            /** Format: uuid */
+            clinician_id: string;
+            message: string;
+            schedule_time: string;
+            active: boolean;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        MedicationReminderSet: {
+            message: string;
+            schedule_time: string;
+            active: boolean;
+        };
+        MedicationReminderResponse: {
+            reminder: components["schemas"]["MedicationReminder"] | null;
+        };
         DoctorPatient: {
             /** Format: uuid */
             patient_id: string;
@@ -1388,6 +1554,17 @@ export interface components {
             /** Format: uuid */
             care_link_id: string;
             scopes: ("reports" | "alerts")[];
+            streak_days?: number;
+            attention?: components["schemas"]["AttentionSignal"];
+        };
+        /** @description Transparent rule-based triage from data the patient currently shares. Not a diagnosis or a relapse prediction. */
+        AttentionSignal: {
+            flagged: boolean;
+            reasons: string[];
+        };
+        RecoveryStreak: {
+            streak_days: number;
+            active_today: boolean;
         };
         GuidedQuestion: {
             question_id: string | null;
@@ -6071,6 +6248,72 @@ export interface operations {
             };
         };
     };
+    getMyRecoveryStreak: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryStreak"];
+                };
+            };
+        };
+    };
+    getMyMedicationReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationReminderResponse"];
+                };
+            };
+        };
+    };
+    setDoctorMedicationReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MedicationReminderSet"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationReminder"];
+                };
+            };
+        };
+    };
     listDoctorAlerts: {
         parameters: {
             query?: {
@@ -6159,6 +6402,47 @@ export interface operations {
             };
             /** @description Provider or infrastructure unavailable; no success implied */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getDoctorAlertAssessment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                alert_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentResponse"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

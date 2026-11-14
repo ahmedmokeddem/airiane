@@ -6,9 +6,14 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from weasyprint import HTML
-from weasyprint.text.fonts import FontConfiguration
-from weasyprint.urls import URLFetcherResponse
+
+try:
+    from weasyprint import HTML
+    from weasyprint.text.fonts import FontConfiguration
+    from weasyprint.urls import URLFetcherResponse
+except OSError:  # WeasyPrint's GTK/Pango system libraries are absent (e.g. a Windows dev PC).
+    # Keep the rest of the API running; only PDF export reports itself unavailable.
+    HTML = FontConfiguration = URLFetcherResponse = None
 
 from ..domain import DomainError
 from ..services import utc
@@ -30,6 +35,8 @@ def assets():
 
 
 def render_pdf(report: dict, perspective: str = "patient") -> bytes:
+    if HTML is None:
+        raise DomainError("PDF_RENDER_FAILED", 503)
     doc = report.get("document")
     if report["state"] != "ready":
         raise DomainError("REPORT_INVALIDATED", 409)

@@ -11,3 +11,9 @@ uv run --directory backend python -m app.migrate --migration 0002_confirmed_insi
 ```
 
 Do not rerun the baseline on an existing service. Runtime PostgreSQL schemas are never auto-created. The insight API and new report generation require migration 0002; old stored report reads remain compatible. Deletion removes approved text from its whole correction lineage and stored report payloads, preserving only metadata tombstones/audit IDs. Database backups follow the operator's independent retention policy; deletion here does not promise immediate backup erasure.
+
+`0003_clinical_questionnaires.sql` lifts the baseline's "no clinical instrument" check so the product-owner-approved PHQ-9 and extended depression questions can be stored, and lets a questionnaire sent after a positive Q9 reach a connected doctor without a separate alerts grant. It changes no data. Apply once after 0001 (and 0002):
+
+```sh
+uv run --directory backend python -m app.migrate --migration 0003_clinical_questionnaires.sql
+```

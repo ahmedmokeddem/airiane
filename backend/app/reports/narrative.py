@@ -42,7 +42,7 @@ class ReportNarrativeGenerator(Protocol):
 
 
 class DeterministicNarrativeGenerator:
-    version = "deterministic-v3.1"
+    version = "deterministic-v3.2"
 
     def generate(self, snapshot: dict) -> list[dict]:
         rows = snapshot["evidence"]
@@ -232,6 +232,22 @@ class DeterministicNarrativeGenerator:
                 "No completed assessment records are available. Validated instrument results are unavailable.",
             )
         for r in questionnaires:
+            if r["origin"].startswith("deterministic_scoring"):
+                maximum = r["unit"].rsplit("_", 1)[-1]
+                validity = (
+                    "validated screening questionnaire"
+                    if r["origin"].endswith("validated")
+                    else "adapted questions; indicative only, not a validated score"
+                )
+                # Patients see their total neutrally; severity wording is for the clinician.
+                claim(
+                    "assessments",
+                    r["id"],
+                    f"{r['label']}: you answered every question. Your total was {r['value']:g} out of {maximum}. Your doctor can help you understand what it means.",
+                    f"{r['label']}: total {r['value']:g}/{maximum} — {r['text']} ({validity}). Screening information, not a diagnosis.",
+                    [r],
+                )
+                continue
             claim(
                 "assessments",
                 r["id"],

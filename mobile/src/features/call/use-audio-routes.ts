@@ -37,7 +37,14 @@ export function useAudioRoutes(active: boolean) {
           }
           if (choice.current === "auto") {
             const best = preferredRoute(next);
-            if (best) await selectOutput(best);
+            if (best) {
+              await selectOutput(best);
+              setTimeout(() => {
+                if (generation.current === epoch && choice.current === "auto") {
+                  void selectOutput(best).catch(() => {});
+                }
+              }, 1200);
+            }
           }
         }
       } catch {

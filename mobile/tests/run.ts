@@ -11,8 +11,11 @@ import "./brand.test";
 
 import "./native-text.test";
 
+import "./wellbeing.test";
 import "./opening.test";
 
 import "./report-export.test";
 
-import "./production-config.test";
+import "./noise-filter.test";
+import "./assessment.test";
+import "./nudges.test";

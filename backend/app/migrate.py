@@ -86,15 +86,13 @@ async def apply(connection, name, *, adopt=False, check=False):
 async def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--migration", required=True, choices=["0001_baseline.sql", "0002_confirmed_insights.sql"]
-    )
-    parser.add_argument(
-        "--adopt-existing",
-        action="store_true",
-        help="Only after manual DDL review of an existing untracked database",
-    )
-    parser.add_argument(
-        "--check", action="store_true", help="Read-only ledger check; no schema changes"
+        "--migration",
+        default="0001_baseline.sql",
+        choices=[
+            "0001_baseline.sql",
+            "0002_confirmed_insights.sql",
+            "0003_clinical_questionnaires.sql",
+        ],
     )
     args = parser.parse_args()
     settings = Settings()
@@ -105,9 +103,10 @@ async def main():
         kwargs["ssl"] = ssl.create_default_context(cadata=settings.database_ca_pem or None)
     connection = await asyncpg.connect(postgres_dsn(settings.database_url), **kwargs)
     try:
-        print(
-            args.migration,
-            await apply(connection, args.migration, adopt=args.adopt_existing, check=args.check),
+        await connection.execute(
+            (
+                Path(__file__).resolve().parents[2] / "database/migrations" / args.migration
+            ).read_text(encoding="utf-8")
         )
     finally:
         await connection.close()

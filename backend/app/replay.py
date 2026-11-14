@@ -12,6 +12,10 @@ def metadata(op: str, result: dict) -> dict:
             "tool_call_id": result["tool_call_id"],
             "resource": metadata("tool", result["result"]),
         }
+    if op == "updateDoctorAlert":
+        return {"alert_id": result["alert_id"], "doctor_patient_id": result["patient_id"]}
+    if "reminder_id" in result:
+        return {"reminder_id": result["reminder_id"]}
     if "patient_id" in result and "preferences" in result:
         return {"type": "patient_context"}
     if "missing_fields" in result:
@@ -25,7 +29,10 @@ def metadata(op: str, result: dict) -> dict:
         "report_id",
         "care_link_id",
         "consent_grant_id",
+        "observation_id",
+        "alert_id",
         "insight_id",
+        "assessment_response_id",
     ]
     return {key: result[key] for key in keys if key in result}
 
@@ -54,6 +61,40 @@ async def restore(op: str, meta: dict, store, patient: str) -> dict:
             patient,
         )
         return {"tool_call_id": meta["tool_call_id"], "contract_version": "2.0.0", "result": result}
+    if "reminder_id" in meta:
+        # Only the clinician who set the reminder can replay it.
+        row = await store.get("medication_reminders", id=meta["reminder_id"], clinician_id=patient)
+        if not row:
+            raise DomainError("RESOURCE_NOT_FOUND", 404)
+        return {
+            "reminder_id": row["id"],
+            **{
+                k: row[k]
+                for k in ["patient_id", "clinician_id", "message", "schedule_time", "updated_at"]
+            },
+            "active": bool(row["active"]),
+        }
+    if "assessment_response_id" in meta:
+        from .assessments import AssessmentService
+
+        return await AssessmentService(store).owned(patient, meta["assessment_response_id"])
+    if "observation_id" in meta:
+        from .wellbeing import ObservationService
+
+        observations = ObservationService(store)
+        return await observations.view(await observations.owned(patient, meta["observation_id"]))
+    if "alert_id" in meta:
+        from .wellbeing import AlertService
+
+        alerts = AlertService(store)
+        if "doctor_patient_id" in meta:
+            # Clinician replay re-checks the live link and alerts grant before returning.
+            _, rows = await alerts.visible(patient, meta["doctor_patient_id"])
+            row = next((r for r in rows if r["id"] == meta["alert_id"]), None)
+            if not row:
+                raise DomainError("RESOURCE_NOT_FOUND", 404)
+            return await alerts.view(row)
+        return await alerts.view(await alerts.owned(patient, meta["alert_id"]))
     if "consent_grant_id" in meta:
         from .care import CareService
 
@@ -76,7 +117,11 @@ async def restore(op: str, meta: dict, store, patient: str) -> dict:
         return await PatientService(store).context(patient)
     if meta.get("type") == "guided_question":
         session = await sessions.owned(patient, meta["application_session_id"])
-        return ConversationController().question(session["version"])
+        from . import guidance
+
+        return ConversationController().question(
+            session["version"], await guidance.missing_checkin_fields(store, patient)
+        )
     if "feedback_id" in meta:
         row = await store.get("activity_feedback", id=meta["feedback_id"], patient_id=patient)
         if not row:

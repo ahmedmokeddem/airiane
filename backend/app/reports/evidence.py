@@ -146,6 +146,30 @@ class EvidenceAggregator:
                 origin="patient_confirmed_value",
             )
         for row in report["assessments"]:
+            result = row.get("result")
+            if result:
+                # Deterministic score from patient-tapped answers; screening information only.
+                safety = result["safety"]
+                flags = []
+                if safety["item_positive"]:
+                    flags.append("Item 9 (thoughts of death or self-harm) answered above 0")
+                if result["functional_impairment"]:
+                    flags.append("Functional difficulty (Q10): " + result["functional_impairment"])
+                await add(
+                    "questionnaire",
+                    row["assessment_response_id"],
+                    row["observed_at"],
+                    [row["source_id"]],
+                    label=f"{row['title']} · version {row['assessment_version']}",
+                    text=" · ".join([result["severity"], *flags]),
+                    value=result["total"],
+                    unit=f"score_0_{result['max_total']}",
+                    category=result["instrument"],
+                    origin="deterministic_scoring_validated"
+                    if result["validated"]
+                    else "deterministic_scoring_indicative",
+                )
+                continue
             await add(
                 "questionnaire",
                 row["assessment_response_id"],

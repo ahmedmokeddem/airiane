@@ -9,14 +9,22 @@ import {
 import type { CompanionState } from "./call-state";
 // Original .riv artwork is absent. This native gradient orb follows Stitch code.html.
 // Only transforms/opacity animate, on the native driver; no React renders per frame.
+export type CompanionTheme = {
+  coreColor: string;
+  auraColor: string;
+  orbGradient: string;
+};
+
 export const Companion = memo(function Companion({
   state,
   levelRef,
   size = 210,
+  accentTheme,
 }: {
   state: CompanionState;
   levelRef: { current: number };
   size?: number;
+  accentTheme?: CompanionTheme;
 }) {
   const [baseSize] = useState(size);
   const compact = useRef(new Animated.Value(1)).current;
@@ -101,6 +109,9 @@ export const Companion = memo(function Companion({
       <Animated.View
         style={[
           s.aura,
+          accentTheme && {
+            backgroundImage: `radial-gradient(circle, ${accentTheme.auraColor} 0%, rgba(101,175,165,0) 70%)`,
+          },
           {
             width: size + 100,
             height: size + 100,
@@ -116,6 +127,10 @@ export const Companion = memo(function Companion({
       <Animated.View
         style={[
           s.orb,
+          accentTheme && {
+            backgroundColor: accentTheme.coreColor,
+            backgroundImage: accentTheme.orbGradient,
+          },
           {
             width: baseSize,
             height: baseSize,

@@ -21,6 +21,18 @@ import { Companion, AudioWave } from "./companion";
 import { CallControls } from "./call-controls";
 import { useLocalCamera } from "./use-local-camera";
 import { useAudioRoutes } from "./use-audio-routes";
+import { noiseFilterSupported } from "./noise-filter";
+import {
+  NOISE_FILTER_MODES,
+  setNoiseFilterMode,
+  useNoiseFilterMode,
+} from "./noise-filter-mode";
+import { activityCue, type ActivityDetail } from "../activity/activity-cues";
+import {
+  NATURE_SOUNDSCAPES,
+  type NatureSoundscapeId,
+  useAudioTherapy,
+} from "../activity/audio-therapy";
 type Props = {
   reviewPanel?: import("react").ReactNode;
   state: CompanionState;
@@ -33,6 +45,7 @@ type Props = {
   caption: string;
   recommendation: Recommendation | null;
   activity: ActivitySession | null;
+  activityDetail?: ActivityDetail | null;
   inActivity: boolean;
   elapsed: number;
   rating: number;
@@ -59,6 +72,7 @@ export function CallScreen(p: Props) {
   const camera = useLocalCamera(!p.ending && p.state !== "disconnected");
   const isPermissionPending = camera.isPermissionPending;
   const routes = useAudioRoutes(p.connected && !p.ending);
+  const filterMode = useNoiseFilterMode();
   const [seconds, setSeconds] = useState(0);
   const start = useRef(0);
   useEffect(() => {
@@ -97,18 +111,39 @@ export function CallScreen(p: Props) {
     };
   }, [isPermissionPending]);
   const small = height < 740 || p.inActivity || !!p.recommendation;
+  // Title, prompts and length come from the selected catalog activity.
+  const cue = activityCue(p.activityDetail, p.elapsed);
+  const sound = useAudioTherapy(
+    p.inActivity && !!p.activity && p.elapsed < cue.duration,
+    p.activityDetail,
+    p.elapsed,
+  );
   const lastCaption = p.inActivity
-    ? p.elapsed % 8 < 4
-      ? "Breathe in gently"
-      : "Breathe out slowly"
+    ? cue.cue
     : p.caption.replace(
         /\[(?:warmly|calm|calmly|gentle|gently|softly|cheerful|thoughtful)\]\s*/gi,
         "",
       );
+  const natureTheme =
+    p.inActivity && p.activityDetail?.kind === "nature"
+      ? sound.theme
+      : undefined;
   return (
-    <View testID="immersive-call" style={s.root}>
+    <View
+      testID="immersive-call"
+      style={[
+        s.root,
+        natureTheme && { backgroundImage: natureTheme.bgGradient },
+      ]}
+    >
       <StatusBar style="light" />
-      <View pointerEvents="none" style={s.horizon} />
+      <View
+        pointerEvents="none"
+        style={[
+          s.horizon,
+          natureTheme && { backgroundImage: natureTheme.horizonColor },
+        ]}
+      />
       <View style={[s.header, { paddingTop: insets.top + 16 }]}>
         <View>
           <Text style={s.brand}>AIriane</Text>
@@ -140,6 +175,7 @@ export function CallScreen(p: Props) {
           <Companion
             state={p.state}
             levelRef={p.levelRef}
+            accentTheme={natureTheme}
             size={
               small
                 ? Math.min(width * 0.36, height * 0.16, 140)
@@ -187,33 +223,119 @@ export function CallScreen(p: Props) {
           )}
           {p.inActivity && p.activity && (
             <View testID="call-activity" style={s.activity}>
-              <Text style={s.overline}>ONE COMFORTABLE MINUTE</Text>
-              <Text style={s.title}>Calm Breathing</Text>
+              <Text style={s.overline}>{cue.eyebrow}</Text>
+              <Text style={s.title}>{cue.title}</Text>
               <Text accessibilityLiveRegion="polite" style={s.breath}>
-                {p.elapsed >= 60 ? "A moment for yourself." : lastCaption}
+                {p.elapsed >= cue.duration
+                  ? "A moment for yourself."
+                  : lastCaption}
               </Text>
+              <Pressable
+                testID="call-soundscape-toggle"
+                accessibilityRole="button"
+                onPress={sound.toggleSound}
+                style={s.quiet}
+              >
+                <Text style={s.detail}>
+                  {sound.soundMuted
+                    ? "Soundscape muted · tap to unmute"
+                    : p.activityDetail?.kind === "nature"
+                      ? `Soundscape · ${NATURE_SOUNDSCAPES[sound.soundscape].label} · tap to mute`
+                      : `Soundscape · ${sound.profile.label} · tap to mute`}
+                </Text>
+              </Pressable>
+              {p.activityDetail?.kind === "nature" && (
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                  {(Object.keys(NATURE_SOUNDSCAPES) as NatureSoundscapeId[]).map(
+                    (id) => (
+                      <Pressable
+                        key={id}
+                        testID={`soundscape-chip-${id}`}
+                        accessibilityRole="button"
+                        onPress={() => sound.setSoundscape(id)}
+                        style={[
+                          s.route,
+                          sound.soundscape === id && s.routeChosen,
+                          {
+                            paddingVertical: 6,
+                            paddingHorizontal: 10,
+                            minHeight: 32,
+                            backgroundColor:
+                              sound.soundscape === id ? "#65afa533" : "#ffffff0d",
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            s.detail,
+                            {
+                              color:
+                                sound.soundscape === id ? "#c5e9e0" : "#a0b3c3",
+                            },
+                          ]}
+                        >
+                          {NATURE_SOUNDSCAPES[id].label}
+                        </Text>
+                      </Pressable>
+                    ),
+                  )}
+                  <Pressable
+                    testID="soundscape-bilateral-toggle"
+                    accessibilityRole="button"
+                    onPress={sound.toggleBilateral}
+                    style={[
+                      s.route,
+                      sound.bilateralEnabled && s.routeChosen,
+                      {
+                        paddingVertical: 6,
+                        paddingHorizontal: 10,
+                        minHeight: 32,
+                        backgroundColor: sound.bilateralEnabled
+                          ? "#65afa533"
+                          : "#ffffff0d",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        s.detail,
+                        {
+                          color: sound.bilateralEnabled ? "#c5e9e0" : "#a0b3c3",
+                        },
+                      ]}
+                    >
+                      {sound.bilateralEnabled
+                        ? "Bilateral Pan: ON"
+                        : "Bilateral Pan: OFF"}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
               <View
                 accessible
                 accessibilityRole="progressbar"
-                accessibilityLabel="Breathing activity progress"
+                accessibilityLabel={`${cue.title} progress`}
                 accessibilityValue={{
                   min: 0,
-                  max: 60,
-                  now: Math.min(p.elapsed, 60),
+                  max: cue.duration,
+                  now: Math.min(p.elapsed, cue.duration),
                 }}
                 style={s.track}
               >
                 <View
                   style={[
                     s.progress,
-                    { width: `${Math.min(100, (p.elapsed / 60) * 100)}%` },
+                    {
+                      width: `${Math.min(100, (p.elapsed / cue.duration) * 100)}%`,
+                    },
                   ]}
                 />
               </View>
               <Text style={s.detail}>
-                {Math.min(p.elapsed, 60)} / 60 seconds · Stop whenever you need.
+                {Math.min(p.elapsed, cue.duration)} / {cue.duration} seconds · Stop
+                whenever you need.
               </Text>
-              {p.elapsed >= 60 && (
+              {p.elapsed >= cue.duration && (
                 <>
                   <Text style={s.captionText}>How helpful was this?</Text>
                   <View style={s.ratings}>
@@ -260,7 +382,7 @@ export function CallScreen(p: Props) {
             <View testID="call-saved" style={s.caption}>
               <Text style={s.overline}>A SMALL STEP, SAVED</Text>
               <Text style={s.captionText}>
-                Your breathing activity and feedback are in My Journey.
+                Your {cue.noun} and feedback are in My Journey.
               </Text>
             </View>
           )}
@@ -268,12 +390,12 @@ export function CallScreen(p: Props) {
             <Pressable
               testID="call-resume-activity"
               accessibilityRole="button"
-              accessibilityLabel="Continue Calm Breathing"
+              accessibilityLabel={`Continue ${cue.title}`}
               onPress={() => router.push("/breathing")}
               style={s.recommendation}
             >
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={s.cardTitle}>Continue your breathing pause</Text>
+                <Text style={s.cardTitle}>Continue your {cue.noun}</Text>
                 <Text style={s.detail}>Your activity is still here.</Text>
               </View>
               <Text style={s.chevron}>›</Text>
@@ -296,7 +418,9 @@ export function CallScreen(p: Props) {
                 ]}
               >
                 <View style={s.activityIcon}>
-                  <Text style={s.activitySymbol}>≈</Text>
+                  <Text style={s.activitySymbol}>
+                    {activityCue(o.activity, 0).symbol}
+                  </Text>
                 </View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text style={s.cardTitle}>{o.activity.title}</Text>
@@ -313,6 +437,11 @@ export function CallScreen(p: Props) {
                 {camera.error ||
                   "Something interrupted this moment. Your saved work is safe."}
               </Text>
+              {!camera.error && !!p.error && (
+                <Text testID="call-error-detail" style={s.detail}>
+                  {p.error}
+                </Text>
+              )}
             </View>
           )}
           {(p.state === "disconnected" || p.state === "idle") && !p.ending && (
@@ -367,6 +496,43 @@ export function CallScreen(p: Props) {
               <Text style={s.detail}>Use your device’s audio controls.</Text>
             )}
             {!!routes.error && <Text style={s.error}>{routes.error}</Text>}
+            <View testID="noise-filter-options" style={{ gap: 8, marginTop: 6 }}>
+              <Text style={s.cardTitle}>Background noise filter</Text>
+              {noiseFilterSupported ? (
+                <>
+                  <Text style={s.detail}>
+                    Helps AIriane listen to you, not the room. It turns down sound that is
+                    much quieter than your voice, such as a TV or people further away.
+                  </Text>
+                  <View style={{ flexDirection: "row", gap: 6 }}>
+                    {NOISE_FILTER_MODES.map((option) => (
+                      <Pressable
+                        key={option.mode}
+                        testID={`noise-filter-${option.mode}`}
+                        accessibilityRole="radio"
+                        accessibilityLabel={`Noise filter ${option.label}`}
+                        accessibilityState={{ selected: filterMode === option.mode }}
+                        onPress={() => setNoiseFilterMode(option.mode)}
+                        style={[
+                          s.route,
+                          { flex: 1, alignItems: "center" },
+                          filterMode === option.mode && s.routeChosen,
+                        ]}
+                      >
+                        <Text style={s.captionText}>{option.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <Text style={s.detail}>
+                    {NOISE_FILTER_MODES.find((o) => o.mode === filterMode)?.detail}
+                  </Text>
+                </>
+              ) : (
+                <Text style={s.detail}>
+                  Your phone’s built-in voice noise reduction is on for this call.
+                </Text>
+              )}
+            </View>
             <Pressable
               accessibilityRole="button"
               style={s.quiet}

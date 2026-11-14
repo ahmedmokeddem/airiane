@@ -68,7 +68,14 @@
           }
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#166a61",
+          "enableRemoteNotifications": false
+        }
+      ]
     ],
     "scheme": "re-patient"
   }

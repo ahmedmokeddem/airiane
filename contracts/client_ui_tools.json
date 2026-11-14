@@ -1,6 +1,166 @@
 {
- "contract_version":"1.0.0",
- "canonical_schemas":"openapi.yaml#/components/schemas/ConfirmedInsightCreate",
- "rules":["Transient Mobile UI Bridge proposal; never dispatchTool or persistence.","Session identity and proposal UUID are application-owned, absent from model arguments.","Callback acknowledges rendered review, not confirmation or storage.","Only explicit patient approval submits ConfirmedInsightCreate; rejection makes no API write.","Never infer diagnoses, treatment effects, suicidality scores, or clinician monitoring."],
- "tools":[{"name":"propose_conversation_insight","description":"Offer a short neutral note grounded in a specific patient statement for review, edit or rejection. Does not save anything. Use patient_approved_interpretation for an interpretation, never a medical conclusion.","parameters":{"type":"object","additionalProperties":false,"properties":{"theme":{"type":"string","enum":["fatigue","sleep","positive_experience","concern","clinician_question","reflection","goal"]},"text":{"type":"string","minLength":1,"maxLength":500},"observed_at":{"type":"string","format":"date-time","description":"When the patient reported the experience. Ask if unclear; never invent a date."},"statement_kind":{"type":"string","enum":["direct_statement","patient_approved_interpretation"]}},"required":["theme","text","observed_at","statement_kind"]},"provider_binding":{"provider":"elevenlabs","type":"client","expects_response":true},"result":{"proposal_id":"application UUID","state":"awaiting_patient_review","persisted":false}}]
+ "contract_version": "1.0.0",
+ "canonical_schemas": "openapi.yaml#/components/schemas/ConfirmedInsightCreate",
+ "rules": [
+  "Transient Mobile UI Bridge proposal; never dispatchTool or persistence.",
+  "Session identity and proposal UUID are application-owned, absent from model arguments.",
+  "Callback acknowledges rendered review, not confirmation or storage.",
+  "Only explicit patient approval submits ConfirmedInsightCreate; rejection makes no API write.",
+  "Never infer diagnoses, treatment effects, suicidality scores, or clinician monitoring."
+ ],
+ "tools": [
+  {
+   "name": "propose_conversation_insight",
+   "description": "Offer a short neutral note grounded in a specific patient statement for review, edit or rejection. Does not save anything. Use patient_approved_interpretation for an interpretation, never a medical conclusion.",
+   "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "theme": {
+      "type": "string",
+      "enum": [
+       "fatigue",
+       "sleep",
+       "positive_experience",
+       "concern",
+       "clinician_question",
+       "reflection",
+       "goal"
+      ]
+     },
+     "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+     },
+     "observed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the patient reported the experience. Ask if unclear; never invent a date."
+     },
+     "statement_kind": {
+      "type": "string",
+      "enum": [
+       "direct_statement",
+       "patient_approved_interpretation"
+      ]
+     }
+    },
+    "required": [
+     "theme",
+     "text",
+     "observed_at",
+     "statement_kind"
+    ]
+   },
+   "provider_binding": {
+    "provider": "elevenlabs",
+    "type": "client",
+    "expects_response": true
+   },
+   "result": {
+    "proposal_id": "application UUID",
+    "state": "awaiting_patient_review",
+    "persisted": false
+   }
+  },
+  {
+   "name": "propose_assessment_answer",
+   "description": "While the patient answers a questionnaire shown on screen, highlight the option that matches what they said, then repeat it back and ask them to confirm. Saves nothing by itself.",
+   "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "question_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "The question_id of the question currently on screen."
+     },
+     "value": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "The option value that matches the patient's words."
+     }
+    },
+    "required": [
+     "question_id",
+     "value"
+    ]
+   },
+   "provider_binding": {
+    "provider": "elevenlabs",
+    "type": "client",
+    "expects_response": true
+   },
+   "result": {
+    "highlighted": "boolean",
+    "awaiting_patient_confirmation": "boolean"
+   }
+  },
+  {
+   "name": "open_assessment",
+   "description": "Show the questionnaire the patient asked for on screen (phq9 about 3 minutes, extended about 8 minutes). The patient can stop at any time; nothing is saved until every question is answered.",
+   "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "assessment": {
+      "type": "string",
+      "enum": [
+       "phq9",
+       "extended"
+      ],
+      "description": "phq9 for the short questionnaire, extended for the longer one."
+     }
+    },
+    "required": [
+     "assessment"
+    ]
+   },
+   "provider_binding": {
+    "provider": "elevenlabs",
+    "type": "client",
+    "expects_response": true
+   },
+   "result": {
+    "opened": "boolean"
+   }
+  },
+  {
+   "name": "confirm_assessment_answer",
+   "description": "Record the highlighted answer after the patient clearly confirmed it (for example 'yes' or 'that's right'). Only works for the option currently highlighted with propose_assessment_answer on the question on screen.",
+   "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "question_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "The question_id of the question currently on screen."
+     },
+     "value": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "The highlighted option value the patient confirmed."
+     }
+    },
+    "required": [
+     "question_id",
+     "value"
+    ]
+   },
+   "provider_binding": {
+    "provider": "elevenlabs",
+    "type": "client",
+    "expects_response": true
+   },
+   "result": {
+    "recorded": "boolean"
+   }
+  }
+ ]
 }
