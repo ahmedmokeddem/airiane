@@ -35,7 +35,7 @@ TOOL_NAMES = [
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
-    engine = engine_for(settings.database_url)
+    engine = engine_for(settings.database_url, settings)
     auth = Authenticator(settings)
     cipher = Fernet(Fernet.generate_key())
     credential_cache: dict[tuple, tuple] = {}
@@ -120,6 +120,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
     )
 
+    @app.middleware("http")
+    async def security_headers(request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-Frame-Options"] = "DENY"
+        if settings.environment == "production":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000"
+        return response
+
     @app.exception_handler(DomainError)
     async def domain_error(request: Request, exc: DomainError):
         return JSONResponse(
@@ -139,6 +149,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/health")
     async def health():
+        if settings.environment == "production":
+            return {"status": "alive"}
         return {
             "status": "ok",
             "scope": "first-vertical-slice",
@@ -342,7 +354,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     name=operation["operationId"],
                     status_code=IMPLEMENTED[operation["operationId"]][2],
                 )
-    pdf_routes.install(app, engine, auth)
+    from .health import install_health
+
+    install_health(app, engine, settings)
+    pdf_routes.install(app, engine, auth, settings)
     return app
 
 

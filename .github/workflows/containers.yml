@@ -1,0 +1,22 @@
+name: Production container preparation
+on:
+  pull_request:
+  push:
+permissions:
+  contents: read
+jobs:
+  local-production-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.9.8'
+      - run: uv sync --directory backend --frozen
+      - run: docker build -f backend/Dockerfile -t airiane-api:deployment-check .
+      - run: docker build -f portal/Dockerfile -t airiane-portal:deployment-check .
+      - run: bash scripts/deployment/verify-containers.sh
+      # No registry push, Aiven token, cloud deployment or production secrets.

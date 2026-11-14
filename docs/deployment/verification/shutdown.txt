@@ -1,0 +1,2 @@
+/airiane-check-api exit=0
+/airiane-check-portal exit=143

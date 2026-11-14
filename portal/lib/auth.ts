@@ -3,8 +3,9 @@ export type Me = components['schemas']['Me'];
 export function validOrigin(request: Request): boolean {
   try {
     const origin=new URL(request.headers.get('origin')??'');
+    if(process.env.NODE_ENV==='production')return origin.origin===new URL(process.env.PORTAL_PUBLIC_URL??'').origin;
     const host=request.headers.get('host')??new URL(request.url).host;
-    return origin.host===host && (origin.protocol==='https:' || (origin.protocol==='http:' && process.env.NODE_ENV!=='production'));
+    return origin.host===host && (origin.protocol==='https:' || origin.protocol==='http:');
   } catch { return false; }
 }
 export async function authenticate(form: FormData, fetcher: typeof fetch = fetch): Promise<{token: string; expires: number; me: Me}> {

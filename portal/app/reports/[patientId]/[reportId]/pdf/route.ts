@@ -1,7 +1,8 @@
+import { openSession } from '@/lib/session';
 import { cookies } from 'next/headers';
 export const dynamic='force-dynamic';
 export async function GET(_request:Request,{params}:{params:Promise<{patientId:string;reportId:string}>}){
- const token=(await cookies()).get('re_access_token')?.value;
+ const token=openSession((await cookies()).get('re_access_token')?.value);
  const headers={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'};
  if(!token||process.env.PORTAL_DATA_MODE!=='api')return Response.json({message:'Sign in to download an authorized report.'},{status:401,headers});
  const {patientId,reportId}=await params;

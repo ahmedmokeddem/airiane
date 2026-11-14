@@ -197,7 +197,7 @@ class SqlStore:
             raise DomainError("VERSION_CONFLICT")
 
 
-def engine_for(url: str):
+def engine_for(url: str, settings=None):
     if url.startswith(("postgres://", "postgresql://", "postgresql+asyncpg://")):
         import asyncpg
 
@@ -205,12 +205,58 @@ def engine_for(url: str):
 
         dsn = postgres_dsn(url)
 
+        last_tls_report = float("-inf")
+
         async def connect():
-            return await asyncpg.connect(dsn, timeout=15)
+            nonlocal last_tls_report
+            kwargs = {
+                "timeout": settings.database_connect_timeout if settings else 15,
+                "command_timeout": settings.database_command_timeout if settings else 15,
+            }
+            driver_invoked = False
+            try:
+                if settings and settings.environment == "production":
+                    from .database_tls import production_ssl_context
+
+                    kwargs["ssl"] = production_ssl_context(settings)
+                driver_invoked = True
+                return await asyncpg.connect(dsn, **kwargs)
+            except Exception as error:
+                if settings and settings.environment == "production":
+                    import json
+                    import logging
+                    import time
+
+                    from .database_tls import classify, context_facts, exception_facts
+
+                    if time.monotonic() - last_tls_report >= 30:
+                        records = exception_facts(error, settings)
+                        report = {
+                            "event": "postgres_driver_connection_failure",
+                            "exceptions": records,
+                            "classification": classify(records),
+                            "driver_invoked": driver_invoked,
+                            "effective_context_passed_to_asyncpg": (
+                                context_facts(kwargs["ssl"], settings) if "ssl" in kwargs else None
+                            ),
+                            "context_construction_failed": "ssl" not in kwargs,
+                        }
+                        logging.getLogger("uvicorn.error").warning(
+                            "PostgreSQL TLS diagnostic: %s", json.dumps(report)
+                        )
+                        last_tls_report = time.monotonic()
+                raise
 
         # Native asyncpg parses provider SSL parameters; engine logs contain no credentials.
         return create_async_engine(
-            "postgresql+asyncpg://", async_creator=connect, pool_pre_ping=True
+            "postgresql+asyncpg://",
+            async_creator=connect,
+            pool_pre_ping=True,
+            pool_size=settings.database_pool_size if settings else 2,
+            max_overflow=settings.database_max_overflow if settings else 1,
+            pool_timeout=settings.database_pool_timeout if settings else 5,
+            pool_recycle=300,
+            hide_parameters=True,
         )
     engine = create_async_engine(url, pool_pre_ping=True)
     if url.startswith("sqlite"):

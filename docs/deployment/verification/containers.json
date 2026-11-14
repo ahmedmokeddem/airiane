@@ -1,0 +1,14 @@
+{
+  "production_containers": true,
+  "local_verified_tls_postgresql": true,
+  "signed_fixture_jwks_auth": true,
+  "actual_supabase_project": false,
+  "real_elevenlabs_call": false,
+  "portal_secure_encrypted_cookie": true,
+  "csrf": true,
+  "cors": true,
+  "report_authorization_and_revocation": true,
+  "authorized_pdf_proxy": true,
+  "pdf_bytes": 43687,
+  "report_id": "3dae312a-8b25-4724-ba69-6f2159fcb324"
+}

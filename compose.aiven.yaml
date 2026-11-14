@@ -1,0 +1,16 @@
+# Runtime application discovery only. Configure all credentials in Console as secrets.
+# Defaults live in Dockerfiles only: avoid duplicate keys in Runtime discovery.
+# Each Dockerfile can also be selected independently with repository-root build context.
+services:
+  airiane-api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+  airiane-portal:
+    build:
+      context: .
+      dockerfile: portal/Dockerfile
+    ports:
+      - "3000:3000"

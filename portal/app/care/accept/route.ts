@@ -1,9 +1,10 @@
+import { openSession } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { validOrigin } from '@/lib/auth';
 export async function POST(request: Request) {
   if (!validOrigin(request)) return new Response('Invalid origin',{status:403});
-  const token=(await cookies()).get('re_access_token')?.value;
+  const token=openSession((await cookies()).get('re_access_token')?.value);
   if (!token) return NextResponse.redirect(new URL('/login',request.headers.get('origin')!),303);
   const id=String((await request.formData()).get('care_link_id')??'');
   if (!/^[0-9a-f-]{36}$/i.test(id)) return new Response('Invalid connection',{status:422});

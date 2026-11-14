@@ -1,5 +1,11 @@
 # AIriane implementation status
 
+## Aiven Runtime preparation — 14 November 2026
+
+Two independent production images build locally: FastAPI and the clinician portal. Existing Tiger Data, Supabase and ElevenLabs remain external. Local TLS/signed-JWT container checks verified authenticated reports, encrypted Secure cookies, CORS/CSRF, PDF download and revocation. All 31 backend tests passed against disposable PostgreSQL. Container PDF rendering and graceful shutdown receipts are under `docs/deployment/verification/`. A verification receipt write failed because the fixture container created a root-owned file; the script now writes the enriched receipt directly to the repository instead of modifying that file. The corrected complete harness has not yet been rerun.
+
+**READY WITH CONFIGURATION:** container packaging and production guards. **BLOCKED:** actual cloud authentication/provider configuration, Aiven endpoints/secrets and operator-reviewed migration history adoption. **NOT TESTED:** hosted Aiven deployment, signed production mobile release and production load/security audit. No hosted resources were created and no live database migrations were run. Single-worker/single-replica operation is required by existing process-local session state; crash recovery remains a limitation. See [deployment runbook](deployment/AIVEN_RUNTIME.md), [environment matrix](deployment/ENVIRONMENT_VARIABLES.md) and [release gates](deployment/DEPLOYMENT_CHECKLIST.md).
+
 Updated 14 November 2026. Work continued from the existing slice; the baseline migration, existing API operations, technical package identifiers and Stitch assets are preserved. Additive confirmed-insight schemas are documented below. This is a tested development integration, not a production or clinical validation.
 
 
