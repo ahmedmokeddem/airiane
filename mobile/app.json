@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "AIriane",
+    "slug": "re-patient",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/brand/launcher.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dev.re.patient",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Allow AIriane voice conversations.",
+        "NSCameraUsageDescription": "Allow local preview only. AIriane cannot see your video."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#faf9f6",
+        "foregroundImage": "./assets/brand/adaptive-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "dev.re.patient",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.BLUETOOTH_CONNECT"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/brand/launcher.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow a local camera preview. RE cannot see or store it.",
+          "recordAudioAndroid": false
+        }
+      ],
+      "@livekit/react-native-expo-plugin",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "microphonePermission": "Allow AIriane voice conversations.",
+          "cameraPermission": "Allow local preview only."
+        }
+      ],
+      "expo-router",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/PlusJakartaSans.ttf",
+            "./assets/fonts/Manrope.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/brand/launcher.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#081018",
+          "dark": {
+            "image": "./assets/brand/launcher.png",
+            "backgroundColor": "#081018"
+          }
+        }
+      ],
+      "expo-sharing"
+    ],
+    "scheme": "re-patient"
+  }
+}

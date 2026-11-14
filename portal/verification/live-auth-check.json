@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-11-14",
+  "identity": "explicitly fictional local development clinician and patient",
+  "initial_issue": "Verified clinician identity HTTP 200 took 11.30 seconds; old portal 10-second backend deadline aborted sign-in",
+  "change": "Backend identity and report requests bounded at 30 seconds; independent workspace reads parallelized; Supabase exchange deadline unchanged",
+  "browser_login": "succeeded",
+  "temporary_report_only_consent_http": 201,
+  "existing_report_browser": "rendered 2 completed activities, 2 feedback records, 0 numeric observations, 4 sources",
+  "temporary_consent_revocation_http": 204,
+  "same_report_after_revocation_http": 403,
+  "new_report_generation": "not attempted",
+  "database_migration": "not attempted",
+  "media_or_transcripts_collected": false
+}

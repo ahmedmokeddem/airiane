@@ -1,0 +1,18 @@
+{
+  "foreground": {
+    "same_pid": true,
+    "captured": true,
+    "file": "native-foreground.png"
+  },
+  "skip": {
+    "elapsed_ms": 1526,
+    "captured": true,
+    "file": "native-skip.png"
+  },
+  "reduced_motion": {
+    "elapsed_ms": 1000,
+    "captured": true,
+    "file": "native-reduced-motion.png"
+  },
+  "transition_scale_restored": true
+}

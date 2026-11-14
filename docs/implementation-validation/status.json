@@ -1,0 +1,49 @@
+{
+  "checked_on": "2026-11-14",
+  "backend": {
+    "postgresql_tests_passed": 17,
+    "ruff": "pass",
+    "actual_supabase_auth": "untested",
+    "stored_reports": "implemented_verified",
+    "care_links_consent_authorization": "implemented_verified"
+  },
+  "mobile": {
+    "typecheck": "pass",
+    "lint": "pass",
+    "unit_tests_passed": 5,
+    "web_export": "pass",
+    "http_postgresql_bridge": "pass_simulated_provider",
+    "native_device": "physical_Samsung_SM_G998B_Android15",
+    "real_elevenlabs": "voice_and_recommendation_tool_verified_user_confirmed_audio",
+    "browser_smoke": "pass_fictional_sign_in_voice_cards_breathing_completion_journey",
+    "native_my_journey": "completed_activity_rating4_verified_after_recovery",
+    "clean_uninterrupted_rerun": "pending_after_recovery_fixes",
+    "automated_http_postgresql_recheck": "pass_simulated_provider_actual_client_bridge_backend_database"
+  },
+  "portal": {
+    "typecheck": "pass",
+    "lint": "pass",
+    "tests_passed": 6,
+    "production_build": "pass",
+    "browser_review": "pass_fictional_mode",
+    "live_clinician_auth_reports": "real_backend_authorization_verified_fictional_development_identity",
+    "supabase_account_auth": "not_verified",
+    "report_revocation": "same_report_403_and_UI_access_removed",
+    "stored_report_counts_observed": {
+      "completed_activities": 1,
+      "feedback": 1,
+      "source_references": 2
+    },
+    "post_revocation_http_status": 403,
+    "post_revocation_browser": "No_accessible_patients_no_report_fixture_fallback"
+  },
+  "shared_fixtures": 6,
+  "hosted_ci": "not_run",
+  "provider_retention": "saved_settings_readback_verified_scheduled_deletion_behavior_not_verified",
+  "preserved_design_sha256": {
+    "docs/design/code.html": "8b0df0ffb1b6b5c1c6b3978a26676c73d9d4f94f22345bcb1e445c45d062c43f",
+    "docs/design/screen.png": "a14d6a419655ad5babb33bc009537cc080c73e93b23ab59600944f93ca0efbbd",
+    "docs/design/DESIGN.md": "0e39802ae0a2426d56cd2aa2b14d6b2c6bfd117e525cb73a386d76523fbe1fde"
+  },
+  "canonical_openapi_tool_sql_hashes_unchanged": true
+}

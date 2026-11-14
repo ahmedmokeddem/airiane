@@ -1,0 +1,108 @@
+{
+  "date": "2026-11-14",
+  "device": {
+    "model": "Samsung SM-G998B",
+    "android": 15,
+    "build": "Expo development APK",
+    "build_result": "BUILD SUCCESSFUL in 3m 31s",
+    "package": "dev.re.patient",
+    "visible_name": "AIriane"
+  },
+  "identities": "explicit fictional development patient and clinician",
+  "migration_0002": "applied after explicit user approval",
+  "native_text": {
+    "real_elevenlabs_conversation": true,
+    "real_transient_insight_client_tool": true,
+    "persisted_rows_before_confirmation": [],
+    "edited_in_native_UI": true,
+    "explicit_confirm_action": true,
+    "confirmed_insight_id": "21b2daf3-d252-426b-8ef7-3baa13ae2b1f",
+    "journey_milestone_seen": true,
+    "second_real_proposal_rejected": true,
+    "rows_after_reject": [
+      {
+        "id": "21b2daf3-d252-426b-8ef7-3baa13ae2b1f",
+        "theme": "fatigue",
+        "state": "confirmed",
+        "version": 1,
+        "observed_at": "2026-11-14 08:57:45.049000+00:00",
+        "confirmed_at": "2026-11-14 09:00:02.323575+00:00",
+        "source_id": "0bcaac40-bc33-4128-99d2-577708b3a8fc",
+        "supersedes_insight_id": null
+      }
+    ]
+  },
+  "native_voice": {
+    "user_confirmation": "Yes, I hear AIriane and see the card",
+    "tool_receipt": [
+      {
+        "tool_name": "present_activity_recommendations",
+        "result_resource_id": "8cb61bfe-08bd-4832-ab1d-25d57e98e0e1",
+        "outcome_code": "accepted",
+        "mode": "voice",
+        "transport": "webrtc",
+        "state": "closed"
+      }
+    ],
+    "completed_activity_id": "ad60e966-8493-4684-bcb9-07e5aafd3020",
+    "additional_standalone_activity_id": "02d987cf-d071-43dd-b55d-d82aa8f2132f",
+    "persisted_activity_metadata": [
+      {
+        "id": "02d987cf-d071-43dd-b55d-d82aa8f2132f",
+        "state": "completed",
+        "session_id": "e15de928-f969-4b02-b569-2d54cb7e0e4e",
+        "recommendation_id": "cac68cc1-1d4c-4a9b-920d-20036d10219d",
+        "started_at": "2026-11-14 09:12:32.130222+00:00",
+        "ended_at": "2026-11-14 09:13:40.638000+00:00",
+        "rating": 4
+      },
+      {
+        "id": "ad60e966-8493-4684-bcb9-07e5aafd3020",
+        "state": "completed",
+        "session_id": "afef267c-93c8-427d-99f7-ef8c0f45963f",
+        "recommendation_id": "8cb61bfe-08bd-4832-ab1d-25d57e98e0e1",
+        "started_at": "2026-11-14 09:06:58.036474+00:00",
+        "ended_at": "2026-11-14 09:08:02.513000+00:00",
+        "rating": 4
+      },
+      {
+        "id": "7f0fabc0-f82e-4827-99ce-3b169399ba80",
+        "state": "completed",
+        "session_id": "296b4187-9bbe-4108-a50e-5bfae8e5dbb4",
+        "recommendation_id": "eb8d3e70-df2a-439c-b8e8-235f9f2ff18a",
+        "started_at": "2026-11-14 07:24:00.210164+00:00",
+        "ended_at": "2026-11-14 07:34:32.314000+00:00",
+        "rating": 4
+      }
+    ],
+    "journey_new_milestones_seen": true,
+    "note": "Phone later left app/reloaded; separate standalone save verified. Do not infer uninterrupted lifetime from screenshots."
+  },
+  "cleanup": {
+    "camera_clients_empty": true,
+    "live_re_audio_focus_entry": false,
+    "observed_voice_provider_connection_state": "closed"
+  },
+  "checks": {
+    "mobile_tests": 27,
+    "backend_sqlite_tests": 20,
+    "backend_disposable_postgres_tests": 20,
+    "portal_tests": 10,
+    "contract_fixtures": 7,
+    "mobile_typecheck_lint": "passed",
+    "backend_ruff": "passed",
+    "portal_typecheck_lint_build": "passed",
+    "runtime_error_window": {
+      "duration_ms": 2000,
+      "count": 0
+    }
+  },
+  "limits": [
+    "No release frame-time, iOS or full accessibility/device matrix",
+    "No original Rive asset",
+    "Release splash/adaptive-mask visual verification pending",
+    "No full media/network egress privacy audit",
+    "Supabase production account auth unconfigured",
+    "No raw transcript, voice recording or camera media in this receipt"
+  ]
+}

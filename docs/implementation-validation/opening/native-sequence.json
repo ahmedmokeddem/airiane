@@ -1,0 +1,65 @@
+[
+  {
+    "sample": 0,
+    "before_capture_ms": 200,
+    "captured": false,
+    "reason": "app_not_foreground",
+    "after_capture_ms": 278
+  },
+  {
+    "sample": 1,
+    "before_capture_ms": 600,
+    "captured": true,
+    "file": "native-sequence-1.png",
+    "after_capture_ms": 1358
+  },
+  {
+    "sample": 2,
+    "before_capture_ms": 1358,
+    "captured": true,
+    "file": "native-sequence-2.png",
+    "after_capture_ms": 2110
+  },
+  {
+    "sample": 3,
+    "before_capture_ms": 2110,
+    "captured": true,
+    "file": "native-sequence-3.png",
+    "after_capture_ms": 2939
+  },
+  {
+    "sample": 4,
+    "before_capture_ms": 2940,
+    "captured": true,
+    "file": "native-sequence-4.png",
+    "after_capture_ms": 3726
+  },
+  {
+    "sample": 5,
+    "before_capture_ms": 3727,
+    "captured": true,
+    "file": "native-sequence-5.png",
+    "after_capture_ms": 4545
+  },
+  {
+    "sample": 6,
+    "before_capture_ms": 4545,
+    "captured": true,
+    "file": "native-sequence-6.png",
+    "after_capture_ms": 5466
+  },
+  {
+    "sample": 7,
+    "before_capture_ms": 5466,
+    "captured": true,
+    "file": "native-sequence-7.png",
+    "after_capture_ms": 6363
+  },
+  {
+    "sample": 8,
+    "before_capture_ms": 6363,
+    "captured": true,
+    "file": "native-sequence-8.png",
+    "after_capture_ms": 7337
+  }
+]

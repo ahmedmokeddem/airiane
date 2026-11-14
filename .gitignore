@@ -86,3 +86,12 @@ temp/
 *.local
 .direnv/
 .history/
+
+# Native development output
+.expo/
+mobile/ios/
+mobile/android/
+.ruff_cache/
+*.db
+*.sqlite3
+.playwright-cli/

@@ -1,0 +1,201 @@
+{
+  "report_id": "54738060-9316-5af9-8c37-8037e669a87a",
+  "patient_id": "d9efc857-7c98-53e7-8ad3-223402000acb",
+  "version": 1,
+  "state": "ready",
+  "period_start": "2026-11-07T00:00:00+00:00",
+  "period_end": "2026-11-14T00:00:00+00:00",
+  "generated_at": "2026-11-14T00:00:00+00:00",
+  "data_cutoff": "2026-11-14T00:00:00+00:00",
+  "timezone": "Europe/Helsinki",
+  "calculation_version": "facts-v3",
+  "document": {
+    "schema_version": "1.0.0",
+    "report_type": "dual_perspective_wellbeing",
+    "generator_version": "deterministic-v3.1",
+    "template_version": "editorial-v1",
+    "evidence_snapshot_version": 1,
+    "evidence_snapshot_id": "ed834720f32e2d7626d51bb1e0109336109bc3b96dec1db0086cc64c08ce27ec",
+    "snapshot": {
+      "evidence": [],
+      "current_start": "2026-11-07T00:00:00+00:00",
+      "current_end": "2026-11-14T00:00:00+00:00",
+      "previous_start": null,
+      "timezone": "Europe/Helsinki",
+      "aggregates": {
+        "current": {
+          "counts": {},
+          "active_days": 0,
+          "themes": {}
+        },
+        "previous": null
+      },
+      "authorization_start": "2026-11-07T00:00:00+00:00"
+    },
+    "claims": [
+      {
+        "id": "overview-coverage",
+        "section": "overview",
+        "patient_text": "You saved 0 confirmed notes, 0 completed activities and 0 ratings, plus 0 confirmed check-in values across 0 recorded days. This is a view of the moments you chose to keep, not a grade.",
+        "clinician_text": "The period contains 0 patient-confirmed notes, 0 activity completions and 0 explicit ratings, plus 0 confirmed check-in values across 0 recorded days. Coverage is opportunistic, not scheduled.",
+        "evidence_ids": []
+      },
+      {
+        "id": "experiences-missing",
+        "section": "experiences",
+        "patient_text": "There are no confirmed conversation notes in this period. Your conversations have not been treated as a permanent record; no themes or feelings have been inferred.",
+        "clinician_text": "No confirmed conversational observations are available for the period. Themes, emotions and absence of symptoms cannot be inferred from activity records.",
+        "evidence_ids": []
+      },
+      {
+        "id": "themes-missing",
+        "section": "themes",
+        "patient_text": "There is not yet enough confirmed conversation material to describe recurring themes.",
+        "clinician_text": "Recurring conversational themes are unavailable without confirmed observations.",
+        "evidence_ids": []
+      },
+      {
+        "id": "reflections-missing",
+        "section": "reflections",
+        "patient_text": "No personal reflection or goal was explicitly saved in this period. We have not supplied one on your behalf.",
+        "clinician_text": "No patient-selected reflection or goal is recorded.",
+        "evidence_ids": []
+      },
+      {
+        "id": "topics-missing",
+        "section": "topics",
+        "patient_text": "No discussion question was saved. If you choose, you can bring a confirmed note or an activity experience to your next conversation with your clinician.",
+        "clinician_text": "No patient-selected clinician question is recorded. No automated medical advice or follow-up instruction is generated.",
+        "evidence_ids": []
+      },
+      {
+        "id": "changes-insufficient",
+        "section": "changes",
+        "patient_text": "An equal-period comparison is not supported by enough confirmed notes on multiple days in both periods. Missing information remains missing.",
+        "clinician_text": "Insufficient comparable observations: each equal-length period needs at least three confirmed notes across two dates. No symptom or treatment-change conclusion is produced.",
+        "evidence_ids": []
+      },
+      {
+        "id": "activities-missing",
+        "section": "activities",
+        "patient_text": "No completed activities were saved this period. This does not describe what you did outside the app.",
+        "clinician_text": "No app activity completions are available; activity outside the application is unknown.",
+        "evidence_ids": []
+      },
+      {
+        "id": "assessments-missing",
+        "section": "assessments",
+        "patient_text": "No completed questionnaire records are available. No score or screening result has been inferred.",
+        "clinician_text": "No completed assessment records are available. Validated instrument results are unavailable.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-0",
+        "section": "limitations",
+        "patient_text": "Missing records are not evidence that an experience or symptom was absent.",
+        "clinician_text": "Missing records are not evidence that an experience or symptom was absent.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-1",
+        "section": "limitations",
+        "patient_text": "Frequency describes saved reports, not symptom frequency, severity or improvement.",
+        "clinician_text": "Frequency describes saved reports, not symptom frequency, severity or improvement.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-2",
+        "section": "limitations",
+        "patient_text": "Feedback describes the patient's experience; participation and ratings do not establish recovery or a treatment effect.",
+        "clinician_text": "Feedback describes the patient's experience; participation and ratings do not establish recovery or a treatment effect.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-3",
+        "section": "limitations",
+        "patient_text": "Only patient-confirmed structured notes are used. No raw conversation history or recording is included.",
+        "clinician_text": "Only patient-confirmed structured notes are used. No raw conversation history or recording is included.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-4",
+        "section": "limitations",
+        "patient_text": "Questionnaire records do not identify a validated clinical scoring method; no clinical score or diagnosis is generated.",
+        "clinician_text": "Questionnaire records do not identify a validated clinical scoring method; no clinical score or diagnosis is generated.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-5",
+        "section": "limitations",
+        "patient_text": "This is a supplementary patient-shared wellbeing record, not a medical evaluation or proof of clinician review or monitoring.",
+        "clinician_text": "This is a supplementary patient-shared wellbeing record, not a medical evaluation or proof of clinician review or monitoring.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-method",
+        "section": "limitations",
+        "patient_text": "Dates use your saved timezone. Only traceable, confirmed records available at the snapshot cutoff contribute to findings. Later corrections or withdrawals require a new report.",
+        "clinician_text": "Dates use the stored patient timezone. Aggregation uses traceable accepted records at cutoff. Evidence withdrawal invalidates export; downloaded copies remain independent.",
+        "evidence_ids": []
+      }
+    ],
+    "charts": [],
+    "sections": [
+      {
+        "id": "overview",
+        "patient_title": "Your journey at a glance",
+        "clinician_title": "Executive overview"
+      },
+      {
+        "id": "experiences",
+        "patient_title": "What you shared",
+        "clinician_title": "Patient-confirmed experiences"
+      },
+      {
+        "id": "themes",
+        "patient_title": "Recurring confirmed themes",
+        "clinician_title": "Confirmed recurring themes"
+      },
+      {
+        "id": "changes",
+        "patient_title": "Changes worth noticing",
+        "clinician_title": "Longitudinal observations"
+      },
+      {
+        "id": "activities",
+        "patient_title": "Activities and your feedback",
+        "clinician_title": "Activity engagement and explicit feedback"
+      },
+      {
+        "id": "reflections",
+        "patient_title": "Reflections and goals",
+        "clinician_title": "Patient reflections and goals"
+      },
+      {
+        "id": "topics",
+        "patient_title": "Questions for your clinician",
+        "clinician_title": "Patient-selected discussion topics"
+      },
+      {
+        "id": "assessments",
+        "patient_title": "Questionnaire records",
+        "clinician_title": "Assessment availability"
+      },
+      {
+        "id": "limitations",
+        "patient_title": "Coverage and what remains unknown",
+        "clinician_title": "Methodology and limitations"
+      }
+    ],
+    "regeneration_of": null,
+    "content_hash": "ec87dbbbd09fefbea2c36c117e5147f8b53075f22a3d81c9c4951add1d8eee6c"
+  },
+  "sources": [],
+  "observations": [],
+  "completed_activities": [],
+  "feedback": [],
+  "assessments": [],
+  "confirmed_insights": [],
+  "trends": [],
+  "limitations": []
+}

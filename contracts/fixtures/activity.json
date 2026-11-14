@@ -1,0 +1,21 @@
+{
+  "schema": "Activity",
+  "fictional": true,
+  "data": {
+    "activity_id": "22222222-2222-4222-8222-222222222222",
+    "activity_version": 1,
+    "kind": "breathing",
+    "title": "Calm Breathing",
+    "description": "Take a comfortable pause. Stop whenever you like.",
+    "duration_seconds": 60,
+    "config": {
+      "renderer": "breathing_v1",
+      "asset_id": null,
+      "instructions": [
+        "Breathe comfortably; stop if uncomfortable."
+      ],
+      "inhale_seconds": 4,
+      "exhale_seconds": 4
+    }
+  }
+}

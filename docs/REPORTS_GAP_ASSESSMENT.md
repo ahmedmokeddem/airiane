@@ -1,0 +1,9 @@
+# Report upgrade gap assessment — 14 November 2026
+
+Current stack only; this brief supersedes the earlier optional-provider discussion. No LLM adapter, key, external narrative call or new model provider is introduced.
+
+Persisted today: completed activity sessions, explicit ratings/comments, versioned catalogue records, patient-confirmed short conversation notes (including goals/questions), their sources/correction lineage, optional confirmed numeric observations and completed questionnaire records, stored report JSON, care links, report grants and audit metadata. The narrative note review/edit/confirm/reject/withdraw workflow is implemented. Transcripts remain in memory; there is no default recording/history capture or validated clinical assessment scoring workflow.
+
+Missing: period comparisons; audience-specific substantive narrative; activity titles/kinds in report evidence; report snapshot/narrative/template hashes; PDF rendering/download; native PDF sharing; clinician PDF proxy. Existing reports use factual counts and generic activity lists. Existing grants bound the current reporting period only, so comparison evidence requires extending authorization checks to its earliest date.
+
+Implementation boundary: retain existing report rows and payload JSON; add a versioned optional document envelope to new reports, preserving old JSON readers and tool version 2.0. Deterministic aggregation → provider-independent narrative interface → exact evidence/claim validation → canonical stored document → mobile/portal/PDF. No database rewrite is needed. Withdrawal invalidates/redacts affected document envelopes and blocks export; downloaded independent copies cannot be recalled. Future generators must pass the same validator and create a new version rather than replace shared prose.

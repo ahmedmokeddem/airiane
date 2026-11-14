@@ -1,0 +1,11 @@
+{
+  "schema": "Feedback",
+  "fictional": true,
+  "data": {
+    "feedback_id": "55555555-5555-4555-8555-555555555555",
+    "activity_session_id": "33333333-3333-4333-8333-333333333333",
+    "source_id": "66666666-6666-4666-8666-666666666666",
+    "rating": 4,
+    "comment": null
+  }
+}

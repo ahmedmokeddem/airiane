@@ -1,0 +1,71 @@
+{
+  "patients": {
+    "items": [
+      {
+        "patient_id": "11111111-1111-4111-8111-111111111111",
+        "display_name": "Alex Morgan (fictional)",
+        "care_link_id": "10000000-0000-4000-8000-000000000002",
+        "scopes": [
+          "reports"
+        ]
+      }
+    ],
+    "next_cursor": null
+  },
+  "reports": {
+    "items": [
+      {
+        "report_id": "77777777-7777-4777-8777-777777777777",
+        "state": "ready",
+        "version": 1
+      }
+    ],
+    "next_cursor": null
+  },
+  "report": {
+    "report_id": "77777777-7777-4777-8777-777777777777",
+    "patient_id": "11111111-1111-4111-8111-111111111111",
+    "version": 1,
+    "calculation_version": "facts-v1",
+    "period_start": "2026-11-14T08:00:00Z",
+    "period_end": "2026-11-15T00:00:00Z",
+    "timezone": "Europe/Helsinki",
+    "generated_at": "2026-11-15T00:00:01Z",
+    "data_cutoff": "2026-11-15T00:00:00Z",
+    "state": "ready",
+    "observations": [],
+    "completed_activities": [
+      {
+        "activity_session_id": "33333333-3333-4333-8333-333333333333",
+        "session_id": "11111111-1111-4111-8111-111111111111",
+        "recommendation_id": "44444444-4444-4444-8444-444444444444",
+        "activity_id": "22222222-2222-4222-8222-222222222222",
+        "activity_version": 1,
+        "state": "completed",
+        "version": 2,
+        "started_at": "2026-11-14T08:00:00Z",
+        "ended_at": "2026-11-14T08:01:00Z"
+      }
+    ],
+    "feedback": [
+      {
+        "feedback_id": "55555555-5555-4555-8555-555555555555",
+        "activity_session_id": "33333333-3333-4333-8333-333333333333",
+        "source_id": "66666666-6666-4666-8666-666666666666",
+        "rating": 4,
+        "comment": null
+      }
+    ],
+    "assessments": [],
+    "trends": [],
+    "sources": [
+      {
+        "source_id": "66666666-6666-4666-8666-666666666666",
+        "source_revision": 1
+      }
+    ],
+    "limitations": [
+      "Fictional development fixture. No clinical inference."
+    ]
+  }
+}

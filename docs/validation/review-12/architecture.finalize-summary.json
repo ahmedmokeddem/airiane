@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+    "sha256": "326f28765e7cc37a076503129c70d1589c2db92c2982016cf1b87526e702bbaa",
+    "bytes": 22934
+  },
+  "artifact": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+    "sha256": "632da53317e5c8e4f1b28f89cafa2864a6bbaa008208c225e1b5f07f703fe643",
+    "bytes": 872625
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-12/architecture.finalize.json",
+    "summaryReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-12/architecture.finalize-summary.json",
+    "browserCheckReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-12/architecture.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-14T01:06:41.464Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 6919,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 15,
+      "routesOverSuggestedBends": 5
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "tool-result",
+            "from": "api",
+            "to": "bridge",
+            "label": "Activity data / same IDs",
+            "collectionIndex": 11,
+            "artifactIndex": 12
+          },
+          "right": {
+            "id": "report-result",
+            "from": "report",
+            "to": "api",
+            "label": "Structured JSON report",
+            "collectionIndex": 24,
+            "artifactIndex": 25
+          },
+          "point": [
+            660,
+            334.00000000000006
+          ],
+          "sharedNode": "api"
+        },
+        {
+          "left": {
+            "id": "clinician-access",
+            "from": "doctor",
+            "to": "api",
+            "label": "HTTPS + JWT: shared reports",
+            "collectionIndex": 14,
+            "artifactIndex": 15
+          },
+          "right": {
+            "id": "doctor-report",
+            "from": "api",
+            "to": "doctor",
+            "label": "JSON: active link + consent",
+            "collectionIndex": 25,
+            "artifactIndex": 26
+          },
+          "point": [
+            865.0000000000001,
+            175.00000000000003
+          ],
+          "sharedNode": "doctor"
+        },
+        {
+          "left": {
+            "id": "persist",
+            "from": "domain",
+            "to": "db",
+            "label": "Completions / feedback / assessments",
+            "collectionIndex": 15,
+            "artifactIndex": 16
+          },
+          "right": {
+            "id": "extraction-source",
+            "from": "conversation",
+            "to": "extraction",
+            "label": "Facts + source IDs",
+            "collectionIndex": 20,
+            "artifactIndex": 21
+          },
+          "point": [
+            1280,
+            465
+          ]
+        },
+        {
+          "left": {
+            "id": "persist",
+            "from": "domain",
+            "to": "db",
+            "label": "Completions / feedback / assessments",
+            "collectionIndex": 15,
+            "artifactIndex": 16
+          },
+          "right": {
+            "id": "report-result",
+            "from": "report",
+            "to": "api",
+            "label": "Structured JSON report",
+            "collectionIndex": 24,
+            "artifactIndex": 25
+          },
+          "point": [
+            1280,
+            572
+          ]
+        },
+        {
+          "left": {
+            "id": "persist",
+            "from": "domain",
+            "to": "db",
+            "label": "Completions / feedback / assessments",
+            "collectionIndex": 15,
+            "artifactIndex": 16
+          },
+          "right": {
+            "id": "authorized-report",
+            "from": "care",
+            "to": "report",
+            "label": "Active grant",
+            "collectionIndex": 27,
+            "artifactIndex": 28
+          },
+          "point": [
+            1280,
+            645
+          ]
+        },
+        {
+          "left": {
+            "id": "persist",
+            "from": "domain",
+            "to": "db",
+            "label": "Completions / feedback / assessments",
+            "collectionIndex": 15,
+            "artifactIndex": 16
+          },
+          "right": {
+            "id": "patient-report-request",
+            "from": "api",
+            "to": "report",
+            "label": "Patient: own report",
+            "collectionIndex": 28,
+            "artifactIndex": 29
+          },
+          "point": [
+            1280,
+            564
+          ]
+        },
+        {
+          "left": {
+            "id": "conversation-ingest",
+            "from": "api",
+            "to": "conversation",
+            "label": "Opt-in text / session facts",
+            "collectionIndex": 19,
+            "artifactIndex": 20
+          },
+          "right": {
+            "id": "report-result",
+            "from": "report",
+            "to": "api",
+            "label": "Structured JSON report",
+            "collectionIndex": 24,
+            "artifactIndex": 25
+          },
+          "point": [
+            673.9999999999999,
+            334.0000000000001
+          ],
+          "sharedNode": "api"
+        },
+        {
+          "left": {
+            "id": "conversation-ingest",
+            "from": "api",
+            "to": "conversation",
+            "label": "Opt-in text / session facts",
+            "collectionIndex": 19,
+            "artifactIndex": 20
+          },
+          "right": {
+            "id": "doctor-authorization",
+            "from": "api",
+            "to": "care",
+            "label": "Doctor report request",
+            "collectionIndex": 26,
+            "artifactIndex": 27
+          },
+          "point": [
+            942.0000000000001,
+            465
+          ],
+          "sharedNode": "api"
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "id": "validated-action",
+            "from": "api",
+            "to": "domain",
+            "label": "Validated application calls",
+            "collectionIndex": 13,
+            "artifactIndex": 14
+          },
+          "bends": 4,
+          "stretch": 1.178
+        },
+        {
+          "relationship": {
+            "id": "doctor-jwt",
+            "from": "auth",
+            "to": "doctor",
+            "label": "JWT",
+            "collectionIndex": 18,
+            "artifactIndex": 19
+          },
+          "bends": 4,
+          "stretch": 1.174
+        },
+        {
+          "relationship": {
+            "id": "report-result",
+            "from": "report",
+            "to": "api",
+            "label": "Structured JSON report",
+            "collectionIndex": 24,
+            "artifactIndex": 25
+          },
+          "bends": 4,
+          "stretch": 1
+        },
+        {
+          "relationship": {
+            "id": "doctor-authorization",
+            "from": "api",
+            "to": "care",
+            "label": "Doctor report request",
+            "collectionIndex": 26,
+            "artifactIndex": 27
+          },
+          "bends": 4,
+          "stretch": 1.059
+        },
+        {
+          "relationship": {
+            "id": "patient-report-request",
+            "from": "api",
+            "to": "report",
+            "label": "Patient: own report",
+            "collectionIndex": 28,
+            "artifactIndex": 29
+          },
+          "bends": 3,
+          "stretch": 1
+        }
+      ],
+      "truncated": true
+    },
+    "hints": [
+      "api has 7 relationships facing its right side, which fits 4 ports: make that side at least 116px, or move some of those neighbours so they face another side of api.",
+      "api → bridge and report → api cross next to api: move node bridge or report so the two reach api from different sides (for example one level with it, one directly above or below it).",
+      "doctor → api and api → doctor cross next to doctor: move node api or api so the two reach doctor from different sides (for example one level with it, one directly above or below it).",
+      "domain → db crosses conversation → extraction: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "domain → db crosses report → api: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "domain → db crosses care → report: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "domain → db crosses api → report: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "api → conversation and report → api cross next to api: move node conversation or report so the two reach api from different sides (for example one level with it, one directly above or below it)."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

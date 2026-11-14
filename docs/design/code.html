@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>RE Wellbeing Companion — Multimodal AI Sanctuary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#15283b',
+              navyDark: '#0b1622',
+              navyDeep: '#081018',
+              teal: '#65afa5',
+              tealDark: '#4e948b',
+              tealLight: '#e6f3f1',
+              lavender: '#a99bea',
+              lavenderSoft: '#e4e0fb',
+              roseSoft: '#f7b2b7',
+              paper: '#faf9f6'
+            }
+          },
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+          animation: {
+            'breathe-slow': 'breathSlow 8s ease-in-out infinite',
+            'float-orb': 'floatSubtle 6s ease-in-out infinite',
+            'shimmer-aura': 'shimmerAura 3s ease-in-out infinite alternate',
+            'pulse-listening': 'pulseListening 1.8s ease-in-out infinite',
+            'star-twinkle': 'starTwinkle 2.5s ease-in-out infinite alternate',
+            'wave-bar': 'waveBar 1.2s ease-in-out infinite alternate'
+          },
+          keyframes: {
+            breathSlow: { '0%, 100%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.08)' } },
+            floatSubtle: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-10px)' } },
+            shimmerAura: { '0%': { opacity: '0.45', transform: 'scale(0.96)' }, '100%': { opacity: '0.85', transform: 'scale(1.08)' } },
+            pulseListening: { '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px rgba(101,175,165,0.4))' }, '50%': { transform: 'scale(1.05)', filter: 'drop-shadow(0 0 35px rgba(101,175,165,0.85))' } },
+            starTwinkle: { '0%': { opacity: '0.3', transform: 'scale(0.85)' }, '100%': { opacity: '1', transform: 'scale(1.15)' } },
+            waveBar: { '0%': { height: '6px' }, '100%': { height: '28px' } }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    :root {
+      --orb-g1: #ffffff; --orb-g2: #c4b5fd; --orb-g3: #65afa5; --orb-g4: #15283b;
+      --orb-shadow: rgba(101, 175, 165, 0.45);
+    }
+    body.orb-teal { --orb-g1: #f0fdfa; --orb-g2: #99f6e4; --orb-g3: #2dd4bf; --orb-g4: #134e4a; --orb-shadow: rgba(45, 212, 191, 0.5); }
+    body.orb-lavender { --orb-g1: #ffffff; --orb-g2: #d8b4fe; --orb-g3: #a855f7; --orb-g4: #3b0764; --orb-shadow: rgba(168, 85, 247, 0.5); }
+    body.orb-rose { --orb-g1: #fff0f3; --orb-g2: #fbcfe8; --orb-g3: #fb7185; --orb-g4: #881337; --orb-shadow: rgba(251, 113, 133, 0.5); }
+    body.orb-horizon { --orb-g1: #ffffff; --orb-g2: #93c5fd; --orb-g3: #0284c7; --orb-g4: #082f49; --orb-shadow: rgba(2, 132, 199, 0.5); }
+    .living-orb {
+      background: radial-gradient(circle at 35% 30%, var(--orb-g1) 0%, var(--orb-g2) 28%, var(--orb-g3) 65%, var(--orb-g4) 100%);
+      box-shadow: 0 16px 50px var(--orb-shadow), inset 0 2px 14px rgba(255, 255, 255, 0.85);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .orb-aura {
+      position: absolute; inset: -24px; border-radius: 9999px;
+      background: radial-gradient(circle, var(--orb-shadow) 0%, transparent 70%);
+      filter: blur(14px); pointer-events: none; transition: all 0.5s ease;
+    }
+    .living-orb[data-state="idle"] { animation: floatSubtle 6s ease-in-out infinite, breathSlow 9s ease-in-out infinite; }
+    .living-orb[data-state="listening"] { animation: pulseListening 1.8s ease-in-out infinite; }
+    .living-orb[data-state="thinking"] { animation: shimmerAura 2s ease-in-out infinite alternate; filter: hue-rotate(30deg); }
+    .living-orb[data-state="speaking"] { animation: floatSubtle 4s ease-in-out infinite; box-shadow: 0 0 65px var(--orb-shadow); }
+    body.reduced-motion *, body.reduced-motion .living-orb { animation: none !important; transition-duration: 0.05s !important; }
+    .env-forest { background: radial-gradient(circle at 50% 20%, #1e3a34 0%, #0d201e 55%, #061110 100%); }
+    .env-ocean { background: radial-gradient(circle at 50% 20%, #14354a 0%, #092131 55%, #041018 100%); }
+    .env-autumn { background: radial-gradient(circle at 50% 20%, #3d2b24 0%, #221611 55%, #0f0907 100%); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-800 antialiased min-h-screen flex flex-col font-sans select-none overflow-x-hidden">
+
+  <!-- TOP BAR: QUICK JUMP & ROLE CONTROLS -->
+  <header class="w-full bg-slate-950 border-b border-slate-800 text-slate-200 z-50 sticky top-0 px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 shadow-md">
+    <div class="flex items-center space-x-2.5">
+      <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-brand-teal to-brand-lavender flex items-center justify-center font-extrabold text-slate-950 text-xs shadow-md">RE</div>
+      <div class="flex items-center space-x-1.5">
+        <span class="font-bold tracking-wider text-white">RE COMPANION</span>
+        <span class="px-1.5 py-0.5 rounded bg-brand-teal/20 text-brand-teal text-[9px] font-semibold uppercase border border-brand-teal/30">Multimodal AI Sanctuary</span>
+      </div>
+    </div>
+
+    <!-- Quick Jump Nav Pills -->
+    <nav class="flex items-center flex-wrap gap-1 max-w-2xl no-scrollbar">
+      <button class="nav-pill px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" onclick="setView('welcome')">Welcome</button>
+      <button class="nav-pill px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" onclick="setView('home')">Patient Home</button>
+      <button class="nav-pill px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" onclick="setView('voice_call')">Voice Call</button>
+      <button class="nav-pill px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" onclick="setView('chat')">Text Chat</button>
+      <button class="nav-pill px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" onclick="setView('activities')">Activities</button>
+      <button class="nav-pill px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" onclick="setView('journey')">My Journey</button>
+      <button class="nav-pill px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" onclick="setView('profile')">Profile</button>
+      <span class="text-slate-700 px-1">|</span>
+      <button class="nav-pill px-2.5 py-1 rounded-lg text-brand-teal font-semibold hover:text-white hover:bg-slate-800" onclick="setView('doctor_dashboard')">Doctor Portal</button>
+      <button class="nav-pill px-2.5 py-1 rounded-lg text-brand-teal font-semibold hover:text-white hover:bg-slate-800" onclick="setView('patient_detail')">Alex Dossier</button>
+    </nav>
+
+    <!-- Role Context Switcher -->
+    <div class="flex items-center space-x-2 text-[11px]">
+      <div class="bg-slate-900 border border-slate-700 rounded-lg p-0.5 flex space-x-1">
+        <button id="roleBtnPatient" class="px-2.5 py-1 rounded bg-brand-teal text-slate-950 font-bold transition" onclick="switchRole('patient')">Alex (Patient)</button>
+        <button id="roleBtnDoctor" class="px-2.5 py-1 rounded text-slate-300 hover:text-white transition" onclick="switchRole('clinician')">Dr. Morgan</button>
+      </div>
+      <button class="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-white" onclick="setView('welcome')" title="Reset prototype">↺</button>
+    </div>
+  </header>
+
+  <!-- MAIN CANVAS -->
+  <main class="flex-1 flex items-center justify-center p-0 md:p-6 bg-slate-950 overflow-hidden relative">
+    <div class="absolute inset-0 bg-[radial-gradient(#254b73_1px,transparent_1px)] [background-size:28px_28px] opacity-20 pointer-events-none"></div>
+
+    <!-- 1. MOBILE PHONE FRAME (Alex Patient Experience) -->
+    <div id="mobileAppContainer" class="relative w-full max-w-[412px] h-[852px] max-h-screen md:max-h-[852px] bg-brand-paper md:rounded-[48px] md:border-[10px] md:border-slate-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300">
+      
+      <!-- Notch & Status Bar -->
+      <div class="hidden md:flex justify-between items-center px-7 pt-3 pb-1 text-xs text-slate-800 font-semibold z-30 select-none">
+        <span class="font-mono text-[11px] font-bold">9:41</span>
+        <div class="w-24 h-4 bg-slate-950 rounded-full flex items-center justify-end pr-2.5 shadow-inner">
+          <div class="w-2 h-2 rounded-full bg-brand-teal animate-pulse"></div>
+        </div>
+        <div class="flex items-center space-x-1.5 text-slate-600 text-[10px]">
+          <span>5G</span><span>100%</span>
+        </div>
+      </div>
+
+      <!-- SCROLL AREA -->
+      <div id="mobileScrollArea" class="flex-1 overflow-y-auto no-scrollbar relative flex flex-col bg-brand-paper">
+        
+        <!-- SCREEN 1: WELCOME & ONBOARDING -->
+        <section id="view-welcome" class="view-panel flex-1 flex flex-col justify-between p-6 py-6 text-center">
+          <div class="space-y-2 pt-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-brand-teal/15 text-brand-tealDark border border-brand-teal/30">
+              <span class="w-2 h-2 rounded-full bg-brand-teal mr-2 animate-pulse"></span>
+              Post-TMS Continuity Sanctuary
+            </span>
+            <h1 class="text-3xl font-extrabold text-brand-navy tracking-tight">RE</h1>
+            <p class="text-xs text-slate-500 max-w-xs mx-auto">Your living emotional companion through recovery, reflection, and quiet neuro-integration.</p>
+          </div>
+
+          <div class="relative py-6 flex flex-col items-center justify-center">
+            <div class="relative">
+              <div class="orb-aura"></div>
+              <div id="welcomeOrb" class="w-44 h-44 rounded-full living-orb flex items-center justify-center cursor-pointer" data-state="idle" onclick="pulseCompanionGreeting()">
+                <div class="flex flex-col items-center gap-1.5">
+                  <div class="flex gap-4"><div class="w-1.5 h-1.5 rounded-full bg-white shadow-xs"></div><div class="w-1.5 h-1.5 rounded-full bg-white shadow-xs"></div></div>
+                  <div class="w-3.5 h-1 border-b-2 border-white/90 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 bg-white/90 px-3.5 py-1.5 rounded-full shadow-sm border border-slate-200 text-[11px] text-slate-600 font-medium cursor-pointer" onclick="pulseCompanionGreeting()">
+              <span id="welcomePulseHint">Tap to awaken RE • Feel the breath</span>
+            </div>
+          </div>
+
+          <div class="space-y-3 pb-2">
+            <blockquote class="text-xs italic text-slate-500 px-4 leading-relaxed">
+              "No pressure to achieve. Healing is an open horizon."
+            </blockquote>
+            <div class="space-y-2 pt-1">
+              <button class="w-full py-3.5 px-4 bg-brand-navy hover:bg-slate-800 text-white font-semibold text-xs rounded-2xl shadow-lg flex items-center justify-center space-x-2 transition" onclick="setView('home')">
+                <span>Enter Sanctuary</span>
+                <span>→</span>
+              </button>
+              <button class="w-full py-2.5 px-4 bg-white text-slate-700 font-semibold text-xs rounded-2xl border border-slate-200 transition" onclick="setView('home')">
+                Log In with Clinical Token
+              </button>
+            </div>
+            <div class="pt-1 text-[11px] text-slate-400 flex justify-center space-x-2">
+              <span>Quick Demo:</span>
+              <button class="text-brand-teal font-semibold hover:underline" onclick="setView('home')">Alex (Patient)</button>
+              <span>•</span>
+              <button class="text-brand-teal font-semibold hover:underline" onclick="setView('doctor_dashboard')">Dr. Morgan</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 2: PATIENT HOME (Living Anchor) -->
+        <section id="view-home" class="view-panel hidden flex-1 p-5 flex flex-col justify-between space-y-4">
+          <div class="flex items-center justify-between pt-1">
+            <div class="flex items-center space-x-2">
+              <span class="text-lg font-black tracking-tight text-brand-navy">RE</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-brand-tealLight text-brand-tealDark border border-brand-teal/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-teal mr-1.5 animate-pulse"></span>
+                Day 18 Stabilization
+              </span>
+            </div>
+            <button class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-brand-navy flex items-center justify-center text-xs font-bold transition border border-slate-200" onclick="setView('profile')" title="Settings">
+              AM
+            </button>
+          </div>
+
+          <div class="space-y-0.5">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tuesday • Gentle Morning</span>
+            <h2 class="text-2xl font-black text-brand-navy tracking-tight">Good morning, Alex.</h2>
+            <p class="text-xs text-slate-500 font-medium">Take your time. No rush, no scores to beat.</p>
+          </div>
+
+          <!-- Living Hero Companion Anchor -->
+          <div class="bg-gradient-to-b from-[#182f45] to-[#0e1d2c] rounded-3xl p-6 text-white shadow-xl relative overflow-hidden flex flex-col items-center text-center space-y-4">
+            <div class="relative py-2">
+              <div class="orb-aura"></div>
+              <div id="homeLivingOrb" class="w-32 h-32 rounded-full living-orb flex items-center justify-center cursor-pointer" data-state="idle" onclick="triggerOrbComfortSpeech()">
+                <div class="flex flex-col items-center gap-1">
+                  <div class="flex gap-3"><div class="w-1.5 h-1.5 rounded-full bg-white"></div><div class="w-1.5 h-1.5 rounded-full bg-white"></div></div>
+                  <div class="w-3 h-1 border-b-2 border-white/90 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <p id="homeOrbSpeech" class="text-xs font-medium text-slate-200 max-w-[260px] leading-relaxed transition-all">
+                “I’m right here whenever you need a quiet breath.”
+              </p>
+              <span class="text-[10px] text-teal-300/80">🌱 Tap companion for a reassuring thought</span>
+            </div>
+
+            <!-- Primary CTAs -->
+            <div class="w-full grid grid-cols-2 gap-2.5 pt-1">
+              <button class="py-3 px-3 bg-brand-teal hover:bg-brand-tealDark text-slate-950 font-bold text-xs rounded-xl shadow-md flex items-center justify-center space-x-1.5 transition" onclick="setView('chat')">
+                <span>💬 Talk with RE</span>
+              </button>
+              <button class="py-3 px-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/15 flex items-center justify-center space-x-1.5 transition" onclick="setView('voice_call')">
+                <span>🎙️ Voice Call</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Gentle Contextual Suggestions -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-brand-navy">Gentle Invitations</span>
+              <span class="text-[11px] text-brand-teal font-semibold">Zero demand</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs hover:border-brand-teal/50 transition cursor-pointer flex flex-col justify-between" onclick="triggerEnvironmentalTransformation('breathing', 'home')">
+                <div>
+                  <div class="flex justify-between items-center text-[10px]">
+                    <span class="px-2 py-0.5 rounded bg-teal-50 text-teal-800 font-bold">3 min</span>
+                    <span>💨</span>
+                  </div>
+                  <h4 class="text-xs font-bold text-brand-navy mt-1">Calm Breathing</h4>
+                  <p class="text-[10px] text-slate-500 leading-tight mt-0.5">Gentle autonomic settling.</p>
+                </div>
+                <span class="text-[10px] font-bold text-brand-teal mt-2">Breathe ▶</span>
+              </div>
+
+              <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs hover:border-brand-teal/50 transition cursor-pointer flex flex-col justify-between" onclick="triggerEnvironmentalTransformation('nature', 'home')">
+                <div>
+                  <div class="flex justify-between items-center text-[10px]">
+                    <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 font-bold">5 min</span>
+                    <span>🌲</span>
+                  </div>
+                  <h4 class="text-xs font-bold text-brand-navy mt-1">Misty Pines Escape</h4>
+                  <p class="text-[10px] text-slate-500 leading-tight mt-0.5">Forest atmosphere &amp; rain.</p>
+                </div>
+                <span class="text-[10px] font-bold text-brand-teal mt-2">Listen ▶</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recovery Constellation Teaser -->
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between cursor-pointer hover:border-brand-lavender transition" onclick="setView('journey')">
+            <div class="flex items-center space-x-3">
+              <div class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-brand-lavender text-sm">✨</div>
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Horizon Memory</span>
+                <span class="text-xs font-bold text-brand-navy">Alex’s Recovery Constellation</span>
+                <span class="text-[10px] text-slate-500 block">4 quiet moments gathered this week</span>
+              </div>
+            </div>
+            <span class="text-slate-400 text-xs font-bold">›</span>
+          </div>
+        </section>
+
+        <!-- SCREEN 3: AMBIENT IMMERSIVE VOICE CALL -->
+        <section id="view-voice_call" class="view-panel hidden flex-1 bg-gradient-to-b from-slate-950 via-[#102235] to-slate-950 text-white flex flex-col justify-between p-5 relative select-none">
+          <div class="flex items-center justify-between z-20">
+            <div class="flex items-center space-x-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-emerald-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping mr-1.5"></span>
+                <span id="voiceCallTimerDisplay">03:42</span>
+              </span>
+              <span id="voiceStateBadge" class="text-[10px] bg-brand-teal/20 text-brand-teal px-2 py-0.5 rounded-full font-medium">
+                🌿 Listening with presence
+              </span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button class="w-7 h-7 rounded-full bg-white/10 text-white flex items-center justify-center text-xs" onclick="togglePiPCamera()">📹</button>
+              <button class="w-7 h-7 rounded-full bg-rose-500/20 text-rose-300 flex items-center justify-center text-xs" onclick="setView('chat')">✕</button>
+            </div>
+          </div>
+
+          <!-- Camera PiP -->
+          <div id="userCameraPiP" class="absolute top-16 right-5 w-20 h-28 bg-slate-900 rounded-2xl border-2 border-white/20 shadow-2xl z-30 flex flex-col justify-between p-1.5 transition-all">
+            <div class="text-[8px] bg-black/60 px-1 py-0.5 rounded text-white self-start font-mono">YOU</div>
+            <div class="w-10 h-10 rounded-full bg-slate-800 self-center flex items-center justify-center text-slate-300 text-xs font-bold">AM</div>
+            <div class="text-[8px] text-emerald-400 text-center">Live</div>
+          </div>
+
+          <!-- Living Voice Center -->
+          <div class="flex flex-col items-center justify-center my-auto space-y-5 z-10">
+            <div class="relative">
+              <div class="orb-aura" style="inset: -32px;"></div>
+              <div id="voiceActiveOrb" class="w-44 h-44 rounded-full living-orb flex items-center justify-center cursor-pointer" data-state="listening" onclick="cycleVoiceOrbState()">
+                <div class="flex flex-col items-center gap-1.5">
+                  <div class="flex gap-4"><div class="w-2 h-2 rounded-full bg-white"></div><div class="w-2 h-2 rounded-full bg-white"></div></div>
+                  <div class="w-4 h-1 border-b-2 border-white/90 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Wavebar -->
+            <div class="flex items-center space-x-1.5 h-8 px-4 py-1 rounded-full bg-white/5 border border-white/10 cursor-pointer" onclick="cycleVoiceOrbState()">
+              <span class="w-1 bg-brand-teal rounded-full animate-wave-bar"></span>
+              <span class="w-1 bg-brand-teal rounded-full animate-wave-bar" style="animation-delay: 0.3s"></span>
+              <span class="w-1 bg-brand-teal rounded-full animate-wave-bar" style="animation-delay: 0.15s"></span>
+              <span class="w-1 bg-brand-teal rounded-full animate-wave-bar" style="animation-delay: 0.45s"></span>
+              <span class="w-1 bg-brand-teal rounded-full animate-wave-bar" style="animation-delay: 0.25s"></span>
+            </div>
+          </div>
+
+          <div class="space-y-3 z-20">
+            <div class="bg-slate-900/85 backdrop-blur-md rounded-2xl p-3 border border-white/10 text-xs leading-relaxed shadow-lg">
+              <div class="flex items-center justify-between text-[10px] text-brand-teal font-bold mb-1">
+                <span>RE COMPANION</span>
+                <span class="text-slate-400 font-normal">Real-time reflection</span>
+              </div>
+              <p id="voiceCallCaptionText" class="text-slate-200">
+                “I hear that lingering temple heaviness, Alex. There's no hurry to push through it. Would you like to shift our space into a gentle breathing rhythm together?”
+              </p>
+            </div>
+
+            <!-- In-Call Transformation Banner -->
+            <div class="bg-brand-navy/90 hover:bg-slate-800 border border-brand-teal/40 rounded-2xl p-3 flex items-center justify-between cursor-pointer transition shadow-md" onclick="triggerEnvironmentalTransformation('breathing', 'voice_call')">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-xl bg-brand-teal/20 text-brand-teal flex items-center justify-center font-bold text-sm">💨</div>
+                <div class="text-[11px] leading-tight">
+                  <span class="font-bold text-white block">RE suggests: Calm Breathing (4-7-8)</span>
+                  <span class="text-slate-400 text-[10px]">Transforms sanctuary without disconnecting call</span>
+                </div>
+              </div>
+              <span class="text-brand-teal text-base">›</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-around pt-2 pb-1">
+              <button id="voiceMicBtn" class="w-12 h-12 rounded-full bg-brand-teal text-slate-950 flex items-center justify-center shadow-lg transition" onclick="toggleMuteAudio()" title="Mute/Unmute">🎤</button>
+              <button class="w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center text-xs font-bold" onclick="toggleCaptionsVisibility()">CC</button>
+              <button class="w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center" onclick="togglePiPCamera()">📷</button>
+              <button class="w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center" onclick="switchCallToTextChat()" title="Switch to Text">💬</button>
+              <button class="w-12 h-12 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-lg" onclick="setView('chat')" title="End Call">✕</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 4: TEXT CHAT & IN-PLACE TRANSFORMATIONS -->
+        <section id="view-chat" class="view-panel hidden flex-1 flex flex-col justify-between bg-brand-paper relative">
+          <!-- Top Chat Bar with Persistent Voice Call Button -->
+          <div class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-20 shadow-xs">
+            <div class="flex items-center space-x-2.5">
+              <button class="text-slate-400 hover:text-slate-700 text-sm p-1" onclick="setView('home')">‹</button>
+              <div class="w-8 h-8 rounded-full living-orb flex items-center justify-center" data-state="idle">
+                <div class="w-1 h-1 rounded-full bg-white"></div>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold text-brand-navy">RE Companion</h3>
+                <span class="text-[10px] text-emerald-600 flex items-center font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span> Present &amp; Listening
+                </span>
+              </div>
+            </div>
+            
+            <button class="px-3 py-1.5 bg-brand-teal hover:bg-brand-tealDark text-slate-950 text-xs font-bold rounded-full shadow-sm flex items-center space-x-1.5 transition" onclick="setView('voice_call')">
+              <span>🎙️ Voice</span>
+            </button>
+          </div>
+
+          <!-- Chat Messages Container -->
+          <div id="chatMessageList" class="flex-1 p-4 space-y-3.5 overflow-y-auto text-xs">
+            <div class="text-center">
+              <span class="text-[10px] bg-slate-200/70 text-slate-500 px-2.5 py-0.5 rounded-full font-medium">Today, Day 18 post-rTMS</span>
+            </div>
+
+            <!-- Companion Message -->
+            <div class="flex items-start space-x-2 max-w-[88%]">
+              <div class="w-6 h-6 rounded-full bg-brand-teal flex-shrink-0 flex items-center justify-center text-[10px] text-slate-900 font-bold">RE</div>
+              <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs text-slate-700 space-y-1">
+                <p>Welcome back, Alex. Your neuroplastic consolidation is progressing steadily. How does your physical and mental balance feel this morning?</p>
+              </div>
+            </div>
+
+            <!-- Patient Message -->
+            <div class="flex items-end justify-end space-x-2">
+              <div class="bg-brand-navy text-white p-3 rounded-2xl max-w-[85%] shadow-xs leading-relaxed">
+                <p>A little hazy around my temples today, but feeling much calmer than earlier this week.</p>
+              </div>
+            </div>
+
+            <!-- Transformation Card: One Small Step -->
+            <div class="flex items-start space-x-2 max-w-[92%]">
+              <div class="w-6 h-6 rounded-full bg-brand-teal flex-shrink-0 flex items-center justify-center text-[10px] text-slate-900 font-bold">RE</div>
+              <div class="bg-white p-3.5 rounded-2xl border border-brand-teal/40 shadow-xs text-slate-700 space-y-2.5">
+                <p>Acknowledging that sensation with kindness is already wonderful. Here is a small physical transition to anchor yourself:</p>
+                
+                <div class="bg-brand-paper p-3 rounded-xl border border-slate-200 space-y-2">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-brand-navy flex items-center space-x-1.5">
+                      <span>🪟</span>
+                      <span>One Small Step: Fresh Air Horizon</span>
+                    </span>
+                    <span class="text-[10px] text-brand-teal font-semibold">1 min</span>
+                  </div>
+                  <p class="text-[11px] text-slate-600">Unlatch your nearest window and take 3 natural breaths of cool morning air.</p>
+                  <button id="stepCompleteBtn" class="w-full py-2 bg-brand-teal hover:bg-brand-tealDark text-slate-950 font-bold text-xs rounded-xl transition flex items-center justify-center space-x-1.5" onclick="completeOneSmallStep()">
+                    <span>✓ Window unlatched — felt the breeze</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transformation Card: Calm Breathing -->
+            <div class="flex items-start space-x-2 max-w-[92%]">
+              <div class="w-6 h-6 rounded-full bg-brand-teal flex-shrink-0 flex items-center justify-center text-[10px] text-slate-900 font-bold">RE</div>
+              <div class="bg-white p-3.5 rounded-2xl border border-brand-teal/40 shadow-xs text-slate-700 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-brand-navy flex items-center space-x-1.5">
+                    <span>💨</span>
+                    <span>Calm Breathing Guide (In-Place)</span>
+                  </span>
+                  <span class="text-[10px] bg-teal-50 text-teal-800 font-semibold px-2 py-0.5 rounded-full">3 min</span>
+                </div>
+                <p class="text-[11px] text-slate-600">Would you like to ease temple tension right now? I will guide your breathing directly inside our conversation.</p>
+                <button class="w-full py-2 bg-brand-teal hover:bg-brand-tealDark text-slate-950 font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center space-x-1.5" onclick="triggerEnvironmentalTransformation('breathing', 'chat')">
+                  <span>Begin Breathing Together ▶</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Reply Chips & Form -->
+          <div class="p-3 bg-white border-t border-slate-200 space-y-2 sticky bottom-0 z-20">
+            <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar pb-0.5 text-[11px]">
+              <button class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full whitespace-nowrap transition" onclick="sendQuickReply('Can we try the forest soundscape?')">
+                "Start Misty Pines nature escape"
+              </button>
+              <button class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full whitespace-nowrap transition" onclick="sendQuickReply('I feel calm right now')">
+                "I feel calm right now"
+              </button>
+              <button class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full whitespace-nowrap transition" onclick="sendQuickReply('Check my constellation')">
+                "Check my constellation"
+              </button>
+            </div>
+            <form class="flex items-center space-x-2" onsubmit="handleChatSubmit(event)">
+              <input id="chatInput" class="flex-1 text-xs border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-teal bg-slate-50" placeholder="Share how you are feeling..." type="text"/>
+              <button class="w-9 h-9 rounded-xl bg-brand-navy hover:bg-slate-800 text-white flex items-center justify-center shadow-xs transition flex-shrink-0" type="submit">
+                →
+              </button>
+            </form>
+          </div>
+
+          <!-- SIGNATURE IN-PLACE TRANSFORMATION A: CALM BREATHING GUIDE -->
+          <div id="transformBreathingOverlay" class="hidden absolute inset-0 z-40 bg-gradient-to-b from-slate-950 via-[#102235] to-slate-950 text-white flex flex-col justify-between p-6 transition-all duration-500">
+            <div class="flex items-center justify-between">
+              <button class="text-xs text-brand-teal hover:underline" onclick="closeEnvironmentalTransformation()">✕ Exit to Conversation</button>
+              <span class="text-[10px] bg-white/10 px-2.5 py-0.5 rounded-full text-slate-300 font-mono">Autonomic Reset Mode</span>
+            </div>
+
+            <div class="flex flex-col items-center justify-center space-y-6 my-auto text-center">
+              <div class="relative flex items-center justify-center">
+                <div id="transformOuterRing" class="w-60 h-60 rounded-full bg-brand-teal/10 border-2 border-brand-teal/30 flex items-center justify-center transition-all duration-1000">
+                  <div id="transformInnerOrb" class="w-40 h-40 rounded-full living-orb flex flex-col items-center justify-center text-center p-4 transition-all duration-1000 shadow-2xl" data-state="idle">
+                    <span id="transformPhaseLabel" class="text-xs font-bold text-white tracking-wider uppercase">Inhale</span>
+                    <span id="transformTimerNumber" class="text-3xl font-black text-brand-teal mt-0.5">4</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-1.5 max-w-xs">
+                <h3 id="transformTechniqueTitle" class="text-sm font-bold text-white">4-7-8 Parasympathetic Cadence</h3>
+                <p id="transformPromptGuidance" class="text-xs text-slate-300 leading-relaxed">
+                  "Expand your belly softly. Settle your shoulders away from your ears."
+                </p>
+              </div>
+
+              <div class="flex items-center space-x-1.5 text-[10px]">
+                <button id="paceBtn478" class="px-2.5 py-1 rounded-lg bg-brand-teal text-slate-950 font-bold" onclick="setBreathingCadence('478')">4-7-8 Calm</button>
+                <button id="paceBtnBox" class="px-2.5 py-1 rounded-lg bg-white/10 text-slate-300 font-medium" onclick="setBreathingCadence('box')">Box (4-4-4-4)</button>
+                <button id="paceBtnDeep" class="px-2.5 py-1 rounded-lg bg-white/10 text-slate-300 font-medium" onclick="setBreathingCadence('deep')">Deep (5-5)</button>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <button class="w-full py-3.5 bg-brand-teal hover:bg-brand-tealDark text-slate-950 font-bold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-2 transition" onclick="completeBreathingTransformation()">
+                <span>Complete &amp; Return to Conversation ✓</span>
+              </button>
+              <p class="text-[10px] text-slate-400 text-center">Quietly gathered into your Recovery Constellation. Zero streak pressure.</p>
+            </div>
+          </div>
+
+          <!-- SIGNATURE IN-PLACE TRANSFORMATION B: CINEMATIC NATURE ESCAPE -->
+          <div id="transformNatureOverlay" class="hidden absolute inset-0 z-40 env-forest text-white flex flex-col justify-between p-6 transition-all duration-500">
+            <div class="flex items-center justify-between">
+              <button class="text-xs text-brand-teal hover:underline" onclick="closeEnvironmentalTransformation()">✕ Exit to Conversation</button>
+              <div class="flex items-center space-x-1 bg-black/40 backdrop-blur-md p-1 rounded-full border border-white/10 text-[10px]">
+                <button id="envBtnPines" class="px-2 py-0.5 rounded-full bg-brand-teal text-slate-950 font-bold" onclick="switchNatureEnvironment('forest')">Misty Pines</button>
+                <button id="envBtnOcean" class="px-2 py-0.5 rounded-full text-slate-300 hover:text-white" onclick="switchNatureEnvironment('ocean')">Ocean Shore</button>
+                <button id="envBtnMeadow" class="px-2 py-0.5 rounded-full text-slate-300 hover:text-white" onclick="switchNatureEnvironment('autumn')">Autumn Meadow</button>
+              </div>
+            </div>
+
+            <div class="self-end mt-4 flex items-center space-x-2 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+              <div class="w-6 h-6 rounded-full living-orb" data-state="idle"></div>
+              <span class="text-[10px] text-slate-200">RE is listening with you</span>
+            </div>
+
+            <div class="text-center my-auto space-y-4">
+              <div id="natureEnvIcon" class="text-5xl animate-float-orb">🌲</div>
+              <div class="space-y-1">
+                <h3 id="natureEnvTitle" class="text-lg font-extrabold text-white tracking-wide">Misty Pines Canopy</h3>
+                <p id="natureEnvDesc" class="text-xs text-slate-300 max-w-xs mx-auto">
+                  Binaural woodland rain &amp; slow wind rustling through pine branches. Designed for post-treatment sensory reset.
+                </p>
+              </div>
+              <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[10px] text-teal-200 border border-white/10">
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping"></span>
+                <span>Spatial 432Hz Audio Stream Active</span>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <button class="w-full py-3.5 bg-brand-teal hover:bg-brand-tealDark text-slate-950 font-bold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-2 transition" onclick="completeNatureTransformation()">
+                <span>Rest &amp; Return to Conversation ✓</span>
+              </button>
+              <p class="text-[10px] text-slate-400 text-center">Reflected gently into your healing journey.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 5: ACTIVITIES CATALOG -->
+        <section id="view-activities" class="view-panel hidden flex-1 p-5 space-y-4">
+          <div class="space-y-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-teal">Self-Paced Sanctuary</span>
+            <h2 class="text-xl font-black text-brand-navy">Activities &amp; Resets</h2>
+            <p class="text-xs text-slate-500">Ungraded, low-demand moments tailored for post-interventional stabilization.</p>
+          </div>
+
+          <div class="space-y-3">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-brand-teal/50 transition">
+              <div class="space-y-1 max-w-[210px]">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800">3 MIN • BREATH</span>
+                <h4 class="text-xs font-bold text-brand-navy">Calm Breathing (4-7-8)</h4>
+                <p class="text-[11px] text-slate-500">Expands diaphragm and releases temple tension.</p>
+              </div>
+              <button class="px-3.5 py-2 bg-brand-teal hover:bg-brand-tealDark text-slate-950 font-bold text-xs rounded-xl shadow-xs transition" onclick="triggerEnvironmentalTransformation('breathing', 'activities')">
+                Begin ▶
+              </button>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-brand-teal/50 transition">
+              <div class="space-y-1 max-w-[210px]">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-800">5 MIN • AUDIO</span>
+                <h4 class="text-xs font-bold text-brand-navy">Misty Pines Escape</h4>
+                <p class="text-[11px] text-slate-500">Binaural canopy rain engineered for sensory reset.</p>
+              </div>
+              <button class="px-3.5 py-2 bg-slate-100 hover:bg-brand-teal hover:text-white text-slate-800 font-bold text-xs rounded-xl shadow-xs transition" onclick="triggerEnvironmentalTransformation('nature', 'activities')">
+                Listen ▶
+              </button>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-brand-teal/50 transition">
+              <div class="space-y-1 max-w-[210px]">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800">1 MIN • MICRO-ACTION</span>
+                <h4 class="text-xs font-bold text-brand-navy">Fresh Air Horizon</h4>
+                <p class="text-[11px] text-slate-500">Gaze into the furthest distance outside.</p>
+              </div>
+              <button class="px-3.5 py-2 bg-slate-100 hover:bg-brand-teal hover:text-white text-slate-800 font-bold text-xs rounded-xl shadow-xs transition" onclick="setView('chat')">
+                Try in Chat
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 6: INNOVATIVE RECOVERY CONSTELLATION & JOURNEY -->
+        <section id="view-journey" class="view-panel hidden flex-1 p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="space-y-0.5">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-brand-teal">Stabilization Arc</span>
+              <h2 class="text-xl font-black text-brand-navy">Alex’s Journey</h2>
+            </div>
+            <div class="bg-slate-200/70 p-0.5 rounded-xl flex text-[10px] font-bold">
+              <button id="tabConstellationBtn" class="px-2.5 py-1 rounded-lg bg-white text-brand-navy shadow-xs transition" onclick="switchJourneyMode('constellation')">Constellation</button>
+              <button id="tabStructuredBtn" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-brand-navy transition" onclick="switchJourneyMode('structured')">Structured Log</button>
+            </div>
+          </div>
+
+          <!-- RECOVERY CONSTELLATION (Interactive Celestial Canvas) -->
+          <div id="journeyConstellationView" class="space-y-3">
+            <div class="bg-gradient-to-b from-slate-950 via-[#0d1e30] to-slate-950 rounded-3xl p-4 text-white shadow-xl relative min-h-[340px] flex flex-col justify-between overflow-hidden">
+              <div class="absolute inset-0 bg-[radial-gradient(#65afa5_1px,transparent_1px)] [background-size:24px_24px] opacity-25"></div>
+              
+              <div class="flex items-center justify-between z-10">
+                <span class="text-[10px] font-mono text-teal-300">✦ 4 GATHERED MOMENTS</span>
+                <span class="text-[9px] text-slate-400 bg-white/10 px-2 py-0.5 rounded-full">Tap any star to inspect</span>
+              </div>
+
+              <!-- Interactive Star Canvas -->
+              <div class="relative w-full h-48 my-auto z-10 flex items-center justify-center">
+                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 320 180">
+                  <path d="M 40,140 Q 90,80 140,110 T 220,50 T 280,30" fill="none" stroke="rgba(101, 175, 165, 0.45)" stroke-dasharray="3 3" stroke-width="1.5"></path>
+                </svg>
+
+                <button class="absolute left-8 bottom-6 w-8 h-8 rounded-full bg-brand-teal/20 border border-brand-teal flex items-center justify-center text-xs animate-star-twinkle hover:scale-125 transition" onclick="inspectConstellationNode('breathing')" title="Calm Breathing">✨</button>
+                <button class="absolute left-32 bottom-14 w-8 h-8 rounded-full bg-brand-lavender/25 border border-brand-lavender flex items-center justify-center text-xs animate-star-twinkle hover:scale-125 transition" style="animation-delay: 0.8s" onclick="inspectConstellationNode('window')" title="Window Breath">🪟</button>
+                <button class="absolute right-24 top-10 w-9 h-9 rounded-full bg-brand-teal/30 border-2 border-brand-teal flex items-center justify-center text-sm animate-star-twinkle hover:scale-125 transition" style="animation-delay: 1.4s" onclick="inspectConstellationNode('audio')" title="Misty Pines">🌲</button>
+                <button class="absolute right-6 top-4 w-7 h-7 rounded-full bg-amber-400/25 border border-amber-300 flex items-center justify-center text-[10px] animate-star-twinkle hover:scale-125 transition" style="animation-delay: 0.3s" onclick="inspectConstellationNode('rest')" title="Rest Day">☀️</button>
+              </div>
+
+              <!-- Node Observation Glass Drawer -->
+              <div id="constellationDetailCard" class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15 text-xs z-10 transition-all">
+                <div class="flex items-center justify-between text-[10px] text-teal-300 font-bold">
+                  <span id="starNodeCategory">CALM BREATHING COMPLETED</span>
+                  <span id="starNodeTime" class="text-slate-300 font-normal">Today, 09:30 AM</span>
+                </div>
+                <h4 id="starNodeTitle" class="font-bold text-white text-xs mt-0.5">4-7-8 Parasympathetic Reset</h4>
+                <p id="starNodeNote" class="text-[11px] text-slate-200 mt-1 leading-snug">
+                  “Felt jaw tension release. Temple pressure decreased after 3 minutes of unhurried rhythm.”
+                </p>
+              </div>
+            </div>
+            
+            <p class="text-[11px] text-slate-500 text-center leading-relaxed">
+              Every mindful moment forms your stabilization map. Never graded, never resetting.
+            </p>
+          </div>
+
+          <!-- STRUCTURED CLINICAL REPORT -->
+          <div id="journeyStructuredView" class="hidden space-y-3">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Protocol Synchronization</span>
+                  <h3 class="text-xs font-bold text-brand-navy">Week 3 Post-TMS Summary</h3>
+                </div>
+                <span class="text-[10px] font-semibold text-brand-teal bg-teal-50 px-2 py-0.5 rounded-full">
+                  ✓ Paired with Dr. Morgan
+                </span>
+              </div>
+
+              <div class="space-y-2 text-xs text-slate-600">
+                <div class="p-2.5 rounded-xl bg-slate-50 flex justify-between">
+                  <span>Logged Calm Micro-sessions</span>
+                  <span class="font-bold text-brand-navy">12 completed</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 flex justify-between">
+                  <span>Patient-Reported Fatigue Level</span>
+                  <span class="font-bold text-brand-navy">Mild (Decreasing)</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 flex justify-between">
+                  <span>Evening Sleep Latency</span>
+                  <span class="font-bold text-brand-navy">24 min (Normalized)</span>
+                </div>
+              </div>
+
+              <button class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-brand-navy font-bold text-xs rounded-xl transition" onclick="openAmendNotesModal()">
+                Review &amp; Amend Personal Notes
+              </button>
+            </div>
+
+            <div class="bg-brand-paper p-3.5 rounded-2xl border border-slate-200 flex items-start space-x-2.5">
+              <div class="w-7 h-7 rounded-full bg-brand-navy text-white flex-shrink-0 flex items-center justify-center text-[10px] font-bold">SM</div>
+              <div class="text-[11px] leading-tight space-y-0.5">
+                <span class="font-bold text-brand-navy">Dr. Sarah Morgan:</span>
+                <p class="text-slate-600">“Stabilization curve looks favorable. Keep honoring resting evenings between work sessions.”</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 7: PATIENT PROFILE & COMPANION CUSTOMIZATION -->
+        <section id="view-profile" class="view-panel hidden flex-1 p-5 space-y-4">
+          <div class="flex items-center space-x-3.5 pb-2 border-b border-slate-200">
+            <div class="w-14 h-14 rounded-full bg-brand-navy text-white text-base font-bold flex items-center justify-center shadow-md">AM</div>
+            <div>
+              <h2 class="text-base font-black text-brand-navy">Alex Morgan</h2>
+              <p class="text-xs text-slate-500">MRN: #TMS-79110 • Bilateral rTMS</p>
+              <span class="text-[10px] text-emerald-600 font-semibold">Active Care Protocol</span>
+            </div>
+          </div>
+
+          <!-- Companion Living Customization -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Companion Customization</span>
+              <span class="text-[10px] text-brand-teal font-semibold">Living Aesthetic</span>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 space-y-3.5 shadow-xs">
+              <div>
+                <span class="text-xs font-bold text-slate-700 block mb-1.5">Orb Aura Palette</span>
+                <div class="grid grid-cols-4 gap-2">
+                  <button id="palBtnTeal" class="py-1.5 px-2 rounded-xl border-2 border-brand-teal text-[10px] font-bold text-slate-800 bg-teal-50" onclick="setOrbPalette('teal')">Calm Teal</button>
+                  <button id="palBtnLavender" class="py-1.5 px-2 rounded-xl border border-slate-200 text-[10px] font-bold text-slate-700" onclick="setOrbPalette('lavender')">Lavender</button>
+                  <button id="palBtnRose" class="py-1.5 px-2 rounded-xl border border-slate-200 text-[10px] font-bold text-slate-700" onclick="setOrbPalette('rose')">Dawn Rose</button>
+                  <button id="palBtnHorizon" class="py-1.5 px-2 rounded-xl border border-slate-200 text-[10px] font-bold text-slate-700" onclick="setOrbPalette('horizon')">Horizon</button>
+                </div>
+              </div>
+
+              <!-- Reduced Motion Mode -->
+              <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                <div>
+                  <span class="text-xs font-bold text-slate-800 block">Reduced Motion Mode</span>
+                  <span class="text-[10px] text-slate-500">Disables pulsing scaling &amp; heavy floating</span>
+                </div>
+                <input id="reducedMotionCheck" type="checkbox" class="w-4 h-4 rounded text-brand-teal" onchange="toggleReducedMotion(this.checked)"/>
+              </div>
+
+              <!-- Cadence -->
+              <div class="pt-2 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-800 block mb-1">Companion Voice Cadence</span>
+                <select class="w-full text-xs border-slate-200 rounded-xl bg-slate-50 py-1.5 px-2.5">
+                  <option>Warm &amp; Grounded (Default)</option>
+                  <option>Soft &amp; Quiet (Whisper Presence)</option>
+                  <option>Clear &amp; Reflective</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connected Care Link -->
+          <div class="space-y-2">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Clinical Care Team</span>
+            <div class="bg-white rounded-2xl border border-slate-200 p-3.5 flex items-center justify-between shadow-xs">
+              <div>
+                <span class="font-bold text-xs text-brand-navy block">Dr. Sarah Morgan</span>
+                <span class="text-[10px] text-slate-500">Pacific Neuromodulation Center</span>
+              </div>
+              <button class="px-2.5 py-1.5 bg-brand-navy text-white text-[10px] font-bold rounded-xl hover:bg-slate-800 transition" onclick="setView('patient_detail')">
+                View Dossier →
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2 pt-2">
+            <button class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-brand-teal font-bold text-xs rounded-xl transition" onclick="setView('doctor_dashboard')">
+              Switch to Dr. Morgan's Portal ↗
+            </button>
+            <button class="w-full py-2.5 bg-rose-50 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition" onclick="setView('welcome')">
+              Log Out of Sanctuary
+            </button>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- PERSISTENT MOBILE BOTTOM TAB BAR -->
+      <nav id="mobileBottomNav" class="bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2 flex items-center justify-around z-30">
+        <button class="bottom-tab-btn flex flex-col items-center text-brand-navy font-bold space-y-0.5" data-tab-name="home" onclick="setView('home')">
+          <span class="text-base">🏠</span>
+          <span class="text-[10px]">Home</span>
+        </button>
+
+        <button class="bottom-tab-btn flex flex-col items-center text-slate-400 hover:text-brand-teal space-y-0.5" data-tab-name="chat" onclick="setView('chat')">
+          <span class="text-base relative">💬<span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-brand-teal"></span></span>
+          <span class="text-[10px]">Companion</span>
+        </button>
+
+        <button class="bottom-tab-btn flex flex-col items-center text-slate-400 hover:text-brand-teal space-y-0.5" data-tab-name="activities" onclick="setView('activities')">
+          <span class="text-base">🧘</span>
+          <span class="text-[10px]">Activities</span>
+        </button>
+
+        <button class="bottom-tab-btn flex flex-col items-center text-slate-400 hover:text-brand-teal space-y-0.5" data-tab-name="journey" onclick="setView('journey')">
+          <span class="text-base">✨</span>
+          <span class="text-[10px]">Journey</span>
+        </button>
+
+        <button class="bottom-tab-btn flex flex-col items-center text-slate-400 hover:text-brand-teal space-y-0.5" data-tab-name="profile" onclick="setView('profile')">
+          <span class="text-base">👤</span>
+          <span class="text-[10px]">Profile</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- 2. CLINICIAN DESKTOP PORTAL (Dr. Morgan) -->
+    <div id="desktopAppContainer" class="hidden w-full max-w-7xl h-[860px] bg-slate-100 rounded-3xl shadow-2xl border border-slate-700/60 overflow-hidden flex flex-col text-slate-800 transition-all duration-300">
+      <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <div class="w-7 h-7 rounded-lg bg-brand-navy flex items-center justify-center text-white font-bold text-sm">RE</div>
+            <div>
+              <span class="font-black text-brand-navy tracking-tight text-sm">RE Clinical</span>
+              <span class="text-[10px] text-slate-400 block -mt-0.5">POST-INTERVENTION TELEMETRY</span>
+            </div>
+          </div>
+          <div class="h-6 w-px bg-slate-200"></div>
+          <span class="px-2.5 py-1 bg-teal-50 border border-brand-teal/30 text-teal-800 rounded-full text-xs font-semibold">
+            ● Pacific Neuromodulation Center — rTMS Unit 3
+          </span>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+          <div class="text-right">
+            <span class="font-bold text-xs text-brand-navy block">Dr. Sarah Morgan</span>
+            <span class="text-[10px] text-slate-400">Attending Neuropsychiatrist</span>
+          </div>
+          <div class="w-9 h-9 rounded-full bg-brand-teal text-slate-950 font-bold flex items-center justify-center text-xs">SM</div>
+        </div>
+      </header>
+
+      <div class="flex-1 flex overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-56 bg-brand-navy text-slate-300 flex flex-col justify-between p-3 border-r border-slate-800">
+          <nav class="space-y-1 text-xs">
+            <button class="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl bg-slate-800/80 text-white font-medium hover:bg-slate-800 transition" onclick="setView('doctor_dashboard')">
+              <span>📊</span>
+              <span>Overview &amp; Cohort</span>
+            </button>
+            <button class="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl hover:bg-slate-800/50 transition" onclick="setView('patient_detail')">
+              <span>👤</span>
+              <span>Alex Morgan Dossier</span>
+            </button>
+            <button class="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl hover:bg-slate-800/50 transition" onclick="alert('2 non-emergency sleep latency shift notes')">
+              <span>🚨</span>
+              <span>Clinical Triage (2)</span>
+            </button>
+          </nav>
+          
+          <div class="p-3 bg-slate-900/80 rounded-2xl border border-slate-700 text-[10px] text-slate-400 space-y-1">
+            <div class="flex items-center space-x-1.5 text-emerald-400 font-bold">
+              <span>🛡️</span>
+              <span>HIPAA AUDITED PROTOCOL</span>
+            </div>
+            <p>Direct patient-reported telemetry with verified consent tokens.</p>
+          </div>
+        </aside>
+
+        <!-- Dynamic Portal Views -->
+        <div class="flex-1 bg-brand-paper overflow-y-auto p-6 space-y-6">
+          
+          <!-- SCREEN 8: DOCTOR DASHBOARD -->
+          <div id="view-doctor_dashboard" class="view-panel space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-slate-400 tracking-wider uppercase">Active Panel Surveillance</span>
+                <h1 class="text-xl font-black text-brand-navy">Post-TMS Stabilization Cohort</h1>
+                <p class="text-xs text-slate-500">Longitudinal recovery metrics, validated symptom assessments, and transparent patient observations.</p>
+              </div>
+              <button class="px-3 py-2 bg-brand-navy text-white text-xs font-bold rounded-xl shadow-xs hover:bg-slate-800 transition" onclick="setView('patient_detail')">
+                Open Alex Morgan File →
+              </button>
+            </div>
+
+            <!-- Metric Cards -->
+            <div class="grid grid-cols-4 gap-4">
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <span class="text-xs font-semibold text-slate-500">ACTIVE PATIENTS</span>
+                <div class="text-2xl font-black text-brand-navy mt-1.5">28 <span class="text-xs font-normal text-emerald-600">Stable</span></div>
+                <p class="text-[11px] text-slate-400 mt-1">Post-rTMS protocol follow-up</p>
+              </div>
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <span class="text-xs font-semibold text-slate-500">PHQ-9 MEAN REDUCTION</span>
+                <div class="text-2xl font-black text-emerald-600 mt-1.5">-54.8%</div>
+                <p class="text-[11px] text-slate-400 mt-1">Cohort 4-week stabilization</p>
+              </div>
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <span class="text-xs font-semibold text-slate-500">PATIENT ADHERENCE</span>
+                <div class="text-2xl font-black text-brand-navy mt-1.5">94.2%</div>
+                <p class="text-[11px] text-slate-400 mt-1">Voluntary check-in completion</p>
+              </div>
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <span class="text-xs font-semibold text-slate-500">PRIORITY REVIEWS</span>
+                <div class="text-2xl font-black text-brand-teal mt-1.5">2 <span class="text-xs font-normal text-slate-400">Non-emergency</span></div>
+                <p class="text-[11px] text-slate-400 mt-1">Mild sleep latency variance</p>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden space-y-3 p-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-black text-brand-navy">Active Monitoring Roster</h3>
+                <span class="text-xs text-slate-500">Showing 3 of 28 patients</span>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold border-y border-slate-200">
+                    <tr>
+                      <th class="py-2.5 px-3">Patient Information</th>
+                      <th class="py-2.5 px-3">Protocol Timeline</th>
+                      <th class="py-2.5 px-3">Latest Log</th>
+                      <th class="py-2.5 px-3">PHQ-9 Trajectory</th>
+                      <th class="py-2.5 px-3">Consent Status</th>
+                      <th class="py-2.5 px-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr class="bg-teal-50/50 hover:bg-teal-100/50 cursor-pointer border-l-4 border-l-brand-teal transition" onclick="setView('patient_detail')">
+                      <td class="py-3 px-3">
+                        <div class="flex items-center space-x-2.5">
+                          <span class="w-7 h-7 rounded-full bg-brand-navy text-white font-bold flex items-center justify-center text-[11px]">AM</span>
+                          <div>
+                            <span class="font-bold text-brand-navy block">Alex Morgan</span>
+                            <span class="text-[10px] text-slate-500">MRN: #TMS-79110</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="py-3 px-3">
+                        <span class="font-bold text-slate-800">Day 18 post-rTMS</span>
+                        <span class="text-[10px] text-slate-400 block">L-DLPFC Sequential</span>
+                      </td>
+                      <td class="py-3 px-3">
+                        <span class="text-brand-teal font-semibold">Calm Breathing + Check-in</span>
+                        <span class="text-[10px] text-slate-400 block">Today, 09:30 AM</span>
+                      </td>
+                      <td class="py-3 px-3">
+                        <span class="text-emerald-700 font-bold">18 → 7 (-61%)</span>
+                        <span class="text-[10px] text-slate-400 block">Remission horizon</span>
+                      </td>
+                      <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-teal-100 text-teal-900 font-bold">Verified ✓</span></td>
+                      <td class="py-3 px-3 text-right">
+                        <button class="px-3 py-1 bg-brand-teal hover:bg-brand-tealDark text-slate-950 font-bold rounded-lg text-xs" onclick="event.stopPropagation(); setView('patient_detail')">
+                          Inspect Dossier →
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="py-3 px-3">
+                        <div class="flex items-center space-x-2.5">
+                          <span class="w-7 h-7 rounded-full bg-slate-200 text-slate-800 font-bold flex items-center justify-center text-[11px]">MB</span>
+                          <div>
+                            <span class="font-bold text-slate-800 block">Marcus Brody</span>
+                            <span class="text-[10px] text-slate-400">MRN: #TMS-90412</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="py-3 px-3">Day 12 post-rTMS</td>
+                      <td class="py-3 px-3">Sleep latency shift</td>
+                      <td class="py-3 px-3">21 → 14 (-33%)</td>
+                      <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600">Active</span></td>
+                      <td class="py-3 px-3 text-right"><button class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg">Review</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SCREEN 9: ALEX MORGAN CLINICAL DOSSIER -->
+          <div id="view-patient_detail" class="view-panel hidden space-y-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <button class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" onclick="setView('doctor_dashboard')">
+                  ‹ Back to Cohort
+                </button>
+                <div>
+                  <h1 class="text-xl font-black text-brand-navy flex items-center space-x-2">
+                    <span>Alex Morgan</span>
+                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-900 font-bold">Day 18 post-rTMS</span>
+                  </h1>
+                  <p class="text-xs text-slate-500">MRN: #TMS-79110 • Age: 29 • Protocol: L-DLPFC 10Hz rTMS (30 Sessions)</p>
+                </div>
+              </div>
+              <div class="flex space-x-2">
+                <button class="px-3 py-2 bg-brand-teal text-slate-950 font-bold text-xs rounded-xl hover:bg-brand-tealDark transition" onclick="alert('Doctor check-in reflection queued for Alex Morgan.')">
+                  💬 Send Reassuring Check-in Note
+                </button>
+                <button class="px-3 py-2 bg-brand-navy text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition" onclick="loginAs('patient')">
+                  Open Alex's Sanctuary →
+                </button>
+              </div>
+            </div>
+
+            <!-- Trajectory & Reports -->
+            <div class="grid grid-cols-3 gap-6">
+              <div class="col-span-2 space-y-5">
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h3 class="text-sm font-black text-brand-navy">5-Week Post-TMS PHQ-9 Recovery Curve</h3>
+                      <p class="text-xs text-slate-500">Baseline 18 (Moderate Severe) → Day 18 Score: 7 (Remission Zone)</p>
+                    </div>
+                    <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+                      -61.1% Symptom Load
+                    </span>
+                  </div>
+
+                  <div class="h-40 w-full bg-slate-50 rounded-2xl p-3 flex flex-col justify-between">
+                    <svg class="w-full h-24" viewBox="0 0 450 100">
+                      <line x1="0" y1="20" x2="450" y2="20" stroke="#e2e8f0" stroke-width="1"></line>
+                      <line x1="0" y1="50" x2="450" y2="50" stroke="#e2e8f0" stroke-width="1"></line>
+                      <line x1="0" y1="80" x2="450" y2="80" stroke="#e2e8f0" stroke-width="1"></line>
+                      <path d="M 20,20 Q 120,30 210,60 T 420,80" fill="none" stroke="#65afa5" stroke-width="3.5" stroke-linecap="round"></path>
+                      <circle cx="20" cy="20" r="4" fill="#e17272"></circle>
+                      <circle cx="120" cy="32" r="4" fill="#65afa5"></circle>
+                      <circle cx="210" cy="62" r="4" fill="#65afa5"></circle>
+                      <circle cx="260" cy="71" r="5" fill="#15283b" stroke="#ffffff" stroke-width="2"></circle>
+                    </svg>
+
+                    <div class="flex justify-between text-[10px] font-mono text-slate-600 border-t border-slate-200 pt-1">
+                      <span>PHQ-9: 18</span><span>15</span><span>11</span>
+                      <span class="text-brand-navy font-bold">7 (Current)</span><span>5 (Goal)</span><span>&lt;5 (Remission)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                  <h3 class="text-sm font-black text-brand-navy">Validated Patient-Reported Observations</h3>
+                  <div class="grid grid-cols-3 gap-3 text-xs">
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <span class="text-[10px] text-slate-400 block font-semibold">TEMPLE SENSATION LOG</span>
+                      <span class="text-sm font-bold text-slate-800 mt-1 block">Mild Haze / Softening</span>
+                      <span class="text-[10px] text-emerald-600">Decreasing post micro-resets</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <span class="text-[10px] text-slate-400 block font-semibold">SELF-INITIATED RESETS</span>
+                      <span class="text-sm font-bold text-slate-800 mt-1 block">12 Completed</span>
+                      <span class="text-[10px] text-teal-700">100% voluntary</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <span class="text-[10px] text-slate-400 block font-semibold">SLEEP ONSET STABILITY</span>
+                      <span class="text-sm font-bold text-slate-800 mt-1 block">24 mins</span>
+                      <span class="text-[10px] text-emerald-600">Within optimal range</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Consent & Timeline -->
+              <div class="space-y-5">
+                <div class="bg-teal-50/70 p-5 rounded-3xl border border-brand-teal/30 space-y-3">
+                  <div class="flex items-center space-x-1.5 text-teal-900 font-bold text-xs">
+                    <span>🛡️</span>
+                    <span>Ethical Consent Status</span>
+                  </div>
+                  <ul class="text-[11px] text-teal-800 space-y-2">
+                    <li class="flex items-center"><span class="text-brand-teal font-bold mr-1.5">✓</span> Patient Consent Token: Verified</li>
+                    <li class="flex items-center"><span class="text-brand-teal font-bold mr-1.5">✓</span> Zero Raw Audio Stored on Cloud</li>
+                    <li class="flex items-center"><span class="text-brand-teal font-bold mr-1.5">✓</span> Sovereignty to Amend Notes: Enabled</li>
+                  </ul>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                  <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Protocol Course</h3>
+                  <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                      <span class="text-slate-500">Course Type:</span>
+                      <span class="font-bold text-brand-navy">rTMS (10 Hz L-DLPFC)</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                      <span class="text-slate-500">Sessions Completed:</span>
+                      <span class="font-bold text-brand-navy">30 of 30</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                      <span class="text-slate-500">Integration Phase:</span>
+                      <span class="font-bold text-brand-navy">Day 18 of 30</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: AMEND PERSONAL OBSERVATION NOTES -->
+  <div id="amendNotesModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between">
+        <h3 class="font-black text-brand-navy text-sm">Amend Personal Observations</h3>
+        <button class="text-slate-400 hover:text-slate-700 text-xs" onclick="closeAmendNotesModal()">✕</button>
+      </div>
+      <p class="text-xs text-slate-500">You maintain sovereign ownership of your recovery notes before clinic sharing.</p>
+      <textarea id="amendNotesInput" class="w-full text-xs p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-brand-teal focus:outline-none h-28">Felt slight temple haze upon waking, but breathing reset helped unburden cognitive fatigue. Calmer evening rhythm.</textarea>
+      <div class="flex space-x-2 pt-1">
+        <button class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl" onclick="closeAmendNotesModal()">Cancel</button>
+        <button class="flex-1 py-2.5 bg-brand-navy hover:bg-slate-800 text-white font-bold text-xs rounded-xl" onclick="saveAmendedNotes()">Save &amp; Sync</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    const appState = {
+      currentRole: 'patient',
+      currentView: 'welcome',
+      orbState: 'idle',
+      callTimer: 222,
+      callInterval: null,
+      breathingInterval: null,
+      transformOrigin: 'chat',
+      breathingPace: '478',
+      isMuted: false,
+      cameraPiPVisible: true
+    };
+
+    function setView(targetView) {
+      let view = (targetView === 'patient_home') ? 'home' : targetView;
+      appState.currentView = view;
+
+      const isDoctorView = (view === 'doctor_dashboard' || view === 'patient_detail');
+      const mobileContainer = document.getElementById('mobileAppContainer');
+      const desktopContainer = document.getElementById('desktopAppContainer');
+      const mobileNav = document.getElementById('mobileBottomNav');
+
+      if (isDoctorView) {
+        mobileContainer.classList.add('hidden');
+        desktopContainer.classList.remove('hidden');
+        setRoleButtonsUI('clinician');
+      } else {
+        desktopContainer.classList.add('hidden');
+        mobileContainer.classList.remove('hidden');
+        setRoleButtonsUI('patient');
+
+        if (view === 'welcome' || view === 'voice_call') {
+          mobileNav.classList.add('hidden');
+        } else {
+          mobileNav.classList.remove('hidden');
+        }
+      }
+
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
+      const targetPanel = document.getElementById('view-' + view);
+      if (targetPanel) targetPanel.classList.remove('hidden');
+
+      const scrollArea = document.getElementById('mobileScrollArea');
+      if (scrollArea) scrollArea.scrollTop = 0;
+
+      updateBottomTabs(view);
+      handleScreenLifecycle(view);
+    }
+
+    function switchRole(role) {
+      appState.currentRole = role;
+      if (role === 'clinician') setView('doctor_dashboard');
+      else setView('home');
+    }
+    function loginAs(role) { switchRole(role); }
+
+    function setRoleButtonsUI(role) {
+      const pBtn = document.getElementById('roleBtnPatient');
+      const dBtn = document.getElementById('roleBtnDoctor');
+      if (role === 'clinician') {
+        dBtn.className = "px-2.5 py-1 rounded bg-brand-teal text-slate-950 font-bold transition";
+        pBtn.className = "px-2.5 py-1 rounded text-slate-300 hover:text-white transition";
+      } else {
+        pBtn.className = "px-2.5 py-1 rounded bg-brand-teal text-slate-950 font-bold transition";
+        dBtn.className = "px-2.5 py-1 rounded text-slate-300 hover:text-white transition";
+      }
+    }
+
+    function updateBottomTabs(viewName) {
+      document.querySelectorAll('.bottom-tab-btn').forEach(btn => {
+        const tab = btn.getAttribute('data-tab-name');
+        if (tab === viewName) {
+          btn.classList.add('text-brand-navy', 'font-bold');
+          btn.classList.remove('text-slate-400');
+        } else {
+          btn.classList.remove('text-brand-navy', 'font-bold');
+          btn.classList.add('text-slate-400');
+        }
+      });
+    }
+
+    function handleScreenLifecycle(viewName) {
+      clearInterval(appState.callInterval);
+      if (viewName === 'voice_call') {
+        startVoiceCallTimer();
+        setOrbState('listening');
+      } else {
+        setOrbState('idle');
+      }
+    }
+
+    function setOrbState(state) {
+      appState.orbState = state;
+      document.querySelectorAll('.living-orb').forEach(orb => orb.setAttribute('data-state', state));
+    }
+
+    const comfortPhrases = [
+      "“Take a slow breath, Alex. Today is yours to pace.”",
+      "“Resting is an active part of neuroplastic stabilization.”",
+      "“I'm listening quietly whenever you want to reflect.”",
+      "“Notice your shoulders releasing right now. Soft and steady.”"
+    ];
+    let comfortIndex = 0;
+    function triggerOrbComfortSpeech() {
+      setOrbState('speaking');
+      const speechEl = document.getElementById('homeOrbSpeech');
+      comfortIndex = (comfortIndex + 1) % comfortPhrases.length;
+      if (speechEl) speechEl.textContent = comfortPhrases[comfortIndex];
+      setTimeout(() => setOrbState('idle'), 3000);
+    }
+
+    function pulseCompanionGreeting() {
+      setOrbState('speaking');
+      const hint = document.getElementById('welcomePulseHint');
+      if (hint) hint.textContent = "“Good to feel your presence. Enter whenever you’re ready.”";
+      setTimeout(() => setOrbState('idle'), 2500);
+    }
+
+    function startVoiceCallTimer() {
+      const display = document.getElementById('voiceCallTimerDisplay');
+      appState.callInterval = setInterval(() => {
+        appState.callTimer++;
+        const mins = Math.floor(appState.callTimer / 60);
+        const secs = appState.callTimer % 60;
+        if (display) display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    function cycleVoiceOrbState() {
+      const badge = document.getElementById('voiceStateBadge');
+      if (appState.orbState === 'listening') {
+        setOrbState('speaking');
+        if (badge) badge.textContent = "✨ RE reflecting with voice";
+      } else if (appState.orbState === 'speaking') {
+        setOrbState('thinking');
+        if (badge) badge.textContent = "💭 Synthesizing safe pause";
+      } else {
+        setOrbState('listening');
+        if (badge) badge.textContent = "🌿 Listening with presence";
+      }
+    }
+
+    function togglePiPCamera() {
+      const pip = document.getElementById('userCameraPiP');
+      appState.cameraPiPVisible = !appState.cameraPiPVisible;
+      if (pip) pip.classList.toggle('hidden', !appState.cameraPiPVisible);
+    }
+
+    function toggleMuteAudio() {
+      appState.isMuted = !appState.isMuted;
+      const btn = document.getElementById('voiceMicBtn');
+      if (appState.isMuted) {
+        btn.classList.remove('bg-brand-teal', 'text-slate-950');
+        btn.classList.add('bg-rose-500', 'text-white');
+      } else {
+        btn.classList.add('bg-brand-teal', 'text-slate-950');
+        btn.classList.remove('bg-rose-500', 'text-white');
+      }
+    }
+
+    function toggleCaptionsVisibility() {
+      const caption = document.getElementById('voiceCallCaptionText');
+      if (caption) caption.parentElement.classList.toggle('opacity-30');
+    }
+
+    function switchCallToTextChat() {
+      clearInterval(appState.callInterval);
+      setView('chat');
+      appendChatMessage('companion', "I carried our voice conversation right here into text, Alex. We're keeping this peaceful pace.");
+    }
+
+    // SIGNATURE IN-PLACE ENVIRONMENTAL TRANSFORMATIONS
+    function triggerEnvironmentalTransformation(type, origin) {
+      appState.transformOrigin = origin;
+      setView('chat');
+
+      if (type === 'breathing') {
+        document.getElementById('transformBreathingOverlay').classList.remove('hidden');
+        startBreathingRhythm();
+      } else if (type === 'nature') {
+        document.getElementById('transformNatureOverlay').classList.remove('hidden');
+      }
+    }
+
+    function closeEnvironmentalTransformation() {
+      clearInterval(appState.breathingInterval);
+      document.getElementById('transformBreathingOverlay').classList.add('hidden');
+      document.getElementById('transformNatureOverlay').classList.add('hidden');
+
+      if (appState.transformOrigin === 'voice_call') setView('voice_call');
+      else if (appState.transformOrigin === 'home') setView('home');
+      else setView('chat');
+    }
+
+    function startBreathingRhythm() {
+      clearInterval(appState.breathingInterval);
+      const phaseLabel = document.getElementById('transformPhaseLabel');
+      const timerNum = document.getElementById('transformTimerNumber');
+      const outerRing = document.getElementById('transformOuterRing');
+      const innerOrb = document.getElementById('transformInnerOrb');
+
+      let step = 0;
+      const phases = [
+        { label: 'Inhale', duration: 4, scale: 'scale-115' },
+        { label: 'Hold', duration: 4, scale: 'scale-115' },
+        { label: 'Exhale', duration: 4, scale: 'scale-90' },
+        { label: 'Settle', duration: 4, scale: 'scale-95' }
+      ];
+
+      function tick() {
+        const cur = phases[step % phases.length];
+        if (phaseLabel) phaseLabel.textContent = cur.label;
+        if (timerNum) timerNum.textContent = cur.duration;
+        if (outerRing && innerOrb) {
+          if (cur.label === 'Inhale') {
+            outerRing.classList.add('scale-110');
+            innerOrb.classList.add('scale-105');
+          } else if (cur.label === 'Exhale') {
+            outerRing.classList.remove('scale-110');
+            innerOrb.classList.remove('scale-105');
+          }
+        }
+        step++;
+      }
+      tick();
+      appState.breathingInterval = setInterval(tick, 4000);
+    }
+
+    function setBreathingCadence(pace) {
+      appState.breathingPace = pace;
+      const title = document.getElementById('transformTechniqueTitle');
+      if (pace === 'box' && title) title.textContent = "Box Rhythm (4-4-4-4)";
+      else if (pace === 'deep' && title) title.textContent = "Deep Coherence (5-5)";
+      else if (title) title.textContent = "4-7-8 Parasympathetic Cadence";
+      startBreathingRhythm();
+    }
+
+    function completeBreathingTransformation() {
+      closeEnvironmentalTransformation();
+      appendChatMessage('companion', "Wonderful unhurried breath, Alex. I’ve woven this 3-minute somatic reset into your Recovery Constellation.");
+    }
+
+    function switchNatureEnvironment(env) {
+      const overlay = document.getElementById('transformNatureOverlay');
+      const icon = document.getElementById('natureEnvIcon');
+      const title = document.getElementById('natureEnvTitle');
+      const desc = document.getElementById('natureEnvDesc');
+
+      overlay.className = "absolute inset-0 z-40 text-white flex flex-col justify-between p-6 transition-all duration-500 env-" + env;
+      if (env === 'forest') {
+        icon.textContent = "🌲"; title.textContent = "Misty Pines Canopy";
+        desc.textContent = "Binaural woodland rain & slow wind rustling through pine branches.";
+      } else if (env === 'ocean') {
+        icon.textContent = "🌊"; title.textContent = "Pacific Tideline Horizon";
+        desc.textContent = "Slow harmonic waves breaking along pebble shores at sunset.";
+      } else {
+        icon.textContent = "🌾"; title.textContent = "Autumn Meadow";
+        desc.textContent = "Gentle prairie breezes and warm natural acoustics.";
+      }
+    }
+
+    function completeNatureTransformation() {
+      closeEnvironmentalTransformation();
+      appendChatMessage('companion', "I hope that auditory sanctuary softened the sensory glare. Your rest is safely kept in My Journey.");
+    }
+
+    function completeOneSmallStep() {
+      const btn = document.getElementById('stepCompleteBtn');
+      btn.innerHTML = "<span>✓ Window open • 3 quiet breaths taken</span>";
+      btn.classList.remove('bg-brand-teal');
+      btn.classList.add('bg-emerald-500', 'text-white');
+      setTimeout(() => {
+        appendChatMessage('companion', "Noticing fresh air against your skin is a great somatic anchor. How did that feel around your temples?");
+      }, 700);
+    }
+
+    function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      appendChatMessage('patient', text);
+      input.value = '';
+      setOrbState('thinking');
+
+      setTimeout(() => {
+        setOrbState('speaking');
+        if (text.toLowerCase().includes('forest') || text.toLowerCase().includes('pines')) {
+          appendChatMessage('companion', "Let's enter the Misty Pines canopy right now together.");
+          triggerEnvironmentalTransformation('nature', 'chat');
+        } else if (text.toLowerCase().includes('breathe') || text.toLowerCase().includes('overwhelm')) {
+          appendChatMessage('companion', "I hear you. Let's shift our space into a gentle breathing rhythm right here.");
+          triggerEnvironmentalTransformation('breathing', 'chat');
+        } else {
+          appendChatMessage('companion', "I'm holding space for that, Alex. Every small observation helps anchor your post-treatment curve.");
+        }
+        setTimeout(() => setOrbState('idle'), 2500);
+      }, 900);
+    }
+
+    function sendQuickReply(text) {
+      appendChatMessage('patient', text);
+      setOrbState('thinking');
+      setTimeout(() => {
+        setOrbState('speaking');
+        if (text.includes('forest')) {
+          triggerEnvironmentalTransformation('nature', 'chat');
+        } else if (text.includes('constellation')) {
+          setView('journey');
+        } else {
+          appendChatMessage('companion', "I'm glad you're feeling calm. Savor this grounded window.");
+        }
+        setTimeout(() => setOrbState('idle'), 2500);
+      }, 700);
+    }
+
+    function appendChatMessage(sender, message) {
+      const list = document.getElementById('chatMessageList');
+      const div = document.createElement('div');
+      if (sender === 'patient') {
+        div.className = "flex items-end justify-end space-x-2";
+        div.innerHTML = `<div class="bg-brand-navy text-white p-3 rounded-2xl max-w-[85%] shadow-xs leading-relaxed"><p>${message}</p></div>`;
+      } else {
+        div.className = "flex items-start space-x-2 max-w-[88%]";
+        div.innerHTML = `<div class="w-6 h-6 rounded-full bg-brand-teal flex-shrink-0 flex items-center justify-center text-[10px] text-slate-900 font-bold">RE</div>
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs text-slate-700 space-y-1"><p>${message}</p></div>`;
+      }
+      list.appendChild(div);
+      list.scrollTop = list.scrollHeight;
+    }
+
+    // JOURNEY CONSTELLATION
+    function switchJourneyMode(mode) {
+      const cView = document.getElementById('journeyConstellationView');
+      const sView = document.getElementById('journeyStructuredView');
+      const cBtn = document.getElementById('tabConstellationBtn');
+      const sBtn = document.getElementById('tabStructuredBtn');
+
+      if (mode === 'constellation') {
+        cView.classList.remove('hidden'); sView.classList.add('hidden');
+        cBtn.className = "px-2.5 py-1 rounded-lg bg-white text-brand-navy shadow-xs transition";
+        sBtn.className = "px-2.5 py-1 rounded-lg text-slate-600 hover:text-brand-navy transition";
+      } else {
+        sView.classList.remove('hidden'); cView.classList.add('hidden');
+        sBtn.className = "px-2.5 py-1 rounded-lg bg-white text-brand-navy shadow-xs transition";
+        cBtn.className = "px-2.5 py-1 rounded-lg text-slate-600 hover:text-brand-navy transition";
+      }
+    }
+
+    const starMoments = {
+      breathing: { cat: "CALM BREATHING COMPLETED", time: "Today, 09:30 AM", title: "4-7-8 Parasympathetic Reset", note: "“Felt jaw tension release. Temple pressure decreased after 3 minutes of unhurried rhythm.”" },
+      window: { cat: "ONE SMALL STEP COMPLETED", time: "Yesterday, 04:15 PM", title: "Fresh Air Horizon", note: "“Unlatched bedroom window and looked at tree lines. Sensed immediate mental grounding.”" },
+      audio: { cat: "NATURE SOUNDSCAPE LISTENED", time: "Oct 23, 08:20 PM", title: "Misty Pines 5-Minute Rest", note: "“Woodland rain reduced afternoon sensory glare. Eased into evening without screen fatigue.”" },
+      rest: { cat: "REST DAY HONORED", time: "Oct 22, All Day", title: "Conscious Neuroplastic Recovery", note: "“Deliberate quiet day honored. Rest days are tracked as recovery anchors, never missed streaks.”" }
+    };
+
+    function inspectConstellationNode(key) {
+      const data = starMoments[key];
+      if (!data) return;
+      document.getElementById('starNodeCategory').textContent = data.cat;
+      document.getElementById('starNodeTime').textContent = data.time;
+      document.getElementById('starNodeTitle').textContent = data.title;
+      document.getElementById('starNodeNote').textContent = data.note;
+    }
+
+    function openAmendNotesModal() { document.getElementById('amendNotesModal').classList.remove('hidden'); }
+    function closeAmendNotesModal() { document.getElementById('amendNotesModal').classList.add('hidden'); }
+    function saveAmendedNotes() {
+      closeAmendNotesModal();
+      alert("Notes amended and synchronized with Dr. Morgan's clinical view.");
+    }
+
+    // PROFILE CUSTOMIZATION
+    function setOrbPalette(theme) {
+      document.body.className = document.body.className.replace(/orb-\w+/g, '') + ' orb-' + theme;
+      document.querySelectorAll('#palBtnTeal, #palBtnLavender, #palBtnRose, #palBtnHorizon').forEach(b => {
+        b.className = "py-1.5 px-2 rounded-xl border border-slate-200 text-[10px] font-bold text-slate-700";
+      });
+      const activeBtn = document.getElementById('palBtn' + theme.charAt(0).toUpperCase() + theme.slice(1));
+      if (activeBtn) activeBtn.className = "py-1.5 px-2 rounded-xl border-2 border-brand-teal text-[10px] font-bold text-slate-800 bg-teal-50";
+    }
+
+    function toggleReducedMotion(checked) {
+      if (checked) document.body.classList.add('reduced-motion');
+      else document.body.classList.remove('reduced-motion');
+    }
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+      setView('welcome');
+    });
+  </script>
+</body>
+</html>

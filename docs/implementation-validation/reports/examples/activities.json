@@ -1,0 +1,360 @@
+{
+  "report_id": "683f8f8a-9b57-534a-9f8b-9f2ec97170f0",
+  "patient_id": "d9efc857-7c98-53e7-8ad3-223402000acb",
+  "version": 1,
+  "state": "ready",
+  "period_start": "2026-11-07T00:00:00+00:00",
+  "period_end": "2026-11-14T00:00:00+00:00",
+  "generated_at": "2026-11-14T00:00:00+00:00",
+  "data_cutoff": "2026-11-14T00:00:00+00:00",
+  "timezone": "Europe/Helsinki",
+  "calculation_version": "facts-v3",
+  "document": {
+    "schema_version": "1.0.0",
+    "report_type": "dual_perspective_wellbeing",
+    "generator_version": "deterministic-v3.1",
+    "template_version": "editorial-v1",
+    "evidence_snapshot_version": 1,
+    "evidence_snapshot_id": "c33d420f8d042cde50477f280b17ca93c5f5302664b8380399401ae1aaec5517",
+    "snapshot": {
+      "evidence": [
+        {
+          "id": "activity:4541f73e-751a-5cd6-a82a-589cee4ac569",
+          "record_id": "4541f73e-751a-5cd6-a82a-589cee4ac569",
+          "kind": "activity",
+          "date": "2026-11-11T00:00:00+00:00",
+          "source_ids": [
+            "50ed79f0-2cbd-5058-9d8d-2e9c37c3e9e3"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": null,
+          "unit": null,
+          "category": "breathing",
+          "phase": "current",
+          "origin": "curated_catalog"
+        },
+        {
+          "id": "feedback:3bc89cdd-97a1-58f7-b76b-4e1871e33ea8",
+          "record_id": "3bc89cdd-97a1-58f7-b76b-4e1871e33ea8",
+          "kind": "feedback",
+          "date": "2026-11-11T00:00:00+00:00",
+          "source_ids": [
+            "eea8efe1-c66f-52fd-8094-3d19ea65ef87"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": 5,
+          "unit": "helpfulness_1_5",
+          "category": "breathing",
+          "phase": "current",
+          "origin": "patient_explicit_feedback"
+        },
+        {
+          "id": "activity:74f2fae2-9f69-5a29-84ca-e9158bd1025c",
+          "record_id": "74f2fae2-9f69-5a29-84ca-e9158bd1025c",
+          "kind": "activity",
+          "date": "2026-11-12T00:00:00+00:00",
+          "source_ids": [
+            "8a48267b-9792-5ae7-bd3c-a5372fd83028"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": null,
+          "unit": null,
+          "category": "breathing",
+          "phase": "current",
+          "origin": "curated_catalog"
+        },
+        {
+          "id": "feedback:d4e242bd-1d9b-55bf-b36a-e1e05cf00675",
+          "record_id": "d4e242bd-1d9b-55bf-b36a-e1e05cf00675",
+          "kind": "feedback",
+          "date": "2026-11-12T00:00:00+00:00",
+          "source_ids": [
+            "f900eba2-946c-5dd4-9dbe-deec0340f96d"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": 3,
+          "unit": "helpfulness_1_5",
+          "category": "breathing",
+          "phase": "current",
+          "origin": "patient_explicit_feedback"
+        },
+        {
+          "id": "activity:694c5e8f-231c-55d6-a6d1-6fd06517637f",
+          "record_id": "694c5e8f-231c-55d6-a6d1-6fd06517637f",
+          "kind": "activity",
+          "date": "2026-11-13T00:00:00+00:00",
+          "source_ids": [
+            "ca33dc83-fd68-50f6-af06-9aa1f188874f"
+          ],
+          "label": "Calm Breathing",
+          "text": null,
+          "value": null,
+          "unit": null,
+          "category": "breathing",
+          "phase": "current",
+          "origin": "curated_catalog"
+        },
+        {
+          "id": "feedback:cc9ca79f-bed9-56a8-aea1-b977ac0feccd",
+          "record_id": "cc9ca79f-bed9-56a8-aea1-b977ac0feccd",
+          "kind": "feedback",
+          "date": "2026-11-13T00:00:00+00:00",
+          "source_ids": [
+            "9e5bc217-a989-5396-8461-024e283ed3b3"
+          ],
+          "label": "Calm Breathing",
+          "text": "Fictional: I enjoyed having a quiet minute.",
+          "value": 4,
+          "unit": "helpfulness_1_5",
+          "category": "breathing",
+          "phase": "current",
+          "origin": "patient_explicit_feedback"
+        }
+      ],
+      "current_start": "2026-11-07T00:00:00+00:00",
+      "current_end": "2026-11-14T00:00:00+00:00",
+      "previous_start": null,
+      "timezone": "Europe/Helsinki",
+      "aggregates": {
+        "current": {
+          "counts": {
+            "activity": 3,
+            "feedback": 3
+          },
+          "active_days": 3,
+          "themes": {}
+        },
+        "previous": null
+      },
+      "authorization_start": "2026-11-07T00:00:00+00:00"
+    },
+    "claims": [
+      {
+        "id": "overview-coverage",
+        "section": "overview",
+        "patient_text": "You saved 0 confirmed notes, 3 completed activities and 3 ratings, plus 0 confirmed check-in values across 3 recorded days. This is a view of the moments you chose to keep, not a grade.",
+        "clinician_text": "The period contains 0 patient-confirmed notes, 3 activity completions and 3 explicit ratings, plus 0 confirmed check-in values across 3 recorded days. Coverage is opportunistic, not scheduled.",
+        "evidence_ids": [
+          "activity:4541f73e-751a-5cd6-a82a-589cee4ac569",
+          "activity:694c5e8f-231c-55d6-a6d1-6fd06517637f",
+          "activity:74f2fae2-9f69-5a29-84ca-e9158bd1025c",
+          "feedback:3bc89cdd-97a1-58f7-b76b-4e1871e33ea8",
+          "feedback:cc9ca79f-bed9-56a8-aea1-b977ac0feccd",
+          "feedback:d4e242bd-1d9b-55bf-b36a-e1e05cf00675"
+        ]
+      },
+      {
+        "id": "experiences-missing",
+        "section": "experiences",
+        "patient_text": "There are no confirmed conversation notes in this period. Your conversations have not been treated as a permanent record; no themes or feelings have been inferred.",
+        "clinician_text": "No confirmed conversational observations are available for the period. Themes, emotions and absence of symptoms cannot be inferred from activity records.",
+        "evidence_ids": []
+      },
+      {
+        "id": "themes-missing",
+        "section": "themes",
+        "patient_text": "There is not yet enough confirmed conversation material to describe recurring themes.",
+        "clinician_text": "Recurring conversational themes are unavailable without confirmed observations.",
+        "evidence_ids": []
+      },
+      {
+        "id": "reflections-missing",
+        "section": "reflections",
+        "patient_text": "No personal reflection or goal was explicitly saved in this period. We have not supplied one on your behalf.",
+        "clinician_text": "No patient-selected reflection or goal is recorded.",
+        "evidence_ids": []
+      },
+      {
+        "id": "topics-missing",
+        "section": "topics",
+        "patient_text": "No discussion question was saved. If you choose, you can bring a confirmed note or an activity experience to your next conversation with your clinician.",
+        "clinician_text": "No patient-selected clinician question is recorded. No automated medical advice or follow-up instruction is generated.",
+        "evidence_ids": []
+      },
+      {
+        "id": "changes-insufficient",
+        "section": "changes",
+        "patient_text": "An equal-period comparison is not supported by enough confirmed notes on multiple days in both periods. Missing information remains missing.",
+        "clinician_text": "Insufficient comparable observations: each equal-length period needs at least three confirmed notes across two dates. No symptom or treatment-change conclusion is produced.",
+        "evidence_ids": []
+      },
+      {
+        "id": "activities-breathing",
+        "section": "activities",
+        "patient_text": "You completed 3 breathing activities. You rated 3 of them; 2 ratings were 4 or 5 out of 5. These ratings describe what seemed helpful to you, without showing what caused a change.",
+        "clinician_text": "3 breathing completions; 3 explicit helpfulness ratings, including 2 at 4–5/5. No causal or treatment inference is warranted.",
+        "evidence_ids": [
+          "activity:4541f73e-751a-5cd6-a82a-589cee4ac569",
+          "activity:694c5e8f-231c-55d6-a6d1-6fd06517637f",
+          "activity:74f2fae2-9f69-5a29-84ca-e9158bd1025c",
+          "feedback:3bc89cdd-97a1-58f7-b76b-4e1871e33ea8",
+          "feedback:cc9ca79f-bed9-56a8-aea1-b977ac0feccd",
+          "feedback:d4e242bd-1d9b-55bf-b36a-e1e05cf00675"
+        ]
+      },
+      {
+        "id": "activities-breathing-preference",
+        "section": "activities",
+        "patient_text": "Your average helpfulness rating for breathing was 4.0/5 across 3 ratings. This is a reported experience, not a permanent preference or recommendation.",
+        "clinician_text": "Mean explicit breathing helpfulness rating 4.0/5, n=3. It does not establish a stable preference or clinical benefit.",
+        "evidence_ids": [
+          "feedback:3bc89cdd-97a1-58f7-b76b-4e1871e33ea8",
+          "feedback:cc9ca79f-bed9-56a8-aea1-b977ac0feccd",
+          "feedback:d4e242bd-1d9b-55bf-b36a-e1e05cf00675"
+        ]
+      },
+      {
+        "id": "activities-comment-feedback:cc9ca79f-bed9-56a8-aea1-b977ac0feccd",
+        "section": "activities",
+        "patient_text": "After Calm Breathing, you wrote: “Fictional: I enjoyed having a quiet minute.”",
+        "clinician_text": "Explicit feedback for Calm Breathing: “Fictional: I enjoyed having a quiet minute.”",
+        "evidence_ids": [
+          "feedback:cc9ca79f-bed9-56a8-aea1-b977ac0feccd"
+        ]
+      },
+      {
+        "id": "assessments-missing",
+        "section": "assessments",
+        "patient_text": "No completed questionnaire records are available. No score or screening result has been inferred.",
+        "clinician_text": "No completed assessment records are available. Validated instrument results are unavailable.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-0",
+        "section": "limitations",
+        "patient_text": "Missing records are not evidence that an experience or symptom was absent.",
+        "clinician_text": "Missing records are not evidence that an experience or symptom was absent.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-1",
+        "section": "limitations",
+        "patient_text": "Frequency describes saved reports, not symptom frequency, severity or improvement.",
+        "clinician_text": "Frequency describes saved reports, not symptom frequency, severity or improvement.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-2",
+        "section": "limitations",
+        "patient_text": "Feedback describes the patient's experience; participation and ratings do not establish recovery or a treatment effect.",
+        "clinician_text": "Feedback describes the patient's experience; participation and ratings do not establish recovery or a treatment effect.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-3",
+        "section": "limitations",
+        "patient_text": "Only patient-confirmed structured notes are used. No raw conversation history or recording is included.",
+        "clinician_text": "Only patient-confirmed structured notes are used. No raw conversation history or recording is included.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-4",
+        "section": "limitations",
+        "patient_text": "Questionnaire records do not identify a validated clinical scoring method; no clinical score or diagnosis is generated.",
+        "clinician_text": "Questionnaire records do not identify a validated clinical scoring method; no clinical score or diagnosis is generated.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-5",
+        "section": "limitations",
+        "patient_text": "This is a supplementary patient-shared wellbeing record, not a medical evaluation or proof of clinician review or monitoring.",
+        "clinician_text": "This is a supplementary patient-shared wellbeing record, not a medical evaluation or proof of clinician review or monitoring.",
+        "evidence_ids": []
+      },
+      {
+        "id": "limitations-method",
+        "section": "limitations",
+        "patient_text": "Dates use your saved timezone. Only traceable, confirmed records available at the snapshot cutoff contribute to findings. Later corrections or withdrawals require a new report.",
+        "clinician_text": "Dates use the stored patient timezone. Aggregation uses traceable accepted records at cutoff. Evidence withdrawal invalidates export; downloaded copies remain independent.",
+        "evidence_ids": []
+      }
+    ],
+    "charts": [],
+    "sections": [
+      {
+        "id": "overview",
+        "patient_title": "Your journey at a glance",
+        "clinician_title": "Executive overview"
+      },
+      {
+        "id": "experiences",
+        "patient_title": "What you shared",
+        "clinician_title": "Patient-confirmed experiences"
+      },
+      {
+        "id": "themes",
+        "patient_title": "Recurring confirmed themes",
+        "clinician_title": "Confirmed recurring themes"
+      },
+      {
+        "id": "changes",
+        "patient_title": "Changes worth noticing",
+        "clinician_title": "Longitudinal observations"
+      },
+      {
+        "id": "activities",
+        "patient_title": "Activities and your feedback",
+        "clinician_title": "Activity engagement and explicit feedback"
+      },
+      {
+        "id": "reflections",
+        "patient_title": "Reflections and goals",
+        "clinician_title": "Patient reflections and goals"
+      },
+      {
+        "id": "topics",
+        "patient_title": "Questions for your clinician",
+        "clinician_title": "Patient-selected discussion topics"
+      },
+      {
+        "id": "assessments",
+        "patient_title": "Questionnaire records",
+        "clinician_title": "Assessment availability"
+      },
+      {
+        "id": "limitations",
+        "patient_title": "Coverage and what remains unknown",
+        "clinician_title": "Methodology and limitations"
+      }
+    ],
+    "regeneration_of": null,
+    "content_hash": "f7af69289353dcf7f0feac70782819ee3697754174c32a6c2232a2d310c39228"
+  },
+  "sources": [
+    {
+      "source_id": "50ed79f0-2cbd-5058-9d8d-2e9c37c3e9e3",
+      "source_revision": 1
+    },
+    {
+      "source_id": "eea8efe1-c66f-52fd-8094-3d19ea65ef87",
+      "source_revision": 1
+    },
+    {
+      "source_id": "8a48267b-9792-5ae7-bd3c-a5372fd83028",
+      "source_revision": 1
+    },
+    {
+      "source_id": "f900eba2-946c-5dd4-9dbe-deec0340f96d",
+      "source_revision": 1
+    },
+    {
+      "source_id": "ca33dc83-fd68-50f6-af06-9aa1f188874f",
+      "source_revision": 1
+    },
+    {
+      "source_id": "9e5bc217-a989-5396-8461-024e283ed3b3",
+      "source_revision": 1
+    }
+  ],
+  "observations": [],
+  "completed_activities": [],
+  "feedback": [],
+  "assessments": [],
+  "confirmed_insights": [],
+  "trends": [],
+  "limitations": []
+}

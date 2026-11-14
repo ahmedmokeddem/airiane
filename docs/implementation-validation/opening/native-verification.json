@@ -1,0 +1,118 @@
+{
+  "date": "2026-11-14",
+  "device": "Samsung SM-G998B / Android 15",
+  "variant": "ARM64 local release APK, non-debuggable",
+  "final_release_build": "BUILD SUCCESSFUL in 5m 33s",
+  "apk_sha256": "d09de9350e698b9232a2862b75e5072a57244634e57a396f919e7dfd4e99eb41",
+  "native_sequence": [
+    {
+      "sample": 0,
+      "before_capture_ms": 200,
+      "captured": false,
+      "reason": "app_not_foreground",
+      "after_capture_ms": 278
+    },
+    {
+      "sample": 1,
+      "before_capture_ms": 600,
+      "captured": true,
+      "file": "native-sequence-1.png",
+      "after_capture_ms": 1358
+    },
+    {
+      "sample": 2,
+      "before_capture_ms": 1358,
+      "captured": true,
+      "file": "native-sequence-2.png",
+      "after_capture_ms": 2110
+    },
+    {
+      "sample": 3,
+      "before_capture_ms": 2110,
+      "captured": true,
+      "file": "native-sequence-3.png",
+      "after_capture_ms": 2939
+    },
+    {
+      "sample": 4,
+      "before_capture_ms": 2940,
+      "captured": true,
+      "file": "native-sequence-4.png",
+      "after_capture_ms": 3726
+    },
+    {
+      "sample": 5,
+      "before_capture_ms": 3727,
+      "captured": true,
+      "file": "native-sequence-5.png",
+      "after_capture_ms": 4545
+    },
+    {
+      "sample": 6,
+      "before_capture_ms": 4545,
+      "captured": true,
+      "file": "native-sequence-6.png",
+      "after_capture_ms": 5466
+    },
+    {
+      "sample": 7,
+      "before_capture_ms": 5466,
+      "captured": true,
+      "file": "native-sequence-7.png",
+      "after_capture_ms": 6363
+    },
+    {
+      "sample": 8,
+      "before_capture_ms": 6363,
+      "captured": true,
+      "file": "native-sequence-8.png",
+      "after_capture_ms": 7337
+    }
+  ],
+  "native_controls": {
+    "foreground": {
+      "same_pid": true,
+      "captured": true,
+      "file": "native-foreground.png"
+    },
+    "skip": {
+      "elapsed_ms": 1526,
+      "captured": true,
+      "file": "native-skip.png"
+    },
+    "reduced_motion": {
+      "elapsed_ms": 1000,
+      "captured": true,
+      "file": "native-reduced-motion.png"
+    },
+    "transition_scale_restored": true
+  },
+  "visual_review": {
+    "system_mask_symbol_uncropped": true,
+    "exact_svg_path_reveal_seen": true,
+    "decorative_glow_unclipped": true,
+    "current_screen_handoff_seen": true,
+    "signed_out_destination": "Welcome",
+    "blank_frame_seen_in_guarded_samples": false
+  },
+  "last_release_process_log": {
+    "fatal_exception": false,
+    "react_native_js_error": false
+  },
+  "limits": [
+    "Guarded screenshots are sampled states, not a frame-time or every-frame no-flash measurement.",
+    "Reduced-motion sample at 1 second includes Android static-system-icon exit; the app drawing sequence is skipped.",
+    "No new voice conversation or camera capture was performed in opening QA.",
+    "Low-end devices, iOS and a full accessibility/device matrix are not tested."
+  ],
+  "development_client_restored": {
+    "build": "BUILD SUCCESSFUL in 3m 53s",
+    "metro_port": 8082,
+    "backend_fictional_sign_in_and_home": true,
+    "activities_tab_opening_present": false,
+    "home_tab_opening_present": false,
+    "runtime_error_window_ms": 2000,
+    "runtime_error_count": 0,
+    "original_stay_awake_restored": true
+  }
+}

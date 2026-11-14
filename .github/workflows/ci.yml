@@ -1,0 +1,73 @@
+name: Contract-first integration
+on:
+  push:
+  pull_request:
+jobs:
+  backend-contracts:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: re
+          POSTGRES_PASSWORD: re_local_ci_only
+          POSTGRES_DB: re_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U re -d re_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.8"
+      - run: uv sync --project backend --group dev --frozen
+      - run: uv run --project backend python scripts/check_contracts.py
+      - run: uv run --directory backend ruff check app tests
+      - run: uv run --directory backend ruff format --check app tests
+      - run: psql -h localhost -U re -d re_test -v ON_ERROR_STOP=1 -f database/migrations/0001_baseline.sql
+        env:
+          PGPASSWORD: re_local_ci_only
+      - run: uv run --directory backend pytest tests
+        env:
+          TEST_DATABASE_URL: postgresql+asyncpg://re:re_local_ci_only@localhost:5432/re_test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+        working-directory: mobile
+      - run: bash scripts/integration.sh
+        env:
+          TEST_DATABASE_URL: postgresql+asyncpg://re:re_local_ci_only@localhost:5432/re_test
+  clients:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [mobile, portal]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+      - run: npm ci
+        working-directory: ${{ matrix.project }}
+      - if: matrix.project == 'mobile'
+        run: npm run contracts:generate
+        working-directory: mobile
+      - if: matrix.project == 'mobile'
+        run: git diff --exit-code -- contracts/generated/api.ts
+      - run: npm run typecheck
+        working-directory: ${{ matrix.project }}
+      - run: npm run lint
+        working-directory: ${{ matrix.project }}
+      - run: npm test
+        working-directory: ${{ matrix.project }}
+      - if: matrix.project == 'portal'
+        run: npm run build
+        working-directory: portal
+        env:
+          PORTAL_DATA_MODE: mock

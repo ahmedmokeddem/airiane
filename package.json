@@ -1,0 +1,21 @@
+{
+  "name": "re-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev:mobile": "npm --prefix mobile start",
+    "dev:portal": "npm --prefix portal run dev",
+    "dev:backend": "cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "check:contracts": "uv run --project backend python scripts/check_contracts.py",
+    "check:mobile": "npm --prefix mobile run typecheck && npm --prefix mobile test",
+    "check:portal": "npm --prefix portal run typecheck && npm --prefix portal run lint",
+    "format:check": "prettier --check package.json scripts/*.mjs .github/workflows/*.yml",
+    "format": "prettier --write package.json scripts/*.mjs .github/workflows/*.yml"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

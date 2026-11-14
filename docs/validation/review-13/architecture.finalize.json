@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-11-14T01:29:17.455Z",
+  "specification": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+    "sha256": "602b60ca861d26a055be5fce0430d11696a302b7d0813afc928acd3726e75a4f",
+    "bytes": 22935
+  },
+  "artifact": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+    "sha256": "632da53317e5c8e4f1b28f89cafa2864a6bbaa008208c225e1b5f07f703fe643",
+    "bytes": 872625
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "/home/ahmed/.nvm/versions/node/v24.22.1/bin/node",
+        "/home/ahmed/Desktop/hackathon/junction2026/Junction/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+        "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "4378dea5-78bc-4274-ba08-10be0ebd1bae",
+        "stage": "render",
+        "type": "architecture",
+        "input": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+        "output": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+        "error": "Architecture layout validation failed:\n- Label \"Active grant\" overlaps component \"domain\" — adjust labelDx/labelDy/labelSegment or set labelAt.\n  label rect: [1286, 630, 68, 14]\n  component \"domain\" rect: [950, 600, 440, 100]\n  Suggested fix: set labelAt [1320, 714] (below); or set labelAt [1320, 592] (above)\n- [composition/label-route-clearance] showcase architecture label \"Doctor report request\" on connections[26] id \"doctor-authorization\" \"api\" -> \"care\" label \"Doctor report request\" is 0px from connections[25] id \"doctor-report\" \"api\" -> \"doctor\" label \"JSON: active link + consent\" segment 0 [780, 267] -> [865, 267] (label rect [810, 261, 111, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+        "diagnostics": [
+          {
+            "code": "composition/label-route-clearance",
+            "severity": "error",
+            "message": "[composition/label-route-clearance] showcase architecture label \"Doctor report request\" on connections[26] id \"doctor-authorization\" \"api\" -> \"care\" label \"Doctor report request\" is 0px from connections[25] id \"doctor-report\" \"api\" -> \"doctor\" label \"JSON: active link + consent\" segment 0 [780, 267] -> [865, 267] (label rect [810, 261, 111, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 26,
+              "id": "doctor-authorization",
+              "from": "api",
+              "to": "care"
+            },
+            "evidence": {
+              "label": "Doctor report request",
+              "otherRelationship": {
+                "diagramType": "architecture",
+                "collection": "connections",
+                "index": 25,
+                "id": "doctor-report",
+                "from": "api",
+                "to": "doctor"
+              },
+              "segmentIndex": 0,
+              "clearancePx": 0,
+              "minimumPx": 4,
+              "labelRect": {
+                "relation": {
+                  "id": "doctor-authorization",
+                  "from": "api",
+                  "to": "care",
+                  "label": "Doctor report request",
+                  "variant": "security"
+                },
+                "relationIndex": 26,
+                "label": "Doctor report request",
+                "x": 809.6,
+                "y": 261,
+                "width": 110.8,
+                "height": 14,
+                "lx": 865,
+                "ly": 271
+              },
+              "from": [
+                780,
+                267
+              ],
+              "to": [
+                865,
+                267
+              ]
+            },
+            "supportedFixes": [
+              "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+            ]
+          },
+          {
+            "code": "layout/constraint",
+            "severity": "error",
+            "message": "Label \"Active grant\" overlaps component \"domain\" — adjust labelDx/labelDy/labelSegment or set labelAt.\n  label rect: [1286, 630, 68, 14]\n  component \"domain\" rect: [950, 600, 440, 100]\n  Suggested fix: set labelAt [1320, 714] (below); or set labelAt [1320, 592] (above)",
+            "subject": {
+              "diagramType": "architecture"
+            },
+            "evidence": {},
+            "supportedFixes": []
+          }
+        ],
+        "provenance": "failed",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"Doctor report request\" on connections[26] id \"doctor-authorization\" \"api\" -> \"care\" label \"Doctor report request\" is 0px from connections[25] id \"doctor-report\" \"api\" -> \"doctor\" label \"JSON: active link + consent\" segment 0 [780, 267] -> [865, 267] (label rect [810, 261, 111, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 26,
+        "id": "doctor-authorization",
+        "from": "api",
+        "to": "care"
+      },
+      "evidence": {
+        "label": "Doctor report request",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 25,
+          "id": "doctor-report",
+          "from": "api",
+          "to": "doctor"
+        },
+        "segmentIndex": 0,
+        "clearancePx": 0,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "id": "doctor-authorization",
+            "from": "api",
+            "to": "care",
+            "label": "Doctor report request",
+            "variant": "security"
+          },
+          "relationIndex": 26,
+          "label": "Doctor report request",
+          "x": 809.6,
+          "y": 261,
+          "width": 110.8,
+          "height": 14,
+          "lx": 865,
+          "ly": 271
+        },
+        "from": [
+          780,
+          267
+        ],
+        "to": [
+          865,
+          267
+        ]
+      },
+      "supportedFixes": [
+        "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    },
+    {
+      "code": "layout/constraint",
+      "severity": "error",
+      "message": "Label \"Active grant\" overlaps component \"domain\" — adjust labelDx/labelDy/labelSegment or set labelAt.\n  label rect: [1286, 630, 68, 14]\n  component \"domain\" rect: [950, 600, 440, 100]\n  Suggested fix: set labelAt [1320, 714] (below); or set labelAt [1320, 592] (above)",
+      "subject": {
+        "diagramType": "architecture"
+      },
+      "evidence": {},
+      "supportedFixes": []
+    }
+  ],
+  "evidence": {
+    "receipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-13/architecture.finalize.json",
+    "summaryReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-13/architecture.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-11-14T01:29:18.575Z",
+  "durationMs": 1120,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-14T01:06:41.464Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

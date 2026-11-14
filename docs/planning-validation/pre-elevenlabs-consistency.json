@@ -1,0 +1,1984 @@
+{
+  "status": "pass",
+  "contract_version": "1.0.0",
+  "checked_on": "2026-11-14",
+  "counts": {
+    "markdown_files": 11,
+    "operations": 47,
+    "schemas": 75,
+    "tools": 6,
+    "tables": 31,
+    "sequence_diagrams": 11,
+    "checks": 387
+  },
+  "errors": [],
+  "checks": [
+    {
+      "check": "required_documents",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "required_machine_contracts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "preexisting_artifacts_unchanged",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "no_app_scaffolding",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "openapi_internal_refs",
+      "passed": true,
+      "detail": "518 refs"
+    },
+    {
+      "check": "tools_internal_refs",
+      "passed": true,
+      "detail": "53 refs"
+    },
+    {
+      "check": "json_schema_structure",
+      "passed": true,
+      "detail": "75 schemas"
+    },
+    {
+      "check": "permission_onboardPatient",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_onboardPatient",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_onboardPatient",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_onboardPatient",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_onboardPatient",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_getMe",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_getMe",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_getMe",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_getMe",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_getMe",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_updateProfile",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_updateProfile",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_updateProfile",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_updateProfile",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_updateProfile",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_getPatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_getPatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_getPatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_getPatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_getPatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_updatePatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_updatePatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_updatePatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_updatePatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_updatePatientContext",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_upsertMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_upsertMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_upsertMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_upsertMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_upsertMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_deleteMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_deleteMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_deleteMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_deleteMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_deleteMemory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_createConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_createConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_createConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_createConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_createConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listConversations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listConversations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listConversations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listConversations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listConversations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_getConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_getConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_getConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_getConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_getConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_updateConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_updateConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_updateConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_updateConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_updateConversation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_createLiveCredential",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_createLiveCredential",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_createLiveCredential",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_createLiveCredential",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_createLiveCredential",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_ingestMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_ingestMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_ingestMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_ingestMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_ingestMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listMessages",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_getSummary",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_getSummary",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_getSummary",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_getSummary",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_getSummary",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_getGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_getGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_getGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_getGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_getGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_submitGuidedAnswer",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_submitGuidedAnswer",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_submitGuidedAnswer",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_submitGuidedAnswer",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_submitGuidedAnswer",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_skipGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_skipGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_skipGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_skipGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_skipGuidedQuestion",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_dispatchTool",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_dispatchTool",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_dispatchTool",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_dispatchTool",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_dispatchTool",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_createObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_createObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_createObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_createObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_createObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listObservations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listObservations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listObservations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listObservations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listObservations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_confirmObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_confirmObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_confirmObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_confirmObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_confirmObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_correctObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_correctObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_correctObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_correctObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_correctObservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listActivities",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listActivities",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listActivities",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listActivities",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listActivities",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_createRecommendation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_createRecommendation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_createRecommendation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_createRecommendation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_createRecommendation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_startActivity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_startActivity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_startActivity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_startActivity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_startActivity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_getActivitySession",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_getActivitySession",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_getActivitySession",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_getActivitySession",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_getActivitySession",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_recordActivityEvent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_recordActivityEvent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_recordActivityEvent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_recordActivityEvent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_recordActivityEvent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_submitFeedback",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_submitFeedback",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_submitFeedback",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_submitFeedback",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_submitFeedback",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listAssessments",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listAssessments",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listAssessments",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listAssessments",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listAssessments",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_submitAssessment",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_submitAssessment",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_submitAssessment",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_submitAssessment",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_submitAssessment",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_requestReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_requestReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_requestReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_requestReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_requestReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_getReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_getReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_getReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_getReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_getReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_inviteClinician",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_inviteClinician",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_inviteClinician",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_inviteClinician",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_inviteClinician",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listCareLinks",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listCareLinks",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listCareLinks",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listCareLinks",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listCareLinks",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_updateCareLink",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_updateCareLink",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_updateCareLink",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_updateCareLink",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_updateCareLink",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_grantConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_grantConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_grantConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_grantConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_grantConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listConsents",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listConsents",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listConsents",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listConsents",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listConsents",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_revokeConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_revokeConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_revokeConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_revokeConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_revokeConsent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listDoctorPatients",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listDoctorPatients",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listDoctorPatients",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listDoctorPatients",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listDoctorPatients",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listDoctorReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listDoctorReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listDoctorReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listDoctorReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listDoctorReports",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_getDoctorReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_getDoctorReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_getDoctorReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_getDoctorReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_getDoctorReport",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listDoctorAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listDoctorAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listDoctorAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listDoctorAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listDoctorAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_updateDoctorAlert",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_updateDoctorAlert",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_updateDoctorAlert",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_updateDoctorAlert",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_updateDoctorAlert",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_requestReview",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_requestReview",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_requestReview",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_requestReview",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_requestReview",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "permission_listPatientAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "path_parameters_listPatientAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "response_security_listPatientAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "idempotency_listPatientAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_in_markdown_listPatientAlerts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "official_openapi_3_1_metaschema",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "unique_operation_ids",
+      "passed": true,
+      "detail": "47 operations"
+    },
+    {
+      "check": "no_pdf_or_auth_password_routes",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_definitions_equal_canonical_schemas",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_args_get_patient_context",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_routes_get_patient_context",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_args_get_next_guided_question",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_routes_get_next_guided_question",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_args_present_activity_recommendations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_routes_present_activity_recommendations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_args_propose_observation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_routes_propose_observation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_args_select_activity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_routes_select_activity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_args_request_clinician_review",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_routes_request_clinician_review",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_request_mapping_get_patient_context",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_request_mapping_get_next_guided_question",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_request_mapping_present_activity_recommendations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_request_mapping_propose_observation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_request_mapping_select_activity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "tool_request_mapping_request_clinician_review",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "no_privileged_model_tools",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "representative_examples_validate",
+      "passed": true,
+      "detail": "ObservationConfirm, MemoryUpsert, Recommendation, Observation, Report, ConsentCreate, ToolDispatch, MessageBatch"
+    },
+    {
+      "check": "strict_objects_reject_extra_fields",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_tables_match_inventory",
+      "passed": true,
+      "detail": "31 tables"
+    },
+    {
+      "check": "sql_fk_patient_profiles_268",
+      "passed": true,
+      "detail": "users(id)"
+    },
+    {
+      "check": "sql_fk_clinician_profiles_269",
+      "passed": true,
+      "detail": "users(id)"
+    },
+    {
+      "check": "sql_fk_clinician_profiles_270",
+      "passed": true,
+      "detail": "users(id)"
+    },
+    {
+      "check": "sql_fk_care_links_271",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_care_links_272",
+      "passed": true,
+      "detail": "clinician_profiles(clinician_id)"
+    },
+    {
+      "check": "sql_fk_consent_grants_273",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_consent_grants_274",
+      "passed": true,
+      "detail": "care_links(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_275",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_recovery_plans_276",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_conversation_sessions_277",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_source_records_278",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_source_records_279",
+      "passed": true,
+      "detail": "conversation_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_280",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_conversation_messages_281",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_conversation_messages_282",
+      "passed": true,
+      "detail": "conversation_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_283",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_conversation_messages_284",
+      "passed": true,
+      "detail": "consent_grants(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_285",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_conversation_messages_286",
+      "passed": true,
+      "detail": "source_records(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_287",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_session_summaries_288",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_session_summaries_289",
+      "passed": true,
+      "detail": "conversation_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_290",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_summary_sources_291",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_summary_sources_292",
+      "passed": true,
+      "detail": "session_summaries(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_293",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_summary_sources_294",
+      "passed": true,
+      "detail": "source_records(id,patient_id,revision)"
+    },
+    {
+      "check": "sql_fk_arity_295",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_observations_296",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_observations_297",
+      "passed": true,
+      "detail": "conversation_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_298",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_observations_299",
+      "passed": true,
+      "detail": "observations(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_300",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_observation_sources_301",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_observation_sources_302",
+      "passed": true,
+      "detail": "observations(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_303",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_observation_sources_304",
+      "passed": true,
+      "detail": "source_records(id,patient_id,revision)"
+    },
+    {
+      "check": "sql_fk_arity_305",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_patient_memories_306",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_patient_memories_307",
+      "passed": true,
+      "detail": "source_records(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_308",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_recommendations_309",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_recommendations_310",
+      "passed": true,
+      "detail": "conversation_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_311",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_recommendation_items_312",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_recommendation_items_313",
+      "passed": true,
+      "detail": "recommendations(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_314",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_recommendation_items_315",
+      "passed": true,
+      "detail": "activity_catalog(id,version)"
+    },
+    {
+      "check": "sql_fk_arity_316",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_activity_sessions_317",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_activity_sessions_318",
+      "passed": true,
+      "detail": "conversation_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_319",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_activity_sessions_320",
+      "passed": true,
+      "detail": "recommendation_items(recommendation_id,activity_id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_321",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_activity_sessions_322",
+      "passed": true,
+      "detail": "activity_catalog(id,version)"
+    },
+    {
+      "check": "sql_fk_arity_323",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_activity_events_324",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_activity_events_325",
+      "passed": true,
+      "detail": "activity_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_326",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_activity_events_327",
+      "passed": true,
+      "detail": "source_records(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_328",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_activity_feedback_329",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_activity_feedback_330",
+      "passed": true,
+      "detail": "activity_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_331",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_activity_feedback_332",
+      "passed": true,
+      "detail": "source_records(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_333",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_assessment_responses_334",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_assessment_responses_335",
+      "passed": true,
+      "detail": "conversation_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_336",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_assessment_responses_337",
+      "passed": true,
+      "detail": "assessment_definitions(id,version)"
+    },
+    {
+      "check": "sql_fk_arity_338",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_assessment_responses_339",
+      "passed": true,
+      "detail": "source_records(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_340",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_reports_341",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_report_sources_342",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_report_sources_343",
+      "passed": true,
+      "detail": "reports(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_344",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_report_sources_345",
+      "passed": true,
+      "detail": "source_records(id,patient_id,revision)"
+    },
+    {
+      "check": "sql_fk_arity_346",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_alerts_347",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_alerts_348",
+      "passed": true,
+      "detail": "conversation_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_349",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_alerts_350",
+      "passed": true,
+      "detail": "alert_rules(rule_key,version)"
+    },
+    {
+      "check": "sql_fk_arity_351",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_alert_recipients_352",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_alert_recipients_353",
+      "passed": true,
+      "detail": "alerts(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_354",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_alert_recipients_355",
+      "passed": true,
+      "detail": "care_links(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_356",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_alert_recipients_357",
+      "passed": true,
+      "detail": "consent_grants(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_358",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_audit_events_359",
+      "passed": true,
+      "detail": "users(id)"
+    },
+    {
+      "check": "sql_fk_audit_events_360",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_idempotency_keys_361",
+      "passed": true,
+      "detail": "users(id)"
+    },
+    {
+      "check": "sql_fk_tool_calls_362",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_fk_tool_calls_363",
+      "passed": true,
+      "detail": "conversation_sessions(id,patient_id)"
+    },
+    {
+      "check": "sql_fk_arity_364",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_fk_outbox_jobs_365",
+      "passed": true,
+      "detail": "patient_profiles(patient_id)"
+    },
+    {
+      "check": "sql_all_fk_targets_are_declared_unique_keys",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_private_namespace",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_transaction_and_no_destructive_commands",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_current_grant_uniqueness",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sql_core_constraints",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_PRD.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_ARCHITECTURE.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_API_CONTRACTS.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_AGENT_DESIGN.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_DATABASE_SCHEMA.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_USER_FLOWS.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_IMPLEMENTATION_PLAN.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_SECURITY.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_TEST_PLAN.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_ARCHITECTURE_REVIEW.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced_code_fences_README.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "relative_links_resolve",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "eleven_user_sequence_diagrams",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "all_requirements_mapped",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "test_references_resolve",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "operation_references_in_review",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "official_openapi_metaschema": {
+    "url": "https://spec.openapis.org/oas/3.1/schema/2022-10-07",
+    "sha256": "da01ba28852cac0de53893797cb8d1942bc3b05084f526dcc216717dec314ed0"
+  },
+  "limits": [
+    "OpenAPI validated structurally against official 3.1 metaschema and canonical JSON Schema definitions; not an implementation/runtime/provider-SDK validation.",
+    "SQL declarations statically cross-checked; no PostgreSQL parser/server/execution or migration test available.",
+    "Mermaid fences and count checked; diagrams were not rendered.",
+    "No API, provider, native device, authorization runtime or application test suite executed."
+  ],
+  "artifact_sha256": {
+    "contracts/openapi.yaml": "95a5dad9ec7f4e31c5895250586c955cf2949bdbd58621333739ef295a6e265d",
+    "contracts/tool_contracts.json": "706bf901a23534612b3dfa80e896848b49dd59e16b9daa7e7744f278bd1ffd64",
+    "database/schema.sql": "af05eba8f7683658353af8b692e323e06ba0e3fabead7753618d1bd7090b9bf6"
+  },
+  "validator_versions": {
+    "PyYAML": "6.0.1",
+    "jsonschema": "4.23.0"
+  },
+  "document_sha256": {
+    "docs/AGENT_DESIGN.md": "9741201a3ce0ffc8810d0b88f5332e4e8e785e1688a9549fb0634b5d894ff5bc",
+    "docs/API_CONTRACTS.md": "e36e656a94c540a738cb28e2cad846ca90610470db7a6e27009e2acd7e524dbe",
+    "docs/ARCHITECTURE.md": "77096ed87d42261d7854635e408b1ae0e9b1ef424c45abc73cd481ba651418e4",
+    "docs/ARCHITECTURE_REVIEW.md": "afbef7bb5f2b79c1d9a64f7d01dded20110d0b895714b3578265e043040e89ef",
+    "docs/DATABASE_SCHEMA.md": "2d61d8c76b4b488781a2d21d4bb170f46802eeecde5f7070cf4eb8bcd005c157",
+    "docs/IMPLEMENTATION_PLAN.md": "ec0e6d6f20500dda80c54070b2a7f568c0cf077dbe21af3983bc07f68ec668ae",
+    "docs/PRD.md": "9366257d2e49791a5b1b2bef2b37471c578657ce6b3856e43428f4bb27f9172f",
+    "docs/README.md": "10ccf59ec327d1b6832fbacf4ae325fb28e5909ddbc304f1d63b31a460a33070",
+    "docs/SECURITY.md": "a136b092026e10558fe978510714ced576bf2fa1984615e0e3dcc375204e6698",
+    "docs/TEST_PLAN.md": "08ec21da6d6a462136141d4daf85564b43852a7757cb56d2fb0047bd88927395",
+    "docs/USER_FLOWS.md": "27fdcc92453dcaf5302d5f5acd550913b439d6b7a6385169a7dd95de420c944f"
+  }
+}

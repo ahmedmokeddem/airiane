@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-14",
+  "device": {
+    "model": "Samsung SM-G998B",
+    "android": 15,
+    "build": "Expo SDK 58 development APK",
+    "build_result": "BUILD SUCCESSFUL in 32s"
+  },
+  "verified_on_device": [
+    "Fictional authenticated report generation and new-ID version-2 regeneration",
+    "Actual authenticated PDF download into app-private cache",
+    "Native Android PDF share chooser opened; no app or recipient selected",
+    "Native A4 six-page print preview",
+    "Samsung My Files local folder selection and successful PDF save",
+    "Saved PDF read back: six selectable-text pages with exact report ID"
+  ],
+  "verified_live_backend_browser": [
+    "Version-2 document read directly from configured PostgreSQL; see postgresql.json",
+    "Same stored report displayed in clinician perspective",
+    "Explicit portal download completed with no failure",
+    "Authenticated portal PDF proxy: HTTP 200 application/pdf, private/no-store",
+    "Portal PDF proxy without session: HTTP 401",
+    "Unsupported old generator export: HTTP 409 regeneration required"
+  ],
+  "automated": {
+    "backend_postgresql": 28,
+    "backend_sqlite": 28,
+    "mobile_tests": 32,
+    "portal_tests": 10,
+    "canonical_fixtures": 8,
+    "lint_typecheck": "passed",
+    "portal_build": "passed",
+    "pdf_examples": 4
+  },
+  "security_tests": [
+    "Wrong owner/role",
+    "Missing and revoked grants",
+    "Full prior-period consent boundary",
+    "Revocation during rendering denies delivery",
+    "Current-note withdrawal during rendering denies delivery",
+    "Prior-note withdrawal removes document and denies export",
+    "Fabricated prose rejected even with rehashed document",
+    "Unicode and escaped markup",
+    "Local-midnight timezone formatting",
+    "Stale prior-period source metadata retains earlier authorization boundary after narrative scrubbing"
+  ],
+  "preserved": [
+    "Existing sharing grants left unchanged in live testing",
+    "No hosted SQL migration",
+    "Tool contract 2.0.0 and baseline migrations",
+    "Existing ElevenLabs/audio/camera integration and SDK versions",
+    "Approved logo source files"
+  ],
+  "not_tested": [
+    "iOS native share/save",
+    "Fresh live voice conversation in this reporting pass",
+    "New Bluetooth/camera audit",
+    "Production Supabase accounts",
+    "All Unicode scripts and assistive technologies",
+    "PDF/UA certification",
+    "Multi-worker load/stress and low-memory native devices",
+    "Delivery to a sharing recipient (intentionally not performed)"
+  ],
+  "notes": [
+    "CLI runtime taps call actual app handlers; native print/save also used physical Android input and accessibility bounds.",
+    "Fixture PDFs are wholly fictional and were visually reviewed.",
+    "No new external LLM implementation, dependency or call was introduced.",
+    "Cache timer cleanup can be deferred by OS termination; next export sweeps old private files.",
+    "Existing known force-kill voice recovery gap remains outside this task.",
+    "Final live patient export was separately checked for the correct 07 Nov local-midnight reporting date.",
+    "The final disposable PostgreSQL rerun initially raced container initialization; waiting for TCP readiness, applying both migrations and rerunning resolved the test setup failure."
+  ],
+  "phone_setting_restored": true
+}

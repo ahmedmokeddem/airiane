@@ -1,0 +1,6 @@
+import { Pressable, Text, View, StyleSheet } from 'react-native';
+import type { PropsWithChildren } from 'react';
+import { theme } from '../theme';
+export function Action({label,onPress,secondary=false,disabled=false}:{label:string;onPress:()=>void;secondary?:boolean;disabled?:boolean}){return <Pressable testID={label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'')} accessibilityRole="button" accessibilityState={{disabled}} onPress={onPress} disabled={disabled} style={({pressed})=>[styles.button,{backgroundColor:secondary?theme.low:theme.ink,opacity:disabled?0.45:pressed?0.8:1}]}><Text style={{color:secondary?theme.ink:'white',fontWeight:'600',textAlign:'center'}}>{label}</Text></Pressable>;}
+export function Card({children}:PropsWithChildren){return <View style={styles.card}>{children}</View>;}
+export const styles=StyleSheet.create({button:{padding:16,borderRadius:18,minHeight:50,justifyContent:'center'},card:{backgroundColor:theme.surface,borderRadius:theme.radius,padding:20,gap:12,borderColor:theme.border,borderWidth:1},heading:{fontSize:30,fontWeight:'600',color:theme.ink,letterSpacing:-1},body:{fontSize:16,lineHeight:24,color:theme.muted},eyebrow:{fontSize:12,letterSpacing:2,color:theme.accent,fontWeight:'600'}});

@@ -1,0 +1,42 @@
+[
+  {
+    "example": "empty",
+    "pages": 4,
+    "bytes": 43617,
+    "a4": true,
+    "selectable_text": true,
+    "structure_tree": true,
+    "unicode_latin_greek": false,
+    "evidence_count": 0
+  },
+  {
+    "example": "activities",
+    "pages": 5,
+    "bytes": 48185,
+    "a4": true,
+    "selectable_text": true,
+    "structure_tree": true,
+    "unicode_latin_greek": false,
+    "evidence_count": 6
+  },
+  {
+    "example": "confirmed",
+    "pages": 6,
+    "bytes": 54366,
+    "a4": true,
+    "selectable_text": true,
+    "structure_tree": true,
+    "unicode_latin_greek": true,
+    "evidence_count": 10
+  },
+  {
+    "example": "longitudinal",
+    "pages": 9,
+    "bytes": 62543,
+    "a4": true,
+    "selectable_text": true,
+    "structure_tree": true,
+    "unicode_latin_greek": true,
+    "evidence_count": 17
+  }
+]

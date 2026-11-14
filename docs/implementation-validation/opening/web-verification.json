@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-14",
+  "environment": "Chromium web preview, 390x844, existing Metro 8082",
+  "actual_app_reveal_and_wordmark_completed": true,
+  "signed_out_destination": "Welcome",
+  "skip_observed_ms": 134,
+  "reduced_motion_overlay_remaining": 0,
+  "reduced_motion_welcome_visible": true,
+  "delayed_font_requests": 3,
+  "font_delay_ms": 6500,
+  "fallback_after_observed_mount_ms": 4523,
+  "welcome_visible_during_font_delay": true,
+  "underlying_interaction_dispatched_real_onboarding_request": true,
+  "opening_dismissed_by_underlying_pointer_interaction": true,
+  "web_authentication": "Blocked by existing backend CORS allowlist for preview origin 127.0.0.1:8082; no successful sign-in claimed",
+  "notes": [
+    "Web has no native Android splash and is not native-performance evidence.",
+    "Existing companion/core Animated web warning uses a JS fallback; opening uses Reanimated.",
+    "Resource-fallback timing excludes web bundle download before React mounts."
+  ]
+}
