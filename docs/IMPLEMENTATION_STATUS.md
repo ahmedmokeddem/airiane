@@ -1,6 +1,15 @@
 # AIriane implementation status
 
-Chat simplification: removed the “Your conversation” consent/check-in panel from the text conversation. Its optional controls remain under Profile; no memory consent or check-in state is changed automatically. This source change requires the next APK build and is not in the currently installed focused-activities APK.
+## Final merged APK — 14 November 2026
+
+Original main advanced through PR #12 while the latest fixes were pending. Its independent-camera preview, denied-permission settings route and cleanup of the unused preview component were merged with the voice recovery, latency, timeout, horizontal-card, optional-caption and chat-panel simplification changes. Both camera-independence and late-SDK-event tests were preserved.
+
+**VERIFIED BUILD / AUTOMATED:** merged ARM64 APK built in 30s; 75 mobile tests, mobile lint/typecheck, three targeted agent-creation tests and backend Ruff check/format pass. Existing signer, production Aiven API, V2 UI markers, all six bundled recordings and private-credential scan verified. Artifact `build/artifacts/AIriane-latest-internal-arm64.apk` (63,949,486 bytes), SHA-256 `b2b024f51430bd6369228ce257fb8e04b612c21970276322cf62e1d404dae9df`. [Build receipt](implementation-validation/latest-apk.json).
+
+This final combined APK is an internal development-signed release build, not a store release. It has not been installed/device-tested in this build pass; earlier device evidence below applies to the recorded earlier artifacts. The installed focused-activities build precedes the chat-panel removal and upstream camera merge. The removed chat panel's optional controls remain in Profile; no consent is automatically enabled. No Aiven redeploy is required for the mobile UI changes; the V2 activity-tool timeouts have already been repaired/read back to 45s.
+
+
+Chat simplification: removed the “Your conversation” consent/check-in panel from the text conversation. Its optional controls remain under Profile; no memory consent or check-in state is changed automatically. This change is included in the final merged APK above and is not in the currently installed older focused-activities APK.
 
 
 ## Voice activity cards — 14 November 2026
