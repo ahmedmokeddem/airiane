@@ -3,10 +3,9 @@ WORKDIR /app/portal
 COPY portal/package.json portal/package-lock.json ./
 RUN npm ci
 FROM dependencies AS build
-ENV NEXT_TELEMETRY_DISABLED=1
 COPY portal ./
 COPY contracts/generated/api.ts /app/contracts/generated/api.ts
-RUN npm run build
+RUN NEXT_TELEMETRY_DISABLED=1 npm run build
 FROM node:24.11.1-bookworm-slim AS runtime
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000 PORTAL_DATA_MODE=api PORTAL_DEMO_AUTH=false
 WORKDIR /app
