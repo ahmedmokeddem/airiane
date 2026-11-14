@@ -1,0 +1,676 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "RE:SONANCE — Technical Architecture",
+    "locale": "en",
+    "output": "docs/architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "mobile",
+      "type": "frontend",
+      "label": "Patient App",
+      "sublabel": "React Native / Expo / local Rive",
+      "pos": [
+        40,
+        230
+      ],
+      "size": [
+        250,
+        80
+      ]
+    },
+    {
+      "id": "gemini",
+      "type": "cloud",
+      "label": "Gemini Live API",
+      "sublabel": "Voice / text / optional frames",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        250,
+        80
+      ]
+    },
+    {
+      "id": "auth",
+      "type": "security",
+      "label": "Supabase Auth",
+      "sublabel": "Login / JWT issuance / trusted keys",
+      "pos": [
+        540,
+        40
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API Layer",
+      "sublabel": "Gemini Session Bootstrap / short-lived tokens",
+      "pos": [
+        540,
+        230
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "tag": "Authentication / authorization / API routes"
+    },
+    {
+      "id": "domain",
+      "type": "backend",
+      "label": "Patient Context & Activities",
+      "sublabel": "Controller / Memory / Recommendations / Activity Feedback / Assessments / Alerts",
+      "pos": [
+        950,
+        230
+      ],
+      "size": [
+        660,
+        100
+      ]
+    },
+    {
+      "id": "doctor",
+      "type": "frontend",
+      "label": "Doctor portal",
+      "sublabel": "Next.js / profiles / reports / alerts",
+      "pos": [
+        950,
+        40
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "Tiger Data / PostgreSQL",
+      "sublabel": "History / facts / activities / assessments / reports",
+      "pos": [
+        1130,
+        790
+      ],
+      "size": [
+        300,
+        80
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Background Jobs (optional)",
+      "sublabel": "Async report processing / notifications",
+      "pos": [
+        540,
+        580
+      ],
+      "size": [
+        310,
+        90
+      ],
+      "tag": "Safe claiming / retries / idempotency"
+    },
+    {
+      "id": "bridge",
+      "type": "frontend",
+      "label": "Gemini Function Calling / UI Bridge",
+      "sublabel": "Tool Calls / Activity Cards / Voice-Touch / UI State",
+      "pos": [
+        40,
+        370
+      ],
+      "size": [
+        340,
+        100
+      ]
+    },
+    {
+      "id": "conversation",
+      "type": "backend",
+      "label": "Conversation Service",
+      "sublabel": "History (opt-in) + Session Summaries",
+      "pos": [
+        950,
+        420
+      ],
+      "size": [
+        280,
+        90
+      ]
+    },
+    {
+      "id": "extraction",
+      "type": "backend",
+      "label": "Observation Extraction",
+      "sublabel": "Structured patient-reported facts / confirm + correct",
+      "pos": [
+        1415,
+        420
+      ],
+      "size": [
+        310,
+        90
+      ]
+    },
+    {
+      "id": "report",
+      "type": "backend",
+      "label": "Report Service",
+      "sublabel": "Factual trends / source-linked JSON reports",
+      "pos": [
+        1360,
+        600
+      ],
+      "size": [
+        310,
+        90
+      ]
+    },
+    {
+      "id": "care",
+      "type": "security",
+      "label": "Care Link & Consent Check",
+      "sublabel": "Owner access / active patient authorization",
+      "pos": [
+        950,
+        600
+      ],
+      "size": [
+        280,
+        90
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "media-input",
+      "from": "mobile",
+      "to": "gemini",
+      "label": "WSS: audio / text / frames",
+      "variant": "emphasis",
+      "labelAt": [
+        245,
+        175
+      ],
+      "width": 2.2
+    },
+    {
+      "id": "media-output",
+      "from": "gemini",
+      "to": "mobile",
+      "label": "Speech: same activities",
+      "variant": "emphasis",
+      "width": 2.2
+    },
+    {
+      "id": "function-calls",
+      "from": "gemini",
+      "to": "bridge",
+      "label": "Tools / transcription events",
+      "variant": "emphasis",
+      "fromSide": "left",
+      "toSide": "left",
+      "via": [
+        [
+          12,
+          80
+        ],
+        [
+          12,
+          420
+        ]
+      ],
+      "labelAt": [
+        105,
+        335
+      ],
+      "width": 1
+    },
+    {
+      "id": "function-response",
+      "from": "bridge",
+      "to": "gemini",
+      "label": "Same activity IDs",
+      "variant": "emphasis",
+      "fromSide": "left",
+      "toSide": "left",
+      "via": [
+        [
+          24,
+          420
+        ],
+        [
+          24,
+          80
+        ]
+      ],
+      "labelAt": [
+        90,
+        150
+      ],
+      "width": 1
+    },
+    {
+      "id": "local-ui",
+      "from": "bridge",
+      "to": "mobile",
+      "label": "Interactive cards / voice-touch selection",
+      "variant": "default"
+    },
+    {
+      "id": "patient-login",
+      "from": "mobile",
+      "to": "auth",
+      "label": "HTTPS: login",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          320,
+          270
+        ],
+        [
+          320,
+          80
+        ]
+      ],
+      "labelAt": [
+        380,
+        178
+      ]
+    },
+    {
+      "id": "patient-jwt",
+      "from": "auth",
+      "to": "mobile",
+      "label": "JWT",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "right",
+      "via": [
+        [
+          330,
+          80
+        ],
+        [
+          330,
+          270
+        ]
+      ],
+      "labelAt": [
+        430,
+        63
+      ]
+    },
+    {
+      "id": "doctor-login",
+      "from": "doctor",
+      "to": "auth",
+      "label": "HTTPS: login",
+      "variant": "security"
+    },
+    {
+      "id": "verify-identity",
+      "from": "auth",
+      "to": "api",
+      "label": "HTTPS: trusted keys",
+      "variant": "security"
+    },
+    {
+      "id": "session-request",
+      "from": "mobile",
+      "to": "api",
+      "label": "HTTPS: session / own reports",
+      "variant": "default",
+      "labelAt": [
+        415,
+        300
+      ]
+    },
+    {
+      "id": "tool-request",
+      "from": "bridge",
+      "to": "api",
+      "label": "JWT: tools / opt-in transcripts",
+      "variant": "default",
+      "labelAt": [
+        465,
+        390
+      ]
+    },
+    {
+      "id": "tool-result",
+      "from": "api",
+      "to": "bridge",
+      "label": "Activity data / same IDs",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "right"
+    },
+    {
+      "id": "session-token",
+      "from": "api",
+      "to": "mobile",
+      "label": "Token / own JSON report",
+      "variant": "security",
+      "labelAt": [
+        400,
+        345
+      ]
+    },
+    {
+      "id": "validated-action",
+      "from": "api",
+      "to": "domain",
+      "label": "Validated application calls",
+      "variant": "default",
+      "labelAt": [
+        878,
+        280
+      ]
+    },
+    {
+      "id": "clinician-access",
+      "from": "doctor",
+      "to": "api",
+      "label": "HTTPS + JWT: shared reports",
+      "variant": "security"
+    },
+    {
+      "id": "persist",
+      "from": "domain",
+      "to": "db",
+      "label": "Completions / feedback / assessments",
+      "variant": "default"
+    },
+    {
+      "id": "jobs",
+      "from": "db",
+      "to": "worker",
+      "label": "Outbox: claim jobs",
+      "variant": "dashed"
+    },
+    {
+      "id": "job-results",
+      "from": "worker",
+      "to": "db",
+      "label": "Commit / retry safely",
+      "variant": "dashed"
+    },
+    {
+      "id": "doctor-jwt",
+      "from": "auth",
+      "to": "doctor",
+      "label": "JWT",
+      "variant": "security"
+    },
+    {
+      "id": "conversation-ingest",
+      "from": "api",
+      "to": "conversation",
+      "label": "Opt-in text / session facts",
+      "variant": "default"
+    },
+    {
+      "id": "extraction-source",
+      "from": "conversation",
+      "to": "extraction",
+      "label": "Facts + source IDs",
+      "variant": "default",
+      "labelAt": [
+        1380,
+        400
+      ]
+    },
+    {
+      "id": "history-store",
+      "from": "conversation",
+      "to": "db",
+      "label": "Opt-in history / summaries",
+      "variant": "default"
+    },
+    {
+      "id": "facts-store",
+      "from": "extraction",
+      "to": "db",
+      "label": "Confirmed facts / revisions",
+      "variant": "default"
+    },
+    {
+      "id": "report-read",
+      "from": "db",
+      "to": "report",
+      "label": "Records / sources (scoped)",
+      "variant": "default"
+    },
+    {
+      "id": "report-result",
+      "from": "report",
+      "to": "api",
+      "label": "Structured JSON report",
+      "variant": "default"
+    },
+    {
+      "id": "doctor-report",
+      "from": "api",
+      "to": "doctor",
+      "label": "JSON: active link + consent",
+      "variant": "security"
+    },
+    {
+      "id": "doctor-authorization",
+      "from": "api",
+      "to": "care",
+      "label": "Report ownership / consent",
+      "variant": "security"
+    },
+    {
+      "id": "authorized-report",
+      "from": "care",
+      "to": "report",
+      "label": "Scope allowed",
+      "variant": "security",
+      "labelAt": [
+        1335,
+        710
+      ]
+    },
+    {
+      "id": "report-query",
+      "from": "report",
+      "to": "db",
+      "label": "Query authorized records",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Conversations → persisted facts → patient reports",
+      "items": [
+        "Gemini Live → Mobile Tool Bridge: configured input/output transcription events are text events, separate from function calls and audio.",
+        "With active transcript opt-in: Bridge → authenticated FastAPI → Conversation Service → PostgreSQL. Validate patient/session, speaker, event IDs, sequence and consent before retaining text.",
+        "Conversation Service owns opt-in history and source-linked session summaries. Without transcript opt-in, do not upload or persist conversation text; summaries use confirmed structured records only.",
+        "Observation Extraction proposes structured patient-reported facts from consented patient utterances or explicit structured answers; assistant speech and speculative emotion are not patient facts.",
+        "Patient confirms or corrects observations before they enter factual reports. Preserve source record IDs, revisions, observation time, session provenance and supersession links.",
+        "Persist confirmed observations, completed activities, feedback and assessments in the same PostgreSQL database.",
+        "Report Service reads these records, calculates deterministic factual trends and returns versioned structured JSON with source references, coverage and freshness.",
+        "FastAPI returns the same report representation to the owning Patient App and to the Doctor Portal only with a verified role, active link and sharing consent.",
+        "Raw audio/video are not stored by default. Transcripts are opt-in. No PDF generation or report file export.",
+        "Clinician request path: Doctor Portal → FastAPI → Care Link & Consent Check → Report Service → PostgreSQL. The reverse data path returns structured JSON through FastAPI only after current patient authorization is verified. The same check permits patient ownership without requiring clinician-sharing consent; clinician access requires the active patient link and sharing grant."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Scope and ownership",
+      "items": [
+        "RE:SONANCE supports patient wellbeing and follow-up after TMS treatment. Proposed architecture before implementation.",
+        "Gemini handles natural conversation; FastAPI handles trusted decisions and data; React Native renders interactive experiences; Next.js provides authorized monitoring.",
+        "The patient runtime frame nests the Gemini Function Calling / UI Bridge on device; it is not a server.",
+        "The FastAPI Backend container holds API Layer, Application Services and optional Background Jobs: logical modules in one Python application, not separate servers or microservices.",
+        "All report reads pass through FastAPI. Authentication plus ownership permits patient reads; clinician reads additionally require active link and consent.",
+        "Gemini Session Bootstrap is inside the API Layer. It obtains short-lived Gemini Live credentials through the provider API; it is not a separately deployed service.",
+        "One Application Services container includes Patient Context & Activities, Conversation Service, Observation Extraction, Care Link & Consent Check, and Report Service. These are internal Python modules of the same FastAPI backend."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Inside the unified FastAPI Backend",
+      "items": [
+        "API Layer: authentication, authorization, API routes and Gemini session bootstrap. All client HTTPS requests enter here.",
+        "Application Services: Conversation Controller, Patient Memory, Activity Recommendations, Observations, Reports, Consent and Alerts.",
+        "Application Services additionally contains Conversation Service (History + Session Summaries), Observation Extraction (Structured Patient-Reported Facts), and Report Service (record aggregation, factual trends, structured JSON). These are internal Python modules, not microservices.",
+        "Conversation Controller owns guided questions, known/missing information, policies and session state. Memory holds recovery plans, preferences and confirmed history.",
+        "Activity Recommendations covers catalog eligibility and ranking; activity sessions, configurations and feedback remain application-service responsibilities.",
+        "Observations validate explicitly patient-reported information. Reports aggregate assessments, observations, activities and trends. Alerts use predefined follow-up rules, not relapse predictions.",
+        "Consent includes care-link checks, sharing scopes and revocation. Patients read their own reports; doctors require an active link and sharing consent.",
+        "Background Jobs (optional): asynchronous report processing and notifications, with safe claiming, retries and idempotency.",
+        "These are logical modules of the same Python application. Internal arrows show calls and data flow, not network hops or separate servers."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "API routes and session bootstrap",
+      "items": [
+        "Authentication and authorization validate JWTs, roles, ownership and consent before dispatch.",
+        "API routes serve activities, observations, reports, sharing controls and alerts.",
+        "Gemini session bootstrap creates an application session and obtains a restricted ephemeral credential from Gemini; the permanent key stays inside the backend."
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Session bootstrap and tool contract",
+      "items": [
+        "1–3: Patient speaks; Gemini calls present_activity_recommendations; the on-device bridge requests recommendations from FastAPI through authenticated HTTPS.",
+        "4–5: Recommendation Engine retrieves eligible activities and ranks them. FastAPI returns recommendation_id and structured data with stable backend-generated activity IDs.",
+        "6–8: Bridge renders activity cards, sends the SAME recommendations as the Gemini function response, then Gemini introduces the displayed activities verbally.",
+        "9–11: Touch or voice selects an activity from that recommendation_id; FastAPI validates and records the activity session; the app runs the experience and animation locally while Gemini can guide.",
+        "Stale or replaced recommendation batches cannot start an unoffered activity. Spoken choices and visible cards always resolve to the same backend activity IDs.",
+        "Privileged tools validate ownership, schema, session state and idempotency. Local UI animations do not need backend calls."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Consent and confirmation gates",
+      "items": [
+        "Doctor Portal → FastAPI → Care Link & Consent Check → Report Service → PostgreSQL. Check the verified doctor role, active patient relationship, patient-granted scope and expiry before querying that patient’s report records; revocation denies access.",
+        "Clinician access requires verified role, active care relationship and active sharing scope on every read.",
+        "Revocation blocks future access and pending delivery; previously viewed data cannot be retracted.",
+        "Proposed observations require patient confirmation before entering confirmed records and reports.",
+        "Sharing changes use authenticated patient controls; model claims cannot grant consent.",
+        "Background Jobs check current consent before recipient delivery; portal reads recheck access.",
+        "Patient App → FastAPI → Report Service: authenticated patients can view their own reports without clinician-sharing consent.",
+        "Doctor Portal → FastAPI → Consent Check → Report Service: verified clinicians need an active patient relationship and active report scope.",
+        "The access-check module branches by caller: patient ownership or clinician link plus consent. It is not a requirement that patients consent to read their own reports."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Durable processing and reports",
+      "items": [
+        "An accepted write and its outbox event commit in the same database transaction.",
+        "Optional Background Jobs claim durable jobs and reuse backend domain rules; execution may repeat and handlers deduplicate.",
+        "Reports expose time range, missing data, sources, version and last refresh time.",
+        "Alerts move from open to acknowledged to resolved; delivery and acknowledgement are separate.",
+        "Portal polls authorized endpoints initially. Reports remain in-app; no PDF generation or export.",
+        "Application Services → PostgreSQL Outbox → optional Background Jobs → PostgreSQL. Jobs handle async report processing and notifications; synchronous API/tool actions do not wait for them."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Media, avatar and recovery",
+      "items": [
+        "Audio and optional camera frames stream directly between the app and Gemini.",
+        "Rive renders locally using idle, listening, thinking, speaking and interrupted playback states.",
+        "Gemini resumption state is separate from persisted application progress.",
+        "Reconnects retain accepted records; tool retries cannot duplicate observations or completions.",
+        "Validate native capture, playback, interruption, camera and Rive on physical devices.",
+        "Bridge synchronizes touch and voice selection, updates React Native state, and triggers local activity animation. Rive is rendered on-device, never streamed AI video.",
+        "The mobile bridge owns Tool Calls, Activity Cards, Voice/Touch Selection and UI State. It requests backend recommendations, renders interactive cards, then returns the same IDs to Gemini for verbal presentation."
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Data and operational boundaries",
+      "items": [
+        "Supabase Auth issues identity tokens; the separate Tiger Data database stores application records.",
+        "Clients never connect directly to application PostgreSQL; FastAPI enforces authorization.",
+        "Raw audio/video are not stored by default. Conversation transcript persistence is opt-in and checked by FastAPI on every ingestion; structured memory and confirmed records have separate retention rules.",
+        "Redact health content and credentials from logs; audit clinician access and sensitive changes.",
+        "Minimize Gemini context; decide provider retention, regions, deletion and backup expiry before real patient data.",
+        "Single application source of truth: users/profiles; care links/consent; conversation sessions; memory/observations; recovery plans; catalog/sessions/feedback; assessments; reports/metadata; alerts/audit/outbox."
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Deployment and unresolved decisions",
+      "items": [
+        "Mobile app, Next.js portal and one unified FastAPI Backend are the application boundaries. Background Jobs are an optional module inside that backend.",
+        "Modal or Vultr remains a hosting decision. No separate worker server or microservice is specified.",
+        "Codex + Entire support development and are outside the runtime request path.",
+        "Model/API version, clinician verification, rule thresholds, retention and performance targets remain open.",
+        "Direct patient help controls do not depend on a Gemini tool call. No diagnosis or promise of emergency monitoring."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Identity and Gemini credentials are separate",
+      "items": [
+        "Patient App / Doctor Portal → Supabase Auth: login. Supabase Auth → client: JWT. Client → FastAPI: authenticated HTTPS; FastAPI verifies JWT using trusted keys.",
+        "Patient App → FastAPI: live-session request. FastAPI API Layer → internal Gemini Session Bootstrap: obtain a restricted short-lived Gemini Live credential through the provider API. FastAPI → Patient App: ephemeral token.",
+        "Patient App ↔ Gemini Live: direct secure WebSocket. Supabase Auth does not generate Gemini tokens.",
+        "Gemini Session Bootstrap is backend logic, not another server. The provider API issues the credential; permanent API keys stay on the backend."
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Patient App runtime — bridge runs on device",
+      "wraps": [
+        "mobile",
+        "bridge"
+      ],
+      "pad": 18
+    },
+    {
+      "kind": "security-group",
+      "label": "FastAPI Backend · one Python application",
+      "wraps": [
+        "api",
+        "domain",
+        "worker",
+        "conversation",
+        "extraction",
+        "report",
+        "care"
+      ],
+      "pad": 18
+    },
+    {
+      "kind": "security-group",
+      "label": "Application Services · internal Python modules",
+      "wraps": [
+        "domain",
+        "conversation",
+        "extraction",
+        "care",
+        "report"
+      ],
+      "pad": 16
+    }
+  ]
+}

@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+    "sha256": "0f79efc435bb1eb45c8e5ca9f4645bbbc4158aa69fed9a2ca3c7ad75340cb47e",
+    "bytes": 17477
+  },
+  "artifact": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+    "sha256": "7bd095f163c69f5bdb8a5c493194a7be013b6b006a40e145acb7d0024c0cc7b9",
+    "bytes": 861002
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-2/architecture.finalize.json",
+    "summaryReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-2/architecture.finalize-summary.json",
+    "browserCheckReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-2/architecture.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-14T01:06:41.464Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 6805,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 6,
+      "routesOverSuggestedBends": 3,
+      "routesOverSuggestedStretch": 2
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "doctor-login",
+            "from": "doctor",
+            "to": "auth",
+            "label": "HTTPS: login / JWT reply",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "right": {
+            "id": "credential-request",
+            "from": "api",
+            "to": "credentials",
+            "label": "HTTPS: mint credential",
+            "collectionIndex": 12,
+            "artifactIndex": 13
+          },
+          "point": [
+            783,
+            249
+          ]
+        },
+        {
+          "left": {
+            "id": "doctor-login",
+            "from": "doctor",
+            "to": "auth",
+            "label": "HTTPS: login / JWT reply",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "right": {
+            "id": "credential-result",
+            "from": "credentials",
+            "to": "api",
+            "label": "Ephemeral credential",
+            "collectionIndex": 13,
+            "artifactIndex": 14
+          },
+          "point": [
+            783,
+            206.00000000000003
+          ]
+        },
+        {
+          "left": {
+            "id": "doctor-login",
+            "from": "doctor",
+            "to": "auth",
+            "label": "HTTPS: login / JWT reply",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "right": {
+            "id": "validated-action",
+            "from": "api",
+            "to": "domain",
+            "label": "Validated business actions",
+            "collectionIndex": 15,
+            "artifactIndex": 16
+          },
+          "point": [
+            783,
+            277
+          ]
+        },
+        {
+          "left": {
+            "id": "doctor-login",
+            "from": "doctor",
+            "to": "auth",
+            "label": "HTTPS: login / JWT reply",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "right": {
+            "id": "report-access",
+            "from": "api",
+            "to": "care",
+            "label": "Report access check",
+            "collectionIndex": 19,
+            "artifactIndex": 20
+          },
+          "point": [
+            783,
+            291
+          ]
+        },
+        {
+          "left": {
+            "id": "credential-request",
+            "from": "api",
+            "to": "credentials",
+            "label": "HTTPS: mint credential",
+            "collectionIndex": 12,
+            "artifactIndex": 13
+          },
+          "right": {
+            "id": "credential-result",
+            "from": "credentials",
+            "to": "api",
+            "label": "Ephemeral credential",
+            "collectionIndex": 13,
+            "artifactIndex": 14
+          },
+          "point": [
+            926,
+            87
+          ],
+          "sharedNode": "api"
+        },
+        {
+          "left": {
+            "id": "dispatch-context",
+            "from": "domain",
+            "to": "context",
+            "label": "Session / facts",
+            "collectionIndex": 17,
+            "artifactIndex": 18
+          },
+          "right": {
+            "id": "persist",
+            "from": "domain",
+            "to": "db",
+            "label": "TLS: records + outbox",
+            "collectionIndex": 21,
+            "artifactIndex": 22
+          },
+          "point": [
+            1073,
+            397
+          ],
+          "sharedNode": "domain"
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "id": "doctor-login",
+            "from": "doctor",
+            "to": "auth",
+            "label": "HTTPS: login / JWT reply",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "bends": 4,
+          "stretch": 1.511,
+          "directCorridorBlockers": [
+            {
+              "id": "api",
+              "label": "FastAPI boundary",
+              "box": [
+                540,
+                230,
+                240,
+                80
+              ]
+            }
+          ]
+        },
+        {
+          "relationship": {
+            "id": "credential-result",
+            "from": "credentials",
+            "to": "api",
+            "label": "Ephemeral credential",
+            "collectionIndex": 13,
+            "artifactIndex": 14
+          },
+          "bends": 3,
+          "stretch": 1
+        },
+        {
+          "relationship": {
+            "id": "persist",
+            "from": "domain",
+            "to": "db",
+            "label": "TLS: records + outbox",
+            "collectionIndex": 21,
+            "artifactIndex": 22
+          },
+          "bends": 4,
+          "stretch": 1.714,
+          "directCorridorBlockers": [
+            {
+              "id": "context",
+              "label": "A · Conversation &amp; Context",
+              "box": [
+                950,
+                400,
+                260,
+                80
+              ]
+            },
+            {
+              "id": "care",
+              "label": "D · Care &amp; Permissions",
+              "box": [
+                950,
+                560,
+                260,
+                80
+              ]
+            }
+          ]
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "doctor → auth crosses api → credentials: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "doctor → auth crosses credentials → api: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "doctor → auth crosses api → domain: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "doctor → auth crosses api → care: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "api → credentials and credentials → api cross next to api: move node credentials or credentials so the two reach api from different sides (for example one level with it, one directly above or below it).",
+      "domain → context and domain → db cross next to domain: move node context or db so the two reach domain from different sides (for example one level with it, one directly above or below it).",
+      "credentials → api needs 3 bends: move node credentials or api so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

@@ -1,0 +1,6 @@
+docs/design/
+docs/archive/
+docs/validation/
+.agents/
+*.html
+package-lock.json

@@ -1,0 +1,29 @@
+{
+  "status": "saved_configuration_readback_verified_deletion_behavior_pending",
+  "checked_on": "2026-11-14",
+  "source": "Actual saved ElevenLabs agent configuration readback after explicit user-approved changes; provider docs remain the semantics authority",
+  "required_before_bootstrap": {
+    "agent_private": true,
+    "platform_settings.privacy.record_voice": false,
+    "platform_settings.privacy.retention_days": 0,
+    "platform_settings.privacy.delete_audio": true,
+    "platform_settings.privacy.delete_transcript_and_pii": true,
+    "post_call_content_webhooks_enabled": false,
+    "content_debug_logging_enabled": false
+  },
+  "zero_retention_mode": "Enable if account/model/region supports it; retention_days=0 is scheduled deletion and is not a ZRM guarantee. Record actual availability/semantics.",
+  "observed_agent_id": null,
+  "observed_agent_version": null,
+  "observed_privacy_settings": {
+    "record_voice": false,
+    "retention_days": 0,
+    "delete_audio": true,
+    "delete_transcript_and_pii": true,
+    "apply_to_existing_conversations": false,
+    "zero_retention_mode": false,
+    "private_auth_enabled": true
+  },
+  "verified_at": "2026-11-14 (configuration only; deletion behavior and workspace logging not verified)",
+  "verification_evidence": "../docs/implementation-validation/elevenlabs-saved-settings.json",
+  "bootstrap_policy": "Fail 503 PROVIDER_PRIVACY_UNVERIFIED until an operator reviews actual saved config and deletion behavior for both voice/text agent configurations. No secrets in evidence."
+}

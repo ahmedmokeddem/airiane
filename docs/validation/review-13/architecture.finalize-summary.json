@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+    "sha256": "602b60ca861d26a055be5fce0430d11696a302b7d0813afc928acd3726e75a4f",
+    "bytes": 22935
+  },
+  "artifact": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+    "sha256": "632da53317e5c8e4f1b28f89cafa2864a6bbaa008208c225e1b5f07f703fe643",
+    "bytes": 872625
+  },
+  "gates": {
+    "validate": "fail",
+    "deliver": "not-run",
+    "check": "not-run",
+    "browser-check": "not-run"
+  },
+  "failedStage": "validate",
+  "diagnostics": [
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"Doctor report request\" on connections[26] id \"doctor-authorization\" \"api\" -> \"care\" label \"Doctor report request\" is 0px from connections[25] id \"doctor-report\" \"api\" -> \"doctor\" label \"JSON: active link + consent\" segment 0 [780, 267] -> [865, 267] (label rect [810, 261, 111, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 26,
+        "id": "doctor-authorization",
+        "from": "api",
+        "to": "care"
+      },
+      "evidence": {
+        "label": "Doctor report request",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 25,
+          "id": "doctor-report",
+          "from": "api",
+          "to": "doctor"
+        },
+        "segmentIndex": 0,
+        "clearancePx": 0,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "id": "doctor-authorization",
+            "from": "api",
+            "to": "care",
+            "label": "Doctor report request",
+            "variant": "security"
+          },
+          "relationIndex": 26,
+          "label": "Doctor report request",
+          "x": 809.6,
+          "y": 261,
+          "width": 110.8,
+          "height": 14,
+          "lx": 865,
+          "ly": 271
+        },
+        "from": [
+          780,
+          267
+        ],
+        "to": [
+          865,
+          267
+        ]
+      },
+      "supportedFixes": [
+        "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    },
+    {
+      "code": "layout/constraint",
+      "severity": "error",
+      "message": "Label \"Active grant\" overlaps component \"domain\" — adjust labelDx/labelDy/labelSegment or set labelAt.\n  label rect: [1286, 630, 68, 14]\n  component \"domain\" rect: [950, 600, 440, 100]\n  Suggested fix: set labelAt [1320, 714] (below); or set labelAt [1320, 592] (above)",
+      "subject": {
+        "diagramType": "architecture"
+      }
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 2,
+    "shown": 2,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-13/architecture.finalize.json",
+    "summaryReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-13/architecture.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-14T01:06:41.464Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1120,
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "nextAction": {
+    "action": "edit-in-place",
+    "candidate": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+    "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
+    "then": "finalize-once"
+  }
+}

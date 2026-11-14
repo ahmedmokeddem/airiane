@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+    "sha256": "e773bb0ab4a5f66b94363fbe76b00663f173abce4c1b48440958e87601b36186",
+    "bytes": 16811
+  },
+  "artifact": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+    "sha256": "7dd1615754d06c99902381a43b3fa4fd754bff5f9f7e63f3cb4292b162b409ff",
+    "bytes": 851860
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-7/architecture.finalize.json",
+    "summaryReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-7/architecture.finalize-summary.json",
+    "browserCheckReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-7/architecture.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-14T01:06:41.464Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5141,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "credential-request",
+            "from": "api",
+            "to": "credentials",
+            "label": "HTTPS: mint credential",
+            "collectionIndex": 12,
+            "artifactIndex": 13
+          },
+          "right": {
+            "id": "clinician-access",
+            "from": "doctor",
+            "to": "api",
+            "label": "HTTPS + JWT: shared reports",
+            "collectionIndex": 16,
+            "artifactIndex": 17
+          },
+          "point": [
+            667,
+            175
+          ],
+          "sharedNode": "api"
+        }
+      ],
+      "detours": [],
+      "truncated": false
+    },
+    "hints": [
+      "api → credentials and doctor → api cross next to api: move node credentials or doctor so the two reach api from different sides (for example one level with it, one directly above or below it)."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

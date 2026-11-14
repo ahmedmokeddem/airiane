@@ -1,0 +1,5938 @@
+openapi: 3.1.0
+info:
+  title: RE:SONANCE planned API
+  version: 2.0.0
+  description: Pre-implementation phased contract v2. V1 ElevenAgents voice and separate
+    text; camera is strictly on-device preview. GeminiLiveAdapter is future V2 only
+    and has no V1 credential/API dependency. Supabase identity, FastAPI authority,
+    consent and factual JSON reports unchanged.
+servers:
+- url: https://api.example.invalid
+  description: Reserved placeholder, not deployed
+security:
+- supabaseJWT: []
+paths:
+  /v1/me/onboarding:
+    post:
+      operationId: onboardPatient
+      summary: onboardPatient
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: &id001
+          type: string
+          format: uuid
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: authenticated; patient role only; clinician role provisioned out
+        of band
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingRequest'
+  /v1/me:
+    get:
+      operationId: getMe
+      summary: getMe
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: authenticated
+      x-idempotency: safe-read
+    patch:
+      operationId: updateProfile
+      summary: updateProfile
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: owner
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfilePatch'
+  /v1/patient-context:
+    get:
+      operationId: getPatientContext
+      summary: getPatientContext
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientContext'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+    patch:
+      operationId: updatePatientContext
+      summary: updatePatientContext
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientContext'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextPatch'
+  /v1/memories:
+    post:
+      operationId: upsertMemory
+      summary: upsertMemory
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; explicit UI only
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryUpsert'
+  /v1/memories/{memory_id}:
+    delete:
+      operationId: deleteMemory
+      summary: deleteMemory
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: memory_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: required
+  /v1/conversation-sessions:
+    post:
+      operationId: createConversation
+      summary: createConversation
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationSession'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+    get:
+      operationId: listConversations
+      summary: listConversations
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationSessionPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+  /v1/conversation-sessions/{session_id}:
+    get:
+      operationId: getConversation
+      summary: getConversation
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationSession'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+    patch:
+      operationId: updateConversation
+      summary: updateConversation
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationSession'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; state/version validation
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionPatch'
+  /v1/conversation-sessions/{session_id}/messages:
+    post:
+      operationId: ingestMessages
+      summary: ingestMessages
+      description: V1 normalized ElevenLabs user/agent text events only. connection_id
+        and allocated connection_epoch must match the owned provider connection. Active
+        transcript grant required at ingestion; accept bounded late final messages
+        from a closed connection only with event time at/before recorded close and
+        current consent. No provider audio-history download, camera bytes, image/video
+        URIs or hidden text retention.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageBatchResult'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; active transcript grant for entire batch
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageBatch'
+    get:
+      operationId: listMessages
+      summary: listMessages
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagePage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; retained history only; never doctor
+      x-idempotency: safe-read
+  /v1/conversation-sessions/{session_id}/summary:
+    get:
+      operationId: getSummary
+      summary: getSummary
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; 404 until summary available
+      x-idempotency: safe-read
+  /v1/conversation-sessions/{session_id}/guided-question:
+    get:
+      operationId: getGuidedQuestion
+      summary: getGuidedQuestion
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedQuestion'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; active session
+      x-idempotency: safe-read
+  /v1/conversation-sessions/{session_id}/guided-answers:
+    post:
+      operationId: submitGuidedAnswer
+      summary: submitGuidedAnswer
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Observation'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; explicit answer confirms this structured input
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionAnswer'
+  /v1/conversation-sessions/{session_id}/guided-skips:
+    post:
+      operationId: skipGuidedQuestion
+      summary: skipGuidedQuestion
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedQuestion'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; explicit skip; lock session and retain missing
+        fact
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionSkip'
+  /v1/conversation-sessions/{session_id}/tools/{tool_name}:
+    post:
+      operationId: dispatchTool
+      summary: dispatchTool
+      description: Validate connection_id belongs to session and is active; normalize
+        client invocation identity without assuming SDK callback exposes native tool_call_id.
+        ElevenLabs blocking client tool resolves only after authorized result is applied
+        to UI. All trusted business rules remain in FastAPI.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: tool_name
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - get_patient_context
+          - get_next_guided_question
+          - present_activity_recommendations
+          - propose_observation
+          - select_activity
+          - request_clinician_review
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolResult'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; allowlist; session active; exact per-tool args
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToolDispatch'
+  /v1/observations:
+    post:
+      operationId: createObservation
+      summary: createObservation
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Observation'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; always creates proposed state
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObservationCreate'
+    get:
+      operationId: listObservations
+      summary: listObservations
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservationPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+  /v1/observations/{observation_id}/confirmation:
+    post:
+      operationId: confirmObservation
+      summary: confirmObservation
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: observation_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Observation'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; explicit UI only
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObservationConfirm'
+  /v1/observations/{observation_id}/corrections:
+    post:
+      operationId: correctObservation
+      summary: correctObservation
+      description: Create new confirmed row and correction source; supersede original
+        atomically; never edit source transcript.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: observation_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Observation'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; confirmed head; explicit UI only
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObservationCorrection'
+  /v1/activities:
+    get:
+      operationId: listActivities
+      summary: listActivities
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+  /v1/activity-recommendations:
+    post:
+      operationId: createRecommendation
+      summary: createRecommendation
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recommendation'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; active conversation
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationRequest'
+  /v1/activity-sessions:
+    post:
+      operationId: startActivity
+      summary: startActivity
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivitySession'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; current recommendation; eligible activity
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityStart'
+  /v1/activity-sessions/{activity_session_id}:
+    get:
+      operationId: getActivitySession
+      summary: getActivitySession
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: activity_session_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivitySession'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+  /v1/activity-sessions/{activity_session_id}/events:
+    post:
+      operationId: recordActivityEvent
+      summary: recordActivityEvent
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: activity_session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivitySession'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; legal transition/version
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityEventRequest'
+  /v1/activity-sessions/{activity_session_id}/feedback:
+    post:
+      operationId: submitFeedback
+      summary: submitFeedback
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: activity_session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; completed activity; one feedback per session
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+  /v1/assessments:
+    get:
+      operationId: listAssessments
+      summary: listAssessments
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentDefinitionPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; nonclinical demo definitions
+      x-idempotency: safe-read
+  /v1/assessments/{assessment_id}/responses:
+    post:
+      operationId: submitAssessment
+      summary: submitAssessment
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; pinned definition version; exact unique answers
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentSubmit'
+  /v1/reports:
+    post:
+      operationId: requestReport
+      summary: requestReport
+      description: Creates pending report; optional durable jobs process it; same
+        report gets a new version after accepted corrections.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportReceipt'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+    get:
+      operationId: listReports
+      summary: listReports
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportReceiptPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+  /v1/reports/{report_id}:
+    get:
+      operationId: getReport
+      summary: getReport
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; 409 REPORT_NOT_READY while pending
+      x-idempotency: safe-read
+  /v1/care-links:
+    post:
+      operationId: inviteClinician
+      summary: inviteClinician
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CareLink'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; verified clinician target
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CareInviteRequest'
+    get:
+      operationId: listCareLinks
+      summary: listCareLinks
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CareLinkPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner or clinician participant; minimal relationship metadata
+      x-idempotency: safe-read
+  /v1/care-links/{care_link_id}:
+    patch:
+      operationId: updateCareLink
+      summary: updateCareLink
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: care_link_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CareLink'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: target verified clinician may accept pending; either participant
+        may revoke
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CareLinkPatch'
+  /v1/consents:
+    post:
+      operationId: grantConsent
+      summary: grantConsent
+      description: transcripts requires null care_link_id/data_from; reports/alerts
+        require active owned care_link_id; data_from null means explicitly selected
+        all history.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentGrant'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; explicit UI only
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentCreate'
+    get:
+      operationId: listConsents
+      summary: listConsents
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentGrantPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+  /v1/consents/{consent_grant_id}:
+    delete:
+      operationId: revokeConsent
+      summary: revokeConsent
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: consent_grant_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; repeated revocation succeeds
+      x-idempotency: required
+  /v1/doctor/patients:
+    get:
+      operationId: listDoctorPatients
+      summary: listDoctorPatients
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorPatientPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: verified clinician; active links; visible report/alert scopes
+        only
+      x-idempotency: safe-read
+  /v1/doctor/patients/{patient_id}/reports:
+    get:
+      operationId: listDoctorReports
+      summary: listDoctorReports
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema: *id001
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportReceiptPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: verified clinician + active link + unrevoked/unexpired reports
+        grant; entire report period within grant
+      x-idempotency: safe-read
+  /v1/doctor/patients/{patient_id}/reports/{report_id}:
+    get:
+      operationId: getDoctorReport
+      summary: getDoctorReport
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema: *id001
+      - name: report_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: same as listDoctorReports; repeat authorization before response;
+        no raw transcript access
+      x-idempotency: safe-read
+  /v1/doctor/patients/{patient_id}/alerts:
+    get:
+      operationId: listDoctorAlerts
+      summary: listDoctorAlerts
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema: *id001
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: verified clinician + active link + active alerts grant
+      x-idempotency: safe-read
+  /v1/doctor/patients/{patient_id}/alerts/{alert_id}:
+    patch:
+      operationId: updateDoctorAlert
+      summary: updateDoctorAlert
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema: *id001
+      - name: alert_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: same as listDoctorAlerts; legal transition/version; audited
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertPatch'
+  /v1/review-requests:
+    post:
+      operationId: requestReview
+      summary: requestReview
+      description: Creates review record even without authorized recipient; UI must
+        distinguish recorded request from clinician notification.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; explicit UI or explicit-patient-request tool
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+  /v1/alerts:
+    get:
+      operationId: listPatientAlerts
+      summary: listPatientAlerts
+      description: See x-permission and shared semantic rules in docs/API_CONTRACTS.md.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+  /v1/conversation-sessions/{session_id}/agent-connections:
+    post:
+      operationId: createAgentConnection
+      summary: Create V1 voice or separate text provider connection
+      description: 'V1 only: ElevenLabs WebRTC conversation token for voice, authenticated
+        signed WebSocket URL with textOnly for separate text mode. Server chooses
+        provider/agent. Both use same application session context. No images, video,
+        camera state, Gemini fields or permanent API keys. Secrets are transient/no-store;
+        connect_before is a RE connection-start guard, not asserted provider expiry.
+        credential_expires_at is null unless provider reports a verified expiry. Refuse
+        503 PROVIDER_PRIVACY_UNVERIFIED until agent privacy settings are attested;
+        old connection must close before replacement. 409 CONNECTION_ACTIVE/CONNECTION_EXPIRED/VERSION_CONFLICT
+        are explicit.'
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentConnectionBootstrap'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; application session created/active/interrupted,
+        never ended; server-verified ElevenLabs privacy configuration
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentConnectionRequest'
+  /v1/conversation-sessions/{session_id}/agent-connections/{connection_id}:
+    patch:
+      operationId: updateAgentConnection
+      summary: Update owned provider connection lifecycle
+      description: Provider ID reported by SDK is metadata, not authentication. Voice
+        ID must match provisioning response where available; never fetch provider
+        history using an untrusted client ID. Mode change closes old provider connection
+        and preserves application session/controller context. No camera state is accepted.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: &id002
+          type: string
+          format: uuid
+      - name: connection_id
+        in: path
+        required: true
+        schema: &id006
+          type: string
+          format: uuid
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id002
+        description: Actor+method+canonical path+key, canonical request hash; retain
+          non-secret outcomes 24h (demo assumption). Same body replays; changed body
+          => 409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderConnection'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: BODY_TOO_LARGE; reject without retaining text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner; matching application/provider connection; expected
+        version; legal state transition
+      x-idempotency: required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderConnectionPatch'
+  /v1/my-journey:
+    get:
+      operationId: getMyJourney
+      summary: View accepted activity outcomes and feedback
+      description: Owner-scoped projection from activity_sessions, immutable catalog
+        rows and feedback; descending started_at,id cursor. No report job must complete
+        before an accepted activity appears. No images/camera metadata. The UI invalidates
+        this query only after accepted completion/feedback.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyJourneyItemPage'
+        '401':
+          description: Invalid or expired authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission or consent denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing or inaccessible owned resource (conceals other-patient
+            existence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, version, idempotency or stale recommendation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid request/schema/domain bounds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited; honor Retry-After
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected internal failure; sanitized Error only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Provider or infrastructure unavailable; no success implied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-permission: patient owner
+      x-idempotency: safe-read
+components:
+  securitySchemes:
+    supabaseJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 80
+        message:
+          type: string
+          minLength: 1
+          maxLength: 300
+        request_id: *id001
+        retryable: &id003
+          type: boolean
+      required:
+      - code
+      - message
+      - request_id
+      - retryable
+    Ack:
+      type: object
+      additionalProperties: false
+      properties:
+        accepted: *id003
+        resource_id: *id001
+        version: &id004
+          type: integer
+          minimum: 1
+      required:
+      - accepted
+      - resource_id
+      - version
+    SourceRef:
+      type: object
+      additionalProperties: false
+      properties:
+        source_id: *id001
+        source_revision: *id004
+      required:
+      - source_id
+      - source_revision
+    OnboardingRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 80
+      required:
+      - display_name
+      - timezone
+    ProfilePatch:
+      type: object
+      additionalProperties: false
+      properties:
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 80
+        avatar:
+          $ref: '#/components/schemas/AvatarCustomization'
+      required: []
+    Me:
+      type: object
+      additionalProperties: false
+      properties:
+        user_id: *id001
+        role:
+          type: string
+          enum:
+          - patient
+          - clinician
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 80
+        clinician_verified: *id003
+        avatar:
+          anyOf:
+          - $ref: '#/components/schemas/AvatarCustomization'
+          - type: 'null'
+      required:
+      - user_id
+      - role
+      - display_name
+      - timezone
+      - clinician_verified
+      - avatar
+    PatientContext:
+      type: object
+      additionalProperties: false
+      properties:
+        patient_id: *id001
+        preferences:
+          $ref: '#/components/schemas/PatientPreferences'
+        recovery_plan:
+          anyOf:
+          - $ref: '#/components/schemas/RecoveryPlan'
+          - type: 'null'
+        memories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Memory'
+          maxItems: 30
+        recent_observations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Observation'
+          maxItems: 30
+      required:
+      - patient_id
+      - preferences
+      - recovery_plan
+      - memories
+      - recent_observations
+    ContextPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        preferences:
+          $ref: '#/components/schemas/PatientPreferences'
+      required:
+      - preferences
+    SessionCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        mode:
+          type: string
+          enum:
+          - voice
+          - text
+      required:
+      - mode
+    ConversationSession:
+      type: object
+      additionalProperties: false
+      properties:
+        session_id: *id001
+        state:
+          type: string
+          enum:
+          - created
+          - active
+          - interrupted
+          - ended
+        mode:
+          type: string
+          enum:
+          - voice
+          - text
+        version: *id004
+        created_at: &id005
+          type: string
+          format: date-time
+        ended_at:
+          anyOf:
+          - *id005
+          - type: 'null'
+        history_enabled: *id003
+        current_connection_id:
+          anyOf:
+          - *id006
+          - type: 'null'
+      required:
+      - session_id
+      - state
+      - mode
+      - version
+      - created_at
+      - ended_at
+      - history_enabled
+      - current_connection_id
+    SessionPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_version: *id004
+        state:
+          type: string
+          enum:
+          - active
+          - interrupted
+          - ended
+        mode:
+          type: string
+          enum:
+          - voice
+          - text
+      required:
+      - expected_version
+    TranscriptEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        client_message_id: *id001
+        turn_id:
+          type: string
+          minLength: 1
+          maxLength: 120
+        connection_epoch: *id004
+        sequence: *id004
+        speaker:
+          type: string
+          enum:
+          - patient
+          - assistant
+        text:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        channel:
+          type: string
+          enum:
+          - voice_transcription
+          - typed_text
+        event_at: *id005
+        finality:
+          type: string
+          enum:
+          - final
+          - interrupted
+      required:
+      - client_message_id
+      - turn_id
+      - connection_epoch
+      - sequence
+      - speaker
+      - text
+      - channel
+      - event_at
+      - finality
+    MessageBatch:
+      type: object
+      additionalProperties: false
+      properties:
+        consent_grant_id: *id001
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/TranscriptEvent'
+          maxItems: 50
+        connection_id: *id006
+      required:
+      - consent_grant_id
+      - events
+      - connection_id
+    MessageBatchResult:
+      type: object
+      additionalProperties: false
+      properties:
+        accepted_ids:
+          type: array
+          items: *id001
+          maxItems: 50
+        duplicate_ids:
+          type: array
+          items: *id001
+          maxItems: 50
+      required:
+      - accepted_ids
+      - duplicate_ids
+    Message:
+      type: object
+      additionalProperties: false
+      properties:
+        message_id: *id001
+        session_id: *id001
+        source_id: *id001
+        event:
+          $ref: '#/components/schemas/TranscriptEvent'
+        connection_id:
+          type: string
+          format: uuid
+      required:
+      - message_id
+      - session_id
+      - source_id
+      - event
+      - connection_id
+    Summary:
+      type: object
+      additionalProperties: false
+      properties:
+        summary_id: *id001
+        session_id: *id001
+        version: *id004
+        basis:
+          type: string
+          enum:
+          - consented_history
+          - confirmed_records
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        completeness:
+          type: string
+          enum:
+          - complete
+          - partial
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceRef'
+          maxItems: 100
+      required:
+      - summary_id
+      - session_id
+      - version
+      - basis
+      - text
+      - completeness
+      - sources
+    ObservationCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        session_id:
+          anyOf:
+          - *id001
+          - type: 'null'
+        kind:
+          type: string
+          enum:
+          - mood
+          - energy
+          - sleep_hours
+        value:
+          type: number
+          minimum: 0
+          maximum: 24
+          multipleOf: 0.01
+        observed_at: *id005
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceRef'
+          maxItems: 20
+      required:
+      - session_id
+      - kind
+      - value
+      - observed_at
+      - sources
+    Observation:
+      type: object
+      additionalProperties: false
+      properties:
+        observation_id: *id001
+        patient_id: *id001
+        session_id:
+          anyOf:
+          - *id001
+          - type: 'null'
+        kind:
+          type: string
+          enum:
+          - mood
+          - energy
+          - sleep_hours
+        value:
+          type: number
+          minimum: 0
+          maximum: 24
+          multipleOf: 0.01
+        observed_at: *id005
+        state:
+          type: string
+          enum:
+          - proposed
+          - confirmed
+          - rejected
+          - superseded
+        version: *id004
+        supersedes_observation_id:
+          anyOf:
+          - *id001
+          - type: 'null'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceRef'
+          maxItems: 20
+      required:
+      - observation_id
+      - patient_id
+      - session_id
+      - kind
+      - value
+      - observed_at
+      - state
+      - version
+      - supersedes_observation_id
+      - sources
+    ObservationConfirm:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_version: *id004
+        decision:
+          type: string
+          enum:
+          - confirm
+          - reject
+        value:
+          type: number
+          minimum: 0
+          maximum: 24
+          multipleOf: 0.01
+        observed_at: *id005
+      required:
+      - expected_version
+      - decision
+    ObservationCorrection:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_version: *id004
+        value:
+          type: number
+          minimum: 0
+          maximum: 24
+          multipleOf: 0.01
+        observed_at: *id005
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+      - expected_version
+      - value
+      - observed_at
+      - reason
+    MemoryUpsert:
+      type: object
+      additionalProperties: false
+      properties:
+        key:
+          type: string
+          enum:
+          - preferred_activity_kind
+          - preferred_duration_seconds
+        value:
+          $ref: '#/components/schemas/MemoryValue'
+        source_id:
+          anyOf:
+          - *id001
+          - type: 'null'
+      required:
+      - key
+      - value
+      - source_id
+    Memory:
+      type: object
+      additionalProperties: false
+      properties:
+        memory_id: *id001
+        key:
+          type: string
+          enum:
+          - preferred_activity_kind
+          - preferred_duration_seconds
+        value:
+          $ref: '#/components/schemas/MemoryValue'
+        source_id: *id001
+      required:
+      - memory_id
+      - key
+      - value
+      - source_id
+    Activity:
+      type: object
+      additionalProperties: false
+      properties:
+        activity_id: *id001
+        activity_version: *id004
+        kind:
+          type: string
+          enum:
+          - breathing
+          - nature
+          - behavioral_activation
+          - reflection
+          - social_reconnection
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        duration_seconds:
+          type: integer
+          minimum: 30
+          maximum: 1800
+        config:
+          $ref: '#/components/schemas/ActivityConfig'
+      required:
+      - activity_id
+      - activity_version
+      - kind
+      - title
+      - description
+      - duration_seconds
+      - config
+    RecommendationRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        session_id: *id001
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 3
+      required:
+      - session_id
+      - limit
+    RecommendationOption:
+      type: object
+      additionalProperties: false
+      properties:
+        activity:
+          $ref: '#/components/schemas/Activity'
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 300
+        rank: *id004
+      required:
+      - activity
+      - reason
+      - rank
+    Recommendation:
+      type: object
+      additionalProperties: false
+      properties:
+        recommendation_id: *id001
+        session_id: *id001
+        expires_at: *id005
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendationOption'
+          maxItems: 3
+      required:
+      - recommendation_id
+      - session_id
+      - expires_at
+      - options
+    ActivityStart:
+      type: object
+      additionalProperties: false
+      properties:
+        session_id: *id001
+        recommendation_id: *id001
+        activity_id: *id001
+        activity_version: *id004
+        selection_channel:
+          type: string
+          enum:
+          - voice
+          - touch
+      required:
+      - session_id
+      - recommendation_id
+      - activity_id
+      - activity_version
+      - selection_channel
+    ActivitySession:
+      type: object
+      additionalProperties: false
+      properties:
+        activity_session_id: *id001
+        session_id: *id001
+        recommendation_id: *id001
+        activity_id: *id001
+        activity_version: *id004
+        state:
+          type: string
+          enum:
+          - started
+          - completed
+          - abandoned
+        version: *id004
+        started_at: *id005
+        ended_at:
+          anyOf:
+          - *id005
+          - type: 'null'
+      required:
+      - activity_session_id
+      - session_id
+      - recommendation_id
+      - activity_id
+      - activity_version
+      - state
+      - version
+      - started_at
+      - ended_at
+    ActivityEventRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        client_event_id: *id001
+        expected_version: *id004
+        event_type:
+          type: string
+          enum:
+          - progress
+          - complete
+          - abandon
+        elapsed_seconds:
+          type: integer
+          minimum: 0
+          maximum: 7200
+        event_at: *id005
+      required:
+      - client_event_id
+      - expected_version
+      - event_type
+      - elapsed_seconds
+      - event_at
+    FeedbackRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 1000
+          - type: 'null'
+      required:
+      - rating
+      - comment
+    Feedback:
+      type: object
+      additionalProperties: false
+      properties:
+        feedback_id: *id001
+        activity_session_id: *id001
+        source_id: *id001
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 1000
+          - type: 'null'
+      required:
+      - feedback_id
+      - activity_session_id
+      - source_id
+      - rating
+      - comment
+    AssessmentDefinition:
+      type: object
+      additionalProperties: false
+      properties:
+        assessment_id: *id001
+        version: *id004
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        clinical_instrument:
+          const: false
+        questions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              question_id:
+                type: string
+                minLength: 1
+                maxLength: 80
+              wording:
+                type: string
+                minLength: 1
+                maxLength: 500
+              minimum:
+                type: integer
+              maximum:
+                type: integer
+            required:
+            - question_id
+            - wording
+            - minimum
+            - maximum
+          maxItems: 20
+      required:
+      - assessment_id
+      - version
+      - title
+      - clinical_instrument
+      - questions
+    AssessmentSubmit:
+      type: object
+      additionalProperties: false
+      properties:
+        session_id:
+          anyOf:
+          - *id001
+          - type: 'null'
+        assessment_version: *id004
+        answers: &id007
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              question_id:
+                type: string
+                minLength: 1
+                maxLength: 80
+              value:
+                type: integer
+                minimum: 0
+                maximum: 10
+            required:
+            - question_id
+            - value
+          maxItems: 20
+        observed_at: *id005
+      required:
+      - session_id
+      - assessment_version
+      - answers
+      - observed_at
+    AssessmentResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        assessment_response_id: *id001
+        assessment_id: *id001
+        assessment_version: *id004
+        source_id: *id001
+        complete: *id003
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        answers: *id007
+        observed_at: *id005
+      required:
+      - assessment_response_id
+      - assessment_id
+      - assessment_version
+      - source_id
+      - complete
+      - title
+      - answers
+      - observed_at
+    ReportRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        period_start: *id005
+        period_end: *id005
+      required:
+      - period_start
+      - period_end
+    ReportReceipt:
+      type: object
+      additionalProperties: false
+      properties:
+        report_id: *id001
+        state:
+          type: string
+          enum:
+          - pending
+          - ready
+          - stale
+          - failed
+        version: *id004
+      required:
+      - report_id
+      - state
+      - version
+    Trend:
+      type: object
+      additionalProperties: false
+      properties:
+        metric:
+          type: string
+          enum:
+          - mood
+          - energy
+          - sleep_hours
+          - activity_completions
+          - activity_rating
+        unit:
+          type: string
+          enum:
+          - scale_0_10
+          - hours
+          - count
+          - scale_1_5
+        count:
+          type: integer
+          minimum: 0
+        mean:
+          anyOf:
+          - type: number
+          - type: 'null'
+        delta:
+          anyOf:
+          - type: number
+          - type: 'null'
+        coverage:
+          type: string
+          minLength: 1
+          maxLength: 200
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceRef'
+          maxItems: 500
+      required:
+      - metric
+      - unit
+      - count
+      - mean
+      - delta
+      - coverage
+      - sources
+    Report:
+      type: object
+      additionalProperties: false
+      properties:
+        report_id: *id001
+        patient_id: *id001
+        version: *id004
+        calculation_version:
+          type: string
+          minLength: 1
+          maxLength: 40
+        period_start: *id005
+        period_end: *id005
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 80
+        generated_at: *id005
+        data_cutoff: *id005
+        state:
+          type: string
+          enum:
+          - ready
+          - stale
+        observations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Observation'
+          maxItems: 500
+        completed_activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivitySession'
+          maxItems: 500
+        feedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feedback'
+          maxItems: 500
+        assessments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssessmentResponse'
+          maxItems: 100
+        trends:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trend'
+          maxItems: 20
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceRef'
+          maxItems: 1000
+        limitations:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 300
+          maxItems: 30
+      required:
+      - report_id
+      - patient_id
+      - version
+      - calculation_version
+      - period_start
+      - period_end
+      - timezone
+      - generated_at
+      - data_cutoff
+      - state
+      - observations
+      - completed_activities
+      - feedback
+      - assessments
+      - trends
+      - sources
+      - limitations
+    CareInviteRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        clinician_id: *id001
+      required:
+      - clinician_id
+    CareLink:
+      type: object
+      additionalProperties: false
+      properties:
+        care_link_id: *id001
+        patient_id: *id001
+        clinician_id: *id001
+        state:
+          type: string
+          enum:
+          - pending
+          - active
+          - revoked
+        created_at: *id005
+      required:
+      - care_link_id
+      - patient_id
+      - clinician_id
+      - state
+      - created_at
+    CareLinkPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        action:
+          type: string
+          enum:
+          - accept
+          - revoke
+      required:
+      - action
+    ConsentCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        scope:
+          type: string
+          enum:
+          - transcripts
+          - reports
+          - alerts
+        care_link_id:
+          anyOf:
+          - *id001
+          - type: 'null'
+        expires_at: *id005
+        data_from:
+          anyOf:
+          - *id005
+          - type: 'null'
+      required:
+      - scope
+      - care_link_id
+      - expires_at
+      - data_from
+    ConsentGrant:
+      type: object
+      additionalProperties: false
+      properties:
+        consent_grant_id: *id001
+        scope:
+          type: string
+          enum:
+          - transcripts
+          - reports
+          - alerts
+        care_link_id:
+          anyOf:
+          - *id001
+          - type: 'null'
+        expires_at: *id005
+        data_from:
+          anyOf:
+          - *id005
+          - type: 'null'
+        revoked_at:
+          anyOf:
+          - *id005
+          - type: 'null'
+      required:
+      - consent_grant_id
+      - scope
+      - care_link_id
+      - expires_at
+      - data_from
+      - revoked_at
+    ReviewRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        session_id:
+          anyOf:
+          - *id001
+          - type: 'null'
+        reason:
+          type: string
+          enum:
+          - patient_requested_review
+      required:
+      - session_id
+      - reason
+    Alert:
+      type: object
+      additionalProperties: false
+      properties:
+        alert_id: *id001
+        patient_id: *id001
+        rule_key:
+          type: string
+          minLength: 1
+          maxLength: 80
+        state:
+          type: string
+          enum:
+          - open
+          - acknowledged
+          - resolved
+        version: *id004
+        created_at: *id005
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceRef'
+          maxItems: 100
+      required:
+      - alert_id
+      - patient_id
+      - rule_key
+      - state
+      - version
+      - created_at
+      - sources
+    AlertPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_version: *id004
+        state:
+          type: string
+          enum:
+          - acknowledged
+          - resolved
+      required:
+      - expected_version
+      - state
+    DoctorPatient:
+      type: object
+      additionalProperties: false
+      properties:
+        patient_id: *id001
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        care_link_id: *id001
+        scopes:
+          type: array
+          items:
+            type: string
+            enum:
+            - reports
+            - alerts
+          maxItems: 2
+      required:
+      - patient_id
+      - display_name
+      - care_link_id
+      - scopes
+    GuidedQuestion:
+      type: object
+      additionalProperties: false
+      properties:
+        question_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 80
+          - type: 'null'
+        flow_version:
+          type: string
+          minLength: 1
+          maxLength: 40
+        wording:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+        missing_fields:
+          type: array
+          items:
+            type: string
+            enum:
+            - mood
+            - energy
+            - sleep_hours
+          maxItems: 3
+        session_version: *id004
+      required:
+      - question_id
+      - flow_version
+      - wording
+      - missing_fields
+      - session_version
+    QuestionAnswer:
+      type: object
+      additionalProperties: false
+      properties:
+        question_id:
+          type: string
+          minLength: 1
+          maxLength: 80
+        flow_version:
+          type: string
+          minLength: 1
+          maxLength: 40
+        kind:
+          type: string
+          enum:
+          - mood
+          - energy
+          - sleep_hours
+        value:
+          type: number
+          minimum: 0
+          maximum: 24
+          multipleOf: 0.01
+        observed_at: *id005
+      required:
+      - question_id
+      - flow_version
+      - kind
+      - value
+      - observed_at
+    ToolArgs_get_patient_context:
+      type: object
+      additionalProperties: false
+      properties: {}
+      required: []
+    ToolArgs_get_next_guided_question:
+      type: object
+      additionalProperties: false
+      properties: {}
+      required: []
+    ToolArgs_present_activity_recommendations:
+      type: object
+      additionalProperties: false
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 3
+      required:
+      - limit
+    ToolArgs_propose_observation:
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          enum:
+          - mood
+          - energy
+          - sleep_hours
+        value:
+          type: number
+          minimum: 0
+          maximum: 24
+          multipleOf: 0.01
+        observed_at: *id005
+      required:
+      - kind
+      - value
+      - observed_at
+    ToolArgs_select_activity:
+      type: object
+      additionalProperties: false
+      properties:
+        recommendation_id: *id001
+        activity_id: *id001
+        activity_version: *id004
+      required:
+      - recommendation_id
+      - activity_id
+      - activity_version
+    ToolArgs_request_clinician_review:
+      type: object
+      additionalProperties: false
+      properties: {}
+      required: []
+    AvatarCustomization:
+      type: object
+      additionalProperties: false
+      properties:
+        color:
+          type: string
+          enum:
+          - teal
+          - lavender
+        accessory:
+          type: string
+          enum:
+          - none
+          - leaf
+      required:
+      - color
+      - accessory
+    PatientPreferences:
+      type: object
+      additionalProperties: false
+      properties:
+        preferred_activity_kind:
+          type: string
+          enum:
+          - breathing
+          - nature
+          - behavioral_activation
+          - reflection
+          - social_reconnection
+        preferred_duration_seconds:
+          type: integer
+          minimum: 30
+          maximum: 1800
+      required: []
+    RecoveryPlan:
+      type: object
+      additionalProperties: false
+      properties:
+        recovery_plan_id: *id001
+        version: *id004
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        content:
+          type: object
+          additionalProperties: false
+          properties:
+            suggested_activity_kinds:
+              type: array
+              items:
+                type: string
+                enum:
+                - breathing
+                - nature
+                - behavioral_activation
+                - reflection
+                - social_reconnection
+              maxItems: 5
+            notes:
+              type: string
+              minLength: 1
+              maxLength: 1000
+          required:
+          - suggested_activity_kinds
+          - notes
+      required:
+      - recovery_plan_id
+      - version
+      - title
+      - content
+    MemoryValue:
+      oneOf:
+      - type: object
+        additionalProperties: false
+        properties:
+          activity_kind:
+            type: string
+            enum:
+            - breathing
+            - nature
+            - behavioral_activation
+            - reflection
+            - social_reconnection
+        required:
+        - activity_kind
+      - type: object
+        additionalProperties: false
+        properties:
+          duration_seconds:
+            type: integer
+            minimum: 30
+            maximum: 1800
+        required:
+        - duration_seconds
+    ActivityConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        renderer:
+          type: string
+          enum:
+          - breathing_v1
+          - nature_v1
+          - step_v1
+          - reflection_v1
+          - social_v1
+        asset_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 80
+          - type: 'null'
+        instructions:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 500
+          maxItems: 20
+        inhale_seconds:
+          anyOf:
+          - type: integer
+            minimum: 1
+            maximum: 10
+          - type: 'null'
+        exhale_seconds:
+          anyOf:
+          - type: integer
+            minimum: 1
+            maximum: 10
+          - type: 'null'
+      required:
+      - renderer
+      - asset_id
+      - instructions
+      - inhale_seconds
+      - exhale_seconds
+    QuestionSkip:
+      type: object
+      additionalProperties: false
+      properties:
+        question_id:
+          type: string
+          minLength: 1
+          maxLength: 80
+        flow_version:
+          type: string
+          minLength: 1
+          maxLength: 40
+        expected_version: *id004
+      required:
+      - question_id
+      - flow_version
+      - expected_version
+    ToolDispatch:
+      type: object
+      additionalProperties: false
+      properties:
+        tool_call_id:
+          type: string
+          minLength: 1
+          maxLength: 160
+        contract_version:
+          const: 2.0.0
+        arguments:
+          anyOf:
+          - $ref: '#/components/schemas/ToolArgs_get_patient_context'
+          - $ref: '#/components/schemas/ToolArgs_get_next_guided_question'
+          - $ref: '#/components/schemas/ToolArgs_present_activity_recommendations'
+          - $ref: '#/components/schemas/ToolArgs_propose_observation'
+          - $ref: '#/components/schemas/ToolArgs_select_activity'
+          - $ref: '#/components/schemas/ToolArgs_request_clinician_review'
+        connection_id: *id006
+      required:
+      - tool_call_id
+      - contract_version
+      - arguments
+      - connection_id
+    ToolResult:
+      type: object
+      additionalProperties: false
+      properties:
+        tool_call_id:
+          type: string
+          minLength: 1
+          maxLength: 160
+        contract_version:
+          const: 2.0.0
+        result:
+          anyOf:
+          - $ref: '#/components/schemas/PatientContext'
+          - $ref: '#/components/schemas/GuidedQuestion'
+          - $ref: '#/components/schemas/Recommendation'
+          - $ref: '#/components/schemas/Observation'
+          - $ref: '#/components/schemas/ActivitySession'
+          - $ref: '#/components/schemas/Alert'
+      required:
+      - tool_call_id
+      - contract_version
+      - result
+    ConversationSessionPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationSession'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    MessagePage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    ObservationPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Observation'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    ActivityPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Activity'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    AssessmentDefinitionPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssessmentDefinition'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    ReportReceiptPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportReceipt'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    CareLinkPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CareLink'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    ConsentGrantPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsentGrant'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    DoctorPatientPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DoctorPatient'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    AlertPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+    AgentContext:
+      type: object
+      additionalProperties: false
+      properties:
+        context_version: &id008
+          type: integer
+          minimum: 1
+        summary:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        guided_question:
+          $ref: '#/components/schemas/GuidedQuestion'
+        preferences:
+          $ref: '#/components/schemas/PatientPreferences'
+        current_recommendation:
+          anyOf:
+          - $ref: '#/components/schemas/Recommendation'
+          - type: 'null'
+        active_activity_session:
+          anyOf:
+          - $ref: '#/components/schemas/ActivitySession'
+          - type: 'null'
+        vision_access:
+          const: none
+      required:
+      - context_version
+      - summary
+      - guided_question
+      - preferences
+      - current_recommendation
+      - active_activity_session
+      - vision_access
+    AgentConnectionRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        mode:
+          type: string
+          enum:
+          - voice
+          - text
+        expected_version: *id008
+      required:
+      - mode
+      - expected_version
+    ElevenLabsVoiceBootstrap:
+      type: object
+      additionalProperties: false
+      properties:
+        session_id: *id006
+        connection_id: *id006
+        connection_epoch: *id008
+        provider: &id010
+          const: elevenlabs
+        agent_id: &id011
+          type: string
+          minLength: 1
+          maxLength: 200
+        agent_context: &id012
+          $ref: '#/components/schemas/AgentContext'
+        connect_before: &id009
+          type: string
+          format: date-time
+        credential_expires_at: &id013
+          anyOf:
+          - *id009
+          - type: 'null'
+        privacy_policy_version: &id014
+          type: string
+          minLength: 1
+          maxLength: 80
+        camera_policy: &id015
+          const: local_preview_only_no_transmission
+        tool_contract_version: &id016
+          const: 2.0.0
+        mode:
+          const: voice
+        transport:
+          const: webrtc
+        conversation_token:
+          type: string
+          minLength: 1
+          maxLength: 8192
+        provider_conversation_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 200
+          - type: 'null'
+      required:
+      - session_id
+      - connection_id
+      - connection_epoch
+      - provider
+      - agent_id
+      - agent_context
+      - connect_before
+      - credential_expires_at
+      - privacy_policy_version
+      - camera_policy
+      - tool_contract_version
+      - mode
+      - transport
+      - conversation_token
+      - provider_conversation_id
+    ElevenLabsTextBootstrap:
+      type: object
+      additionalProperties: false
+      properties:
+        session_id: *id006
+        connection_id: *id006
+        connection_epoch: *id008
+        provider: *id010
+        agent_id: *id011
+        agent_context: *id012
+        connect_before: *id009
+        credential_expires_at: *id013
+        privacy_policy_version: *id014
+        camera_policy: *id015
+        tool_contract_version: *id016
+        mode:
+          const: text
+        transport:
+          const: websocket
+        signed_url:
+          type: string
+          format: uri
+          maxLength: 8192
+        text_only:
+          const: true
+      required:
+      - session_id
+      - connection_id
+      - connection_epoch
+      - provider
+      - agent_id
+      - agent_context
+      - connect_before
+      - credential_expires_at
+      - privacy_policy_version
+      - camera_policy
+      - tool_contract_version
+      - mode
+      - transport
+      - signed_url
+      - text_only
+    AgentConnectionBootstrap:
+      oneOf:
+      - $ref: '#/components/schemas/ElevenLabsVoiceBootstrap'
+      - $ref: '#/components/schemas/ElevenLabsTextBootstrap'
+    ProviderConnection:
+      type: object
+      additionalProperties: false
+      properties:
+        connection_id: *id006
+        session_id: *id006
+        connection_epoch: *id008
+        provider:
+          const: elevenlabs
+        mode:
+          type: string
+          enum:
+          - voice
+          - text
+        transport:
+          type: string
+          enum:
+          - webrtc
+          - websocket
+        state:
+          type: string
+          enum:
+          - created
+          - connecting
+          - active
+          - interrupted
+          - closed
+        provider_conversation_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 200
+          - type: 'null'
+        context_version: *id008
+        version: *id008
+      required:
+      - connection_id
+      - session_id
+      - connection_epoch
+      - provider
+      - mode
+      - transport
+      - state
+      - provider_conversation_id
+      - context_version
+      - version
+    ProviderConnectionPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_version: *id008
+        state:
+          type: string
+          enum:
+          - connecting
+          - active
+          - interrupted
+          - closed
+        provider_conversation_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 200
+          - type: 'null'
+      required:
+      - expected_version
+      - state
+    MyJourneyItem:
+      type: object
+      additionalProperties: false
+      properties:
+        activity_session:
+          $ref: '#/components/schemas/ActivitySession'
+        activity:
+          $ref: '#/components/schemas/Activity'
+        feedback:
+          anyOf:
+          - $ref: '#/components/schemas/Feedback'
+          - type: 'null'
+      required:
+      - activity_session
+      - activity
+      - feedback
+    MyJourneyItemPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyJourneyItem'
+          maxItems: 100
+        next_cursor:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+      required:
+      - items
+      - next_cursor

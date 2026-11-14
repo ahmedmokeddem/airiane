@@ -1,0 +1,66 @@
+{
+  "checked_on": "2026-11-14",
+  "device_model": "Samsung SM-G998B",
+  "android_version": "15",
+  "device_type": "physical",
+  "expo_development_build": "built_and_installed",
+  "build_duration": "2m56s",
+  "voice_output": "user_confirmed_spoken_reply_and_Calm_Breathing_introduction",
+  "recommendation_client_tool": "persisted_on_voice_connection_2026-11-14T06:23:57Z",
+  "activity_feedback_flow": "passed_after_recovery_and_provider_independence_fixes",
+  "media_evidence": "content_free_SDK_statistics_only_no_audio_video_or_transcripts_saved",
+  "media_samples": [
+    {
+      "outbound_kinds": [
+        "audio"
+      ],
+      "inbound_kinds": [
+        "audio"
+      ],
+      "outbound_bytes": 104465,
+      "inbound_bytes": 227144,
+      "ice": "connected",
+      "dtls": "connected"
+    },
+    {
+      "outbound_kinds": [
+        "audio"
+      ],
+      "inbound_kinds": [
+        "audio"
+      ],
+      "outbound_bytes": 90281,
+      "inbound_bytes": 300362,
+      "ice": "connected",
+      "dtls": "connected"
+    },
+    {
+      "outbound_kinds": [
+        "audio"
+      ],
+      "inbound_kinds": [
+        "audio"
+      ],
+      "outbound_bytes": 156611,
+      "inbound_bytes": 544232,
+      "ice": "connected",
+      "dtls": "connected"
+    }
+  ],
+  "camera_preview_egress_audit": "not_complete",
+  "runtime_error_window": "zero_errors_in_readable_two_second_window_before_selection_race_reproduction",
+  "persisted_voice_to_completion_lineage": {
+    "mode": "voice",
+    "tool_name": "present_activity_recommendations",
+    "recommendation_at": "2026-11-14T06:23:57.443836+00:00",
+    "state": "completed",
+    "ended_at": "2026-11-14T06:45:55.512000+00:00",
+    "rating": 4
+  },
+  "my_journey_native_ui": "observed_Calm_Breathing_completed_helpfulness_4_of_5",
+  "remaining_device_retest": "clean_uninterrupted_full_run_and_complete_camera_lifecycle_matrix",
+  "bugs_fixed": [
+    "voice_touch_duplicate_selection_invalid_transition",
+    "saved_activity_optional_context_update_to_disconnected_voice"
+  ]
+}

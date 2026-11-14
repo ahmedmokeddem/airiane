@@ -1,0 +1,445 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-11-14T01:25:46.908Z",
+  "specification": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+    "sha256": "b5e8a8072817b72d5441403d61a619e7ae5ad2eac8323a6d515021f5e7c2ceda",
+    "bytes": 21033
+  },
+  "artifact": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+    "sha256": "98651e972275da4c9a5fb879384b730024a89d4ebd9a97180c043fb42b086375",
+    "bytes": 865038
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "/home/ahmed/.nvm/versions/node/v24.22.1/bin/node",
+        "/home/ahmed/Desktop/hackathon/junction2026/Junction/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+        "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "fc596d34-817a-48e1-8c10-b9236bb3e431",
+        "stage": "render",
+        "type": "architecture",
+        "input": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+        "output": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+        "error": "Architecture layout validation failed:\n- [composition/label-route-clearance] showcase architecture label \"HTTPS: session / own reports\" on connections[9] id \"session-request\" \"mobile\" -> \"api\" label \"HTTPS: session / own reports\" is 0px from connections[11] id \"tool-result\" \"api\" -> \"bridge\" label \"Activity data / same IDs\" segment 1 [460, 280] -> [460, 420] (label rect [343, 290, 144, 14]; minimum 4px) — if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.\n- [composition/label-route-clearance] showcase architecture label \"JWT: tools / opt-in transcripts\" on connections[10] id \"tool-request\" \"bridge\" -> \"api\" label \"JWT: tools / opt-in transcripts\" is 0px from connections[11] id \"tool-result\" \"api\" -> \"bridge\" label \"Activity data / same IDs\" segment 1 [460, 280] -> [460, 420] (label rect [386, 380, 159, 14]; minimum 4px) — if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.\n- [composition/label-route-clearance] showcase architecture label \"Token / own JSON report\" on connections[12] id \"session-token\" \"api\" -> \"mobile\" label \"Token / own JSON report\" is 0px from connections[11] id \"tool-result\" \"api\" -> \"bridge\" label \"Activity data / same IDs\" segment 1 [460, 280] -> [460, 420] (label rect [340, 335, 120, 14]; minimum 4px) — if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+        "diagnostics": [
+          {
+            "code": "composition/label-route-clearance",
+            "severity": "error",
+            "message": "[composition/label-route-clearance] showcase architecture label \"HTTPS: session / own reports\" on connections[9] id \"session-request\" \"mobile\" -> \"api\" label \"HTTPS: session / own reports\" is 0px from connections[11] id \"tool-result\" \"api\" -> \"bridge\" label \"Activity data / same IDs\" segment 1 [460, 280] -> [460, 420] (label rect [343, 290, 144, 14]; minimum 4px) — if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 9,
+              "id": "session-request",
+              "from": "mobile",
+              "to": "api"
+            },
+            "evidence": {
+              "label": "HTTPS: session / own reports",
+              "otherRelationship": {
+                "diagramType": "architecture",
+                "collection": "connections",
+                "index": 11,
+                "id": "tool-result",
+                "from": "api",
+                "to": "bridge"
+              },
+              "segmentIndex": 1,
+              "clearancePx": 0,
+              "minimumPx": 4,
+              "labelRect": {
+                "relation": {
+                  "id": "session-request",
+                  "from": "mobile",
+                  "to": "api",
+                  "label": "HTTPS: session / own reports",
+                  "variant": "default",
+                  "labelAt": [
+                    415,
+                    300
+                  ]
+                },
+                "relationIndex": 9,
+                "label": "HTTPS: session / own reports",
+                "x": 342.8,
+                "y": 290,
+                "width": 144.4,
+                "height": 14,
+                "lx": 415,
+                "ly": 300
+              },
+              "from": [
+                460,
+                280
+              ],
+              "to": [
+                460,
+                420
+              ]
+            },
+            "supportedFixes": [
+              "if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+            ]
+          },
+          {
+            "code": "composition/label-route-clearance",
+            "severity": "error",
+            "message": "[composition/label-route-clearance] showcase architecture label \"JWT: tools / opt-in transcripts\" on connections[10] id \"tool-request\" \"bridge\" -> \"api\" label \"JWT: tools / opt-in transcripts\" is 0px from connections[11] id \"tool-result\" \"api\" -> \"bridge\" label \"Activity data / same IDs\" segment 1 [460, 280] -> [460, 420] (label rect [386, 380, 159, 14]; minimum 4px) — if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 10,
+              "id": "tool-request",
+              "from": "bridge",
+              "to": "api"
+            },
+            "evidence": {
+              "label": "JWT: tools / opt-in transcripts",
+              "otherRelationship": {
+                "diagramType": "architecture",
+                "collection": "connections",
+                "index": 11,
+                "id": "tool-result",
+                "from": "api",
+                "to": "bridge"
+              },
+              "segmentIndex": 1,
+              "clearancePx": 0,
+              "minimumPx": 4,
+              "labelRect": {
+                "relation": {
+                  "id": "tool-request",
+                  "from": "bridge",
+                  "to": "api",
+                  "label": "JWT: tools / opt-in transcripts",
+                  "variant": "default",
+                  "labelAt": [
+                    465,
+                    390
+                  ]
+                },
+                "relationIndex": 10,
+                "label": "JWT: tools / opt-in transcripts",
+                "x": 385.6,
+                "y": 380,
+                "width": 158.79999999999998,
+                "height": 14,
+                "lx": 465,
+                "ly": 390
+              },
+              "from": [
+                460,
+                280
+              ],
+              "to": [
+                460,
+                420
+              ]
+            },
+            "supportedFixes": [
+              "if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+            ]
+          },
+          {
+            "code": "composition/label-route-clearance",
+            "severity": "error",
+            "message": "[composition/label-route-clearance] showcase architecture label \"Token / own JSON report\" on connections[12] id \"session-token\" \"api\" -> \"mobile\" label \"Token / own JSON report\" is 0px from connections[11] id \"tool-result\" \"api\" -> \"bridge\" label \"Activity data / same IDs\" segment 1 [460, 280] -> [460, 420] (label rect [340, 335, 120, 14]; minimum 4px) — if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 12,
+              "id": "session-token",
+              "from": "api",
+              "to": "mobile"
+            },
+            "evidence": {
+              "label": "Token / own JSON report",
+              "otherRelationship": {
+                "diagramType": "architecture",
+                "collection": "connections",
+                "index": 11,
+                "id": "tool-result",
+                "from": "api",
+                "to": "bridge"
+              },
+              "segmentIndex": 1,
+              "clearancePx": 0,
+              "minimumPx": 4,
+              "labelRect": {
+                "relation": {
+                  "id": "session-token",
+                  "from": "api",
+                  "to": "mobile",
+                  "label": "Token / own JSON report",
+                  "variant": "security",
+                  "labelAt": [
+                    400,
+                    345
+                  ]
+                },
+                "relationIndex": 12,
+                "label": "Token / own JSON report",
+                "x": 339.8,
+                "y": 335,
+                "width": 120.39999999999999,
+                "height": 14,
+                "lx": 400,
+                "ly": 345
+              },
+              "from": [
+                460,
+                280
+              ],
+              "to": [
+                460,
+                420
+              ]
+            },
+            "supportedFixes": [
+              "if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+            ]
+          }
+        ],
+        "provenance": "failed",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"HTTPS: session / own reports\" on connections[9] id \"session-request\" \"mobile\" -> \"api\" label \"HTTPS: session / own reports\" is 0px from connections[11] id \"tool-result\" \"api\" -> \"bridge\" label \"Activity data / same IDs\" segment 1 [460, 280] -> [460, 420] (label rect [343, 290, 144, 14]; minimum 4px) — if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 9,
+        "id": "session-request",
+        "from": "mobile",
+        "to": "api"
+      },
+      "evidence": {
+        "label": "HTTPS: session / own reports",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 11,
+          "id": "tool-result",
+          "from": "api",
+          "to": "bridge"
+        },
+        "segmentIndex": 1,
+        "clearancePx": 0,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "id": "session-request",
+            "from": "mobile",
+            "to": "api",
+            "label": "HTTPS: session / own reports",
+            "variant": "default",
+            "labelAt": [
+              415,
+              300
+            ]
+          },
+          "relationIndex": 9,
+          "label": "HTTPS: session / own reports",
+          "x": 342.8,
+          "y": 290,
+          "width": 144.4,
+          "height": 14,
+          "lx": 415,
+          "ly": 300
+        },
+        "from": [
+          460,
+          280
+        ],
+        "to": [
+          460,
+          420
+        ]
+      },
+      "supportedFixes": [
+        "if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    },
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"JWT: tools / opt-in transcripts\" on connections[10] id \"tool-request\" \"bridge\" -> \"api\" label \"JWT: tools / opt-in transcripts\" is 0px from connections[11] id \"tool-result\" \"api\" -> \"bridge\" label \"Activity data / same IDs\" segment 1 [460, 280] -> [460, 420] (label rect [386, 380, 159, 14]; minimum 4px) — if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 10,
+        "id": "tool-request",
+        "from": "bridge",
+        "to": "api"
+      },
+      "evidence": {
+        "label": "JWT: tools / opt-in transcripts",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 11,
+          "id": "tool-result",
+          "from": "api",
+          "to": "bridge"
+        },
+        "segmentIndex": 1,
+        "clearancePx": 0,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "id": "tool-request",
+            "from": "bridge",
+            "to": "api",
+            "label": "JWT: tools / opt-in transcripts",
+            "variant": "default",
+            "labelAt": [
+              465,
+              390
+            ]
+          },
+          "relationIndex": 10,
+          "label": "JWT: tools / opt-in transcripts",
+          "x": 385.6,
+          "y": 380,
+          "width": 158.79999999999998,
+          "height": 14,
+          "lx": 465,
+          "ly": 390
+        },
+        "from": [
+          460,
+          280
+        ],
+        "to": [
+          460,
+          420
+        ]
+      },
+      "supportedFixes": [
+        "if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    },
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"Token / own JSON report\" on connections[12] id \"session-token\" \"api\" -> \"mobile\" label \"Token / own JSON report\" is 0px from connections[11] id \"tool-result\" \"api\" -> \"bridge\" label \"Activity data / same IDs\" segment 1 [460, 280] -> [460, 420] (label rect [340, 335, 120, 14]; minimum 4px) — if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 12,
+        "id": "session-token",
+        "from": "api",
+        "to": "mobile"
+      },
+      "evidence": {
+        "label": "Token / own JSON report",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 11,
+          "id": "tool-result",
+          "from": "api",
+          "to": "bridge"
+        },
+        "segmentIndex": 1,
+        "clearancePx": 0,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "id": "session-token",
+            "from": "api",
+            "to": "mobile",
+            "label": "Token / own JSON report",
+            "variant": "security",
+            "labelAt": [
+              400,
+              345
+            ]
+          },
+          "relationIndex": 12,
+          "label": "Token / own JSON report",
+          "x": 339.8,
+          "y": 335,
+          "width": 120.39999999999999,
+          "height": 14,
+          "lx": 400,
+          "ly": 345
+        },
+        "from": [
+          460,
+          280
+        ],
+        "to": [
+          460,
+          420
+        ]
+      },
+      "supportedFixes": [
+        "if the authored labelAt are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-10/architecture.finalize.json",
+    "summaryReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-10/architecture.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-11-14T01:25:47.698Z",
+  "durationMs": 790,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-14T01:06:41.464Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

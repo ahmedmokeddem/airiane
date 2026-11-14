@@ -1,0 +1,57 @@
+{
+  "contract_version": "2.0.0",
+  "status": "implemented_voice_and_recommendation_verified_on_physical_android_full_matrix_pending",
+  "interface": "VoiceAgentAdapter",
+  "v1_implementation": "ElevenLabsAdapter",
+  "v2_implementation": "GeminiLiveAdapter (future; not required or loaded in V1)",
+  "application_session_authority": "FastAPI Python Conversation Controller",
+  "methods": {
+    "connect": {
+      "input_schema": "openapi.yaml#/components/schemas/AgentConnectionBootstrap",
+      "effect": "Create one provider connection for voice or separate text with same application session/context version."
+    },
+    "disconnect": {
+      "effect": "End provider transport only; does not end application session or change local camera."
+    },
+    "sendText": {
+      "effect": "Text-only connection accepts bounded typed messages; no microphone/audio capture."
+    },
+    "updateContext": {
+      "effect": "Apply new backend-approved context version and accepted activity outcome; never camera state."
+    },
+    "setMicrophoneMuted": {
+      "effect": "Voice-only mute; independent of camera."
+    },
+    "setPlaybackVolume": {
+      "effect": "Voice-only output control."
+    },
+    "subscribe": {
+      "events": [
+        "connecting",
+        "connected",
+        "disconnected",
+        "speaking",
+        "listening",
+        "message_partial",
+        "message_final",
+        "tool_invocation",
+        "error"
+      ]
+    }
+  },
+  "tool_invocation": {
+    "normalized_identity": "connection_id + locally stable invocation UUID; native provider ID only if exposed and tested",
+    "resolution": "Bridge awaits backend and UI application; handler promise then returns canonical result"
+  },
+  "v1_capabilities": {
+    "voice": true,
+    "text_only": true,
+    "client_tools": true,
+    "camera_frames": false,
+    "images": false,
+    "video": false,
+    "screen_share": false
+  },
+  "camera_owner": "LocalCameraPreviewController; no references, tracks, URIs or bytes passed to VoiceAgentAdapter",
+  "v2_extension": "A separate future VisionCapableAdapter contract requires explicit transmission consent and capability gating; local preview permission never authorizes transmission."
+}

@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+    "sha256": "83a7af7ab1cc3417cfe5ebd084a83be5bf16564c066cd681385174418d234896",
+    "bytes": 17553
+  },
+  "artifact": {
+    "path": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+    "sha256": "5380a857455f61f82c7d96ed9a807168102a44802641684f9a63d4a2316a3017",
+    "bytes": 860413
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-4/architecture.finalize.json",
+    "summaryReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-4/architecture.finalize-summary.json",
+    "browserCheckReceipt": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/validation/review-4/architecture.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-14T01:06:41.464Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 6297,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 2,
+      "routesOverSuggestedBends": 2
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "credential-request",
+            "from": "api",
+            "to": "credentials",
+            "label": "HTTPS: mint credential",
+            "collectionIndex": 12,
+            "artifactIndex": 13
+          },
+          "right": {
+            "id": "clinician-access",
+            "from": "doctor",
+            "to": "api",
+            "label": "HTTPS + JWT: shared reports",
+            "collectionIndex": 16,
+            "artifactIndex": 17
+          },
+          "point": [
+            667,
+            175
+          ],
+          "sharedNode": "api"
+        },
+        {
+          "left": {
+            "id": "report-access",
+            "from": "api",
+            "to": "care",
+            "label": "Report access check",
+            "collectionIndex": 19,
+            "artifactIndex": 20
+          },
+          "right": {
+            "id": "persist",
+            "from": "domain",
+            "to": "db",
+            "label": "TLS: records + outbox",
+            "collectionIndex": 21,
+            "artifactIndex": 22
+          },
+          "point": [
+            764,
+            334
+          ]
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "id": "aggregate",
+            "from": "reports",
+            "to": "db",
+            "label": "TLS: reports / alerts",
+            "collectionIndex": 22,
+            "artifactIndex": 23
+          },
+          "bends": 3,
+          "stretch": 1
+        },
+        {
+          "relationship": {
+            "id": "job-results",
+            "from": "worker",
+            "to": "db",
+            "label": "Commit / retry safely",
+            "collectionIndex": 24,
+            "artifactIndex": 25
+          },
+          "bends": 4,
+          "stretch": 1.057
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "api has 5 relationships facing its right side, which fits 4 ports: make that side at least 88px, or move some of those neighbours so they face another side of api.",
+      "api → credentials and doctor → api cross next to api: move node credentials or doctor so the two reach api from different sides (for example one level with it, one directly above or below it).",
+      "api → care crosses domain → db: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "reports → db needs 3 bends: move node reports or db so they share a row or column with matching centers, or sit diagonally with a clear corner.",
+      "worker → db needs 4 bends: move node worker or db so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

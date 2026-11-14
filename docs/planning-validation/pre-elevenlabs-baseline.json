@@ -1,0 +1,19 @@
+{
+  "docs/AGENT_DESIGN.md": "9741201a3ce0ffc8810d0b88f5332e4e8e785e1688a9549fb0634b5d894ff5bc",
+  "docs/ARCHITECTURE.md": "77096ed87d42261d7854635e408b1ae0e9b1ef424c45abc73cd481ba651418e4",
+  "docs/API_CONTRACTS.md": "e36e656a94c540a738cb28e2cad846ca90610470db7a6e27009e2acd7e524dbe",
+  "docs/SECURITY.md": "a136b092026e10558fe978510714ced576bf2fa1984615e0e3dcc375204e6698",
+  "docs/README.md": "10ccf59ec327d1b6832fbacf4ae325fb28e5909ddbc304f1d63b31a460a33070",
+  "docs/ARCHITECTURE_REVIEW.md": "afbef7bb5f2b79c1d9a64f7d01dded20110d0b895714b3578265e043040e89ef",
+  "docs/IMPLEMENTATION_PLAN.md": "ec0e6d6f20500dda80c54070b2a7f568c0cf077dbe21af3983bc07f68ec668ae",
+  "docs/TEST_PLAN.md": "08ec21da6d6a462136141d4daf85564b43852a7757cb56d2fb0047bd88927395",
+  "docs/architecture.md": "a565c7cc8c0296d4dbaa83b5dc8cb047f815102a0aa2bc54e8e091e59b3efcd7",
+  "docs/DATABASE_SCHEMA.md": "2d61d8c76b4b488781a2d21d4bb170f46802eeecde5f7070cf4eb8bcd005c157",
+  "docs/USER_FLOWS.md": "27fdcc92453dcaf5302d5f5acd550913b439d6b7a6385169a7dd95de420c944f",
+  "docs/PRD.md": "9366257d2e49791a5b1b2bef2b37471c578657ce6b3856e43428f4bb27f9172f",
+  "contracts/openapi.yaml": "95a5dad9ec7f4e31c5895250586c955cf2949bdbd58621333739ef295a6e265d",
+  "contracts/tool_contracts.json": "706bf901a23534612b3dfa80e896848b49dd59e16b9daa7e7744f278bd1ffd64",
+  "database/schema.sql": "af05eba8f7683658353af8b692e323e06ba0e3fabead7753618d1bd7090b9bf6",
+  "docs/architecture.source.json": "3bda6399924fe83427b0e8bbc2c9939ec99e94a7b3f917f32e1388f117de59a1",
+  "docs/architecture.html": "ba0177e6ef844fff7cffb2e658dc48f81bd29c51523f64590403df2e23814eda"
+}

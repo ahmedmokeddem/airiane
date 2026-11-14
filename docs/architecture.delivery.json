@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "5b773adb-1e56-4879-80a4-09f2874ee57b",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.source.json",
+  "output": "/home/ahmed/Desktop/hackathon/junction2026/Junction/docs/architecture.html",
+  "specification": {
+    "sha256": "aac69ba944b596fd966648401a03ec9887c977464b96d6ad60216fb79c6a55b5",
+    "bytes": 24374
+  },
+  "artifact": {
+    "sha256": "87a47e2c87985e27bbd2c9d7c2e9ce7d98e196289521b0ba55efde18d940bbab",
+    "bytes": 874163
+  }
+}

@@ -1,0 +1,3367 @@
+{
+  "contract_version": "2.0.0",
+  "status": "planned_not_implemented",
+  "canonical_schemas": "openapi.yaml#/components/schemas",
+  "dispatch_operation_id": "dispatchTool",
+  "rules": [
+    "session_id and patient identity derive from authenticated session, not model arguments",
+    "Confirmation, consent changes and memory writes are never model tools",
+    "Render recommendation options before returning identical IDs to the voice provider",
+    "Provider declarations use only parameters; result schemas and routing metadata are application-owned",
+    "Use the same idempotency key for the same normalized tool invocation ID on reconnect/retry",
+    "No camera, screenshot, frame, video upload, vision, or surroundings-inspection tool exists in V1.",
+    "ElevenLabs client tools must be registered with matching names/parameters and Wait for response enabled; render exact cards before resolving callback.",
+    "If native call ID is unavailable to SDK handler, adapter allocates invocation UUID once per callback lifecycle; backend business uniqueness still handles replay/voice-touch races. Do not claim exactly-once native redelivery without a tested stable identity."
+  ],
+  "tools": [
+    {
+      "name": "get_patient_context",
+      "description": "Get only the current patient session context.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "result_schema": {
+        "$ref": "#/$defs/PatientContext"
+      },
+      "operation_id": "getPatientContext",
+      "idempotency": "none",
+      "argument_schema": "ToolArgs_get_patient_context",
+      "enrichment": {
+        "session_id": "authenticated dispatch path",
+        "sources": "server-resolved evidence or empty proposal; never fabricated transcript references",
+        "selection_channel": "voice for model selection; touch uses startActivity directly"
+      },
+      "request_mapping": {},
+      "provider_binding": {
+        "provider": "elevenlabs",
+        "type": "client",
+        "expects_response": true,
+        "agent_configuration": "Names/parameters must match the deployed agent and Wait for response must be enabled; verify actual export."
+      },
+      "result_delivery": "Resolve SDK client-tool handler with serialized canonical result only after UI application/required patient confirmation; do not assume a Gemini send_tool_response API."
+    },
+    {
+      "name": "get_next_guided_question",
+      "description": "Retrieve the next permitted question; a repeated read does not advance state.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "result_schema": {
+        "$ref": "#/$defs/GuidedQuestion"
+      },
+      "operation_id": "getGuidedQuestion",
+      "idempotency": "none",
+      "argument_schema": "ToolArgs_get_next_guided_question",
+      "enrichment": {
+        "session_id": "authenticated dispatch path",
+        "sources": "server-resolved evidence or empty proposal; never fabricated transcript references",
+        "selection_channel": "voice for model selection; touch uses startActivity directly"
+      },
+      "request_mapping": {},
+      "provider_binding": {
+        "provider": "elevenlabs",
+        "type": "client",
+        "expects_response": true,
+        "agent_configuration": "Names/parameters must match the deployed agent and Wait for response must be enabled; verify actual export."
+      },
+      "result_delivery": "Resolve SDK client-tool handler with serialized canonical result only after UI application/required patient confirmation; do not assume a Gemini send_tool_response API."
+    },
+    {
+      "name": "present_activity_recommendations",
+      "description": "Retrieve eligible activities. Render these exact IDs before sending the function response.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          }
+        },
+        "required": [
+          "limit"
+        ]
+      },
+      "result_schema": {
+        "$ref": "#/$defs/Recommendation"
+      },
+      "operation_id": "createRecommendation",
+      "idempotency": "request",
+      "argument_schema": "ToolArgs_present_activity_recommendations",
+      "enrichment": {
+        "session_id": "authenticated dispatch path",
+        "sources": "server-resolved evidence or empty proposal; never fabricated transcript references",
+        "selection_channel": "voice for model selection; touch uses startActivity directly"
+      },
+      "request_mapping": {
+        "session_id": {
+          "source": "authenticated_session_path"
+        },
+        "limit": {
+          "source": "arguments",
+          "field": "limit"
+        }
+      },
+      "provider_binding": {
+        "provider": "elevenlabs",
+        "type": "client",
+        "expects_response": true,
+        "agent_configuration": "Names/parameters must match the deployed agent and Wait for response must be enabled; verify actual export."
+      },
+      "result_delivery": "Resolve SDK client-tool handler with serialized canonical result only after UI application/required patient confirmation; do not assume a Gemini send_tool_response API."
+    },
+    {
+      "name": "propose_observation",
+      "description": "Propose a patient-reported value for explicit UI confirmation. No automatic confirmation.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "mood",
+              "energy",
+              "sleep_hours"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 24,
+            "multipleOf": 0.01
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "kind",
+          "value",
+          "observed_at"
+        ]
+      },
+      "result_schema": {
+        "$ref": "#/$defs/Observation"
+      },
+      "operation_id": "createObservation",
+      "idempotency": "request",
+      "argument_schema": "ToolArgs_propose_observation",
+      "enrichment": {
+        "session_id": "authenticated dispatch path",
+        "sources": "server-resolved evidence or empty proposal; never fabricated transcript references",
+        "selection_channel": "voice for model selection; touch uses startActivity directly"
+      },
+      "request_mapping": {
+        "session_id": {
+          "source": "authenticated_session_path"
+        },
+        "kind": {
+          "source": "arguments",
+          "field": "kind"
+        },
+        "value": {
+          "source": "arguments",
+          "field": "value"
+        },
+        "observed_at": {
+          "source": "arguments",
+          "field": "observed_at"
+        },
+        "sources": {
+          "source": "validated_current_patient_evidence_or_empty"
+        }
+      },
+      "provider_binding": {
+        "provider": "elevenlabs",
+        "type": "client",
+        "expects_response": true,
+        "agent_configuration": "Names/parameters must match the deployed agent and Wait for response must be enabled; verify actual export."
+      },
+      "result_delivery": "Resolve SDK client-tool handler with serialized canonical result only after UI application/required patient confirmation; do not assume a Gemini send_tool_response API."
+    },
+    {
+      "name": "select_activity",
+      "description": "Resolve a voice choice to a current backend activity ID. Recheck eligibility and create an activity session.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "activity_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "activity_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "recommendation_id",
+          "activity_id",
+          "activity_version"
+        ]
+      },
+      "result_schema": {
+        "$ref": "#/$defs/ActivitySession"
+      },
+      "operation_id": "startActivity",
+      "idempotency": "request",
+      "argument_schema": "ToolArgs_select_activity",
+      "enrichment": {
+        "session_id": "authenticated dispatch path",
+        "sources": "server-resolved evidence or empty proposal; never fabricated transcript references",
+        "selection_channel": "voice for model selection; touch uses startActivity directly"
+      },
+      "request_mapping": {
+        "session_id": {
+          "source": "authenticated_session_path"
+        },
+        "recommendation_id": {
+          "source": "arguments",
+          "field": "recommendation_id"
+        },
+        "activity_id": {
+          "source": "arguments",
+          "field": "activity_id"
+        },
+        "activity_version": {
+          "source": "arguments",
+          "field": "activity_version"
+        },
+        "selection_channel": {
+          "literal": "voice"
+        }
+      },
+      "provider_binding": {
+        "provider": "elevenlabs",
+        "type": "client",
+        "expects_response": true,
+        "agent_configuration": "Names/parameters must match the deployed agent and Wait for response must be enabled; verify actual export."
+      },
+      "result_delivery": "Resolve SDK client-tool handler with serialized canonical result only after UI application/required patient confirmation; do not assume a Gemini send_tool_response API."
+    },
+    {
+      "name": "request_clinician_review",
+      "description": "Record an explicit patient review request, never promise delivery or emergency monitoring.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "result_schema": {
+        "$ref": "#/$defs/Alert"
+      },
+      "operation_id": "requestReview",
+      "idempotency": "request",
+      "argument_schema": "ToolArgs_request_clinician_review",
+      "enrichment": {
+        "session_id": "authenticated dispatch path",
+        "sources": "server-resolved evidence or empty proposal; never fabricated transcript references",
+        "selection_channel": "voice for model selection; touch uses startActivity directly"
+      },
+      "request_mapping": {
+        "session_id": {
+          "source": "authenticated_session_path"
+        },
+        "reason": {
+          "literal": "patient_requested_review"
+        }
+      },
+      "provider_binding": {
+        "provider": "elevenlabs",
+        "type": "client",
+        "expects_response": true,
+        "agent_configuration": "Names/parameters must match the deployed agent and Wait for response must be enabled; verify actual export."
+      },
+      "result_delivery": "Resolve SDK client-tool handler with serialized canonical result only after UI application/required patient confirmation; do not assume a Gemini send_tool_response API."
+    }
+  ],
+  "$defs": {
+    "Error": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "request_id",
+        "retryable"
+      ]
+    },
+    "Ack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "resource_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "accepted",
+        "resource_id",
+        "version"
+      ]
+    },
+    "SourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "source_revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "source_id",
+        "source_revision"
+      ]
+    },
+    "OnboardingRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "required": [
+        "display_name",
+        "timezone"
+      ]
+    },
+    "ProfilePatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "avatar": {
+          "$ref": "#/$defs/AvatarCustomization"
+        }
+      },
+      "required": []
+    },
+    "Me": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "patient",
+            "clinician"
+          ]
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "clinician_verified": {
+          "type": "boolean"
+        },
+        "avatar": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AvatarCustomization"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "user_id",
+        "role",
+        "display_name",
+        "timezone",
+        "clinician_verified",
+        "avatar"
+      ]
+    },
+    "PatientContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "preferences": {
+          "$ref": "#/$defs/PatientPreferences"
+        },
+        "recovery_plan": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecoveryPlan"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "memories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Memory"
+          },
+          "maxItems": 30
+        },
+        "recent_observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Observation"
+          },
+          "maxItems": 30
+        }
+      },
+      "required": [
+        "patient_id",
+        "preferences",
+        "recovery_plan",
+        "memories",
+        "recent_observations"
+      ]
+    },
+    "ContextPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "preferences": {
+          "$ref": "#/$defs/PatientPreferences"
+        }
+      },
+      "required": [
+        "preferences"
+      ]
+    },
+    "SessionCreate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "voice",
+            "text"
+          ]
+        }
+      },
+      "required": [
+        "mode"
+      ]
+    },
+    "ConversationSession": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "created",
+            "active",
+            "interrupted",
+            "ended"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "voice",
+            "text"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "history_enabled": {
+          "type": "boolean"
+        },
+        "current_connection_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "session_id",
+        "state",
+        "mode",
+        "version",
+        "created_at",
+        "ended_at",
+        "history_enabled",
+        "current_connection_id"
+      ]
+    },
+    "SessionPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "interrupted",
+            "ended"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "voice",
+            "text"
+          ]
+        }
+      },
+      "required": [
+        "expected_version"
+      ]
+    },
+    "TranscriptEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "client_message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "turn_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "connection_epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "speaker": {
+          "type": "string",
+          "enum": [
+            "patient",
+            "assistant"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "voice_transcription",
+            "typed_text"
+          ]
+        },
+        "event_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finality": {
+          "type": "string",
+          "enum": [
+            "final",
+            "interrupted"
+          ]
+        }
+      },
+      "required": [
+        "client_message_id",
+        "turn_id",
+        "connection_epoch",
+        "sequence",
+        "speaker",
+        "text",
+        "channel",
+        "event_at",
+        "finality"
+      ]
+    },
+    "MessageBatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "consent_grant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TranscriptEvent"
+          },
+          "maxItems": 50
+        },
+        "connection_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "consent_grant_id",
+        "events",
+        "connection_id"
+      ]
+    },
+    "MessageBatchResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accepted_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "maxItems": 50
+        },
+        "duplicate_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "maxItems": 50
+        }
+      },
+      "required": [
+        "accepted_ids",
+        "duplicate_ids"
+      ]
+    },
+    "Message": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "source_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "event": {
+          "$ref": "#/$defs/TranscriptEvent"
+        },
+        "connection_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "message_id",
+        "session_id",
+        "source_id",
+        "event",
+        "connection_id"
+      ]
+    },
+    "Summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "summary_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "basis": {
+          "type": "string",
+          "enum": [
+            "consented_history",
+            "confirmed_records"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "completeness": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial"
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "summary_id",
+        "session_id",
+        "version",
+        "basis",
+        "text",
+        "completeness",
+        "sources"
+      ]
+    },
+    "ObservationCreate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mood",
+            "energy",
+            "sleep_hours"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 24,
+          "multipleOf": 0.01
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "session_id",
+        "kind",
+        "value",
+        "observed_at",
+        "sources"
+      ]
+    },
+    "Observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "observation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mood",
+            "energy",
+            "sleep_hours"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 24,
+          "multipleOf": 0.01
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "confirmed",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "supersedes_observation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "observation_id",
+        "patient_id",
+        "session_id",
+        "kind",
+        "value",
+        "observed_at",
+        "state",
+        "version",
+        "supersedes_observation_id",
+        "sources"
+      ]
+    },
+    "ObservationConfirm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "confirm",
+            "reject"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 24,
+          "multipleOf": 0.01
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "expected_version",
+        "decision"
+      ]
+    },
+    "ObservationCorrection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 24,
+          "multipleOf": 0.01
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "expected_version",
+        "value",
+        "observed_at",
+        "reason"
+      ]
+    },
+    "MemoryUpsert": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "enum": [
+            "preferred_activity_kind",
+            "preferred_duration_seconds"
+          ]
+        },
+        "value": {
+          "$ref": "#/$defs/MemoryValue"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "value",
+        "source_id"
+      ]
+    },
+    "Memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "memory_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key": {
+          "type": "string",
+          "enum": [
+            "preferred_activity_kind",
+            "preferred_duration_seconds"
+          ]
+        },
+        "value": {
+          "$ref": "#/$defs/MemoryValue"
+        },
+        "source_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "memory_id",
+        "key",
+        "value",
+        "source_id"
+      ]
+    },
+    "Activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "activity_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activity_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "breathing",
+            "nature",
+            "behavioral_activation",
+            "reflection",
+            "social_reconnection"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "duration_seconds": {
+          "type": "integer",
+          "minimum": 30,
+          "maximum": 1800
+        },
+        "config": {
+          "$ref": "#/$defs/ActivityConfig"
+        }
+      },
+      "required": [
+        "activity_id",
+        "activity_version",
+        "kind",
+        "title",
+        "description",
+        "duration_seconds",
+        "config"
+      ]
+    },
+    "RecommendationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        }
+      },
+      "required": [
+        "session_id",
+        "limit"
+      ]
+    },
+    "RecommendationOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "activity": {
+          "$ref": "#/$defs/Activity"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "activity",
+        "reason",
+        "rank"
+      ]
+    },
+    "Recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recommendation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RecommendationOption"
+          },
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "recommendation_id",
+        "session_id",
+        "expires_at",
+        "options"
+      ]
+    },
+    "ActivityStart": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recommendation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activity_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activity_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "selection_channel": {
+          "type": "string",
+          "enum": [
+            "voice",
+            "touch"
+          ]
+        }
+      },
+      "required": [
+        "session_id",
+        "recommendation_id",
+        "activity_id",
+        "activity_version",
+        "selection_channel"
+      ]
+    },
+    "ActivitySession": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "activity_session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recommendation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activity_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activity_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "started",
+            "completed",
+            "abandoned"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "activity_session_id",
+        "session_id",
+        "recommendation_id",
+        "activity_id",
+        "activity_version",
+        "state",
+        "version",
+        "started_at",
+        "ended_at"
+      ]
+    },
+    "ActivityEventRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "client_event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "event_type": {
+          "type": "string",
+          "enum": [
+            "progress",
+            "complete",
+            "abandon"
+          ]
+        },
+        "elapsed_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7200
+        },
+        "event_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "client_event_id",
+        "expected_version",
+        "event_type",
+        "elapsed_seconds",
+        "event_at"
+      ]
+    },
+    "FeedbackRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rating": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "comment": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "rating",
+        "comment"
+      ]
+    },
+    "Feedback": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "feedback_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activity_session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "source_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rating": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "comment": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "feedback_id",
+        "activity_session_id",
+        "source_id",
+        "rating",
+        "comment"
+      ]
+    },
+    "AssessmentDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assessment_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "clinical_instrument": {
+          "const": false
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "question_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "wording": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "minimum": {
+                "type": "integer"
+              },
+              "maximum": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "question_id",
+              "wording",
+              "minimum",
+              "maximum"
+            ]
+          },
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "assessment_id",
+        "version",
+        "title",
+        "clinical_instrument",
+        "questions"
+      ]
+    },
+    "AssessmentSubmit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assessment_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "question_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "value": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10
+              }
+            },
+            "required": [
+              "question_id",
+              "value"
+            ]
+          },
+          "maxItems": 20
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "session_id",
+        "assessment_version",
+        "answers",
+        "observed_at"
+      ]
+    },
+    "AssessmentResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assessment_response_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "assessment_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "assessment_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "source_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "question_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "value": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10
+              }
+            },
+            "required": [
+              "question_id",
+              "value"
+            ]
+          },
+          "maxItems": 20
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "assessment_response_id",
+        "assessment_id",
+        "assessment_version",
+        "source_id",
+        "complete",
+        "title",
+        "answers",
+        "observed_at"
+      ]
+    },
+    "ReportRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "period_start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "period_start",
+        "period_end"
+      ]
+    },
+    "ReportReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "report_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "ready",
+            "stale",
+            "failed"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "report_id",
+        "state",
+        "version"
+      ]
+    },
+    "Trend": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "metric": {
+          "type": "string",
+          "enum": [
+            "mood",
+            "energy",
+            "sleep_hours",
+            "activity_completions",
+            "activity_rating"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "scale_0_10",
+            "hours",
+            "count",
+            "scale_1_5"
+          ]
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mean": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "delta": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coverage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "maxItems": 500
+        }
+      },
+      "required": [
+        "metric",
+        "unit",
+        "count",
+        "mean",
+        "delta",
+        "coverage",
+        "sources"
+      ]
+    },
+    "Report": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "report_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "calculation_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_cutoff": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "stale"
+          ]
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Observation"
+          },
+          "maxItems": 500
+        },
+        "completed_activities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActivitySession"
+          },
+          "maxItems": 500
+        },
+        "feedback": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Feedback"
+          },
+          "maxItems": 500
+        },
+        "assessments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssessmentResponse"
+          },
+          "maxItems": 100
+        },
+        "trends": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Trend"
+          },
+          "maxItems": 20
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "maxItems": 1000
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "maxItems": 30
+        }
+      },
+      "required": [
+        "report_id",
+        "patient_id",
+        "version",
+        "calculation_version",
+        "period_start",
+        "period_end",
+        "timezone",
+        "generated_at",
+        "data_cutoff",
+        "state",
+        "observations",
+        "completed_activities",
+        "feedback",
+        "assessments",
+        "trends",
+        "sources",
+        "limitations"
+      ]
+    },
+    "CareInviteRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clinician_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "clinician_id"
+      ]
+    },
+    "CareLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "care_link_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinician_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "active",
+            "revoked"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "care_link_id",
+        "patient_id",
+        "clinician_id",
+        "state",
+        "created_at"
+      ]
+    },
+    "CareLinkPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "revoke"
+          ]
+        }
+      },
+      "required": [
+        "action"
+      ]
+    },
+    "ConsentCreate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "type": "string",
+          "enum": [
+            "transcripts",
+            "reports",
+            "alerts"
+          ]
+        },
+        "care_link_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_from": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "scope",
+        "care_link_id",
+        "expires_at",
+        "data_from"
+      ]
+    },
+    "ConsentGrant": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "consent_grant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "transcripts",
+            "reports",
+            "alerts"
+          ]
+        },
+        "care_link_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_from": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revoked_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "consent_grant_id",
+        "scope",
+        "care_link_id",
+        "expires_at",
+        "data_from",
+        "revoked_at"
+      ]
+    },
+    "ReviewRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "patient_requested_review"
+          ]
+        }
+      },
+      "required": [
+        "session_id",
+        "reason"
+      ]
+    },
+    "Alert": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "alert_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rule_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "open",
+            "acknowledged",
+            "resolved"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "alert_id",
+        "patient_id",
+        "rule_key",
+        "state",
+        "version",
+        "created_at",
+        "sources"
+      ]
+    },
+    "AlertPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "acknowledged",
+            "resolved"
+          ]
+        }
+      },
+      "required": [
+        "expected_version",
+        "state"
+      ]
+    },
+    "DoctorPatient": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "care_link_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "reports",
+              "alerts"
+            ]
+          },
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "patient_id",
+        "display_name",
+        "care_link_id",
+        "scopes"
+      ]
+    },
+    "GuidedQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "question_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "flow_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "wording": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "missing_fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "mood",
+              "energy",
+              "sleep_hours"
+            ]
+          },
+          "maxItems": 3
+        },
+        "session_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "question_id",
+        "flow_version",
+        "wording",
+        "missing_fields",
+        "session_version"
+      ]
+    },
+    "QuestionAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "question_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "flow_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mood",
+            "energy",
+            "sleep_hours"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 24,
+          "multipleOf": 0.01
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "question_id",
+        "flow_version",
+        "kind",
+        "value",
+        "observed_at"
+      ]
+    },
+    "ToolArgs_get_patient_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {},
+      "required": []
+    },
+    "ToolArgs_get_next_guided_question": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {},
+      "required": []
+    },
+    "ToolArgs_present_activity_recommendations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        }
+      },
+      "required": [
+        "limit"
+      ]
+    },
+    "ToolArgs_propose_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mood",
+            "energy",
+            "sleep_hours"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 24,
+          "multipleOf": 0.01
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "kind",
+        "value",
+        "observed_at"
+      ]
+    },
+    "ToolArgs_select_activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recommendation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activity_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activity_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "recommendation_id",
+        "activity_id",
+        "activity_version"
+      ]
+    },
+    "ToolArgs_request_clinician_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {},
+      "required": []
+    },
+    "AvatarCustomization": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "type": "string",
+          "enum": [
+            "teal",
+            "lavender"
+          ]
+        },
+        "accessory": {
+          "type": "string",
+          "enum": [
+            "none",
+            "leaf"
+          ]
+        }
+      },
+      "required": [
+        "color",
+        "accessory"
+      ]
+    },
+    "PatientPreferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "preferred_activity_kind": {
+          "type": "string",
+          "enum": [
+            "breathing",
+            "nature",
+            "behavioral_activation",
+            "reflection",
+            "social_reconnection"
+          ]
+        },
+        "preferred_duration_seconds": {
+          "type": "integer",
+          "minimum": 30,
+          "maximum": 1800
+        }
+      },
+      "required": []
+    },
+    "RecoveryPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recovery_plan_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "content": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "suggested_activity_kinds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "breathing",
+                  "nature",
+                  "behavioral_activation",
+                  "reflection",
+                  "social_reconnection"
+                ]
+              },
+              "maxItems": 5
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          },
+          "required": [
+            "suggested_activity_kinds",
+            "notes"
+          ]
+        }
+      },
+      "required": [
+        "recovery_plan_id",
+        "version",
+        "title",
+        "content"
+      ]
+    },
+    "MemoryValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "activity_kind": {
+              "type": "string",
+              "enum": [
+                "breathing",
+                "nature",
+                "behavioral_activation",
+                "reflection",
+                "social_reconnection"
+              ]
+            }
+          },
+          "required": [
+            "activity_kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "duration_seconds": {
+              "type": "integer",
+              "minimum": 30,
+              "maximum": 1800
+            }
+          },
+          "required": [
+            "duration_seconds"
+          ]
+        }
+      ]
+    },
+    "ActivityConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "renderer": {
+          "type": "string",
+          "enum": [
+            "breathing_v1",
+            "nature_v1",
+            "step_v1",
+            "reflection_v1",
+            "social_v1"
+          ]
+        },
+        "asset_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "maxItems": 20
+        },
+        "inhale_seconds": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exhale_seconds": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "renderer",
+        "asset_id",
+        "instructions",
+        "inhale_seconds",
+        "exhale_seconds"
+      ]
+    },
+    "QuestionSkip": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "question_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "flow_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "question_id",
+        "flow_version",
+        "expected_version"
+      ]
+    },
+    "ToolDispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tool_call_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "contract_version": {
+          "const": "2.0.0"
+        },
+        "arguments": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolArgs_get_patient_context"
+            },
+            {
+              "$ref": "#/$defs/ToolArgs_get_next_guided_question"
+            },
+            {
+              "$ref": "#/$defs/ToolArgs_present_activity_recommendations"
+            },
+            {
+              "$ref": "#/$defs/ToolArgs_propose_observation"
+            },
+            {
+              "$ref": "#/$defs/ToolArgs_select_activity"
+            },
+            {
+              "$ref": "#/$defs/ToolArgs_request_clinician_review"
+            }
+          ]
+        },
+        "connection_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "tool_call_id",
+        "contract_version",
+        "arguments",
+        "connection_id"
+      ]
+    },
+    "ToolResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tool_call_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "contract_version": {
+          "const": "2.0.0"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PatientContext"
+            },
+            {
+              "$ref": "#/$defs/GuidedQuestion"
+            },
+            {
+              "$ref": "#/$defs/Recommendation"
+            },
+            {
+              "$ref": "#/$defs/Observation"
+            },
+            {
+              "$ref": "#/$defs/ActivitySession"
+            },
+            {
+              "$ref": "#/$defs/Alert"
+            }
+          ]
+        }
+      },
+      "required": [
+        "tool_call_id",
+        "contract_version",
+        "result"
+      ]
+    },
+    "ConversationSessionPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConversationSession"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "MessagePage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Message"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "ObservationPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Observation"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "ActivityPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Activity"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "AssessmentDefinitionPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssessmentDefinition"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "ReportReceiptPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReportReceipt"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "CareLinkPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CareLink"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "ConsentGrantPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConsentGrant"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "DoctorPatientPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DoctorPatient"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "AlertPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Alert"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "AgentContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "context_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "guided_question": {
+          "$ref": "#/$defs/GuidedQuestion"
+        },
+        "preferences": {
+          "$ref": "#/$defs/PatientPreferences"
+        },
+        "current_recommendation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "active_activity_session": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ActivitySession"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vision_access": {
+          "const": "none"
+        }
+      },
+      "required": [
+        "context_version",
+        "summary",
+        "guided_question",
+        "preferences",
+        "current_recommendation",
+        "active_activity_session",
+        "vision_access"
+      ]
+    },
+    "AgentConnectionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "voice",
+            "text"
+          ]
+        },
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "mode",
+        "expected_version"
+      ]
+    },
+    "ElevenLabsVoiceBootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "connection_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "connection_epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "provider": {
+          "const": "elevenlabs"
+        },
+        "agent_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "agent_context": {
+          "$ref": "#/$defs/AgentContext"
+        },
+        "connect_before": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "credential_expires_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "privacy_policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "camera_policy": {
+          "const": "local_preview_only_no_transmission"
+        },
+        "tool_contract_version": {
+          "const": "2.0.0"
+        },
+        "mode": {
+          "const": "voice"
+        },
+        "transport": {
+          "const": "webrtc"
+        },
+        "conversation_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "provider_conversation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "session_id",
+        "connection_id",
+        "connection_epoch",
+        "provider",
+        "agent_id",
+        "agent_context",
+        "connect_before",
+        "credential_expires_at",
+        "privacy_policy_version",
+        "camera_policy",
+        "tool_contract_version",
+        "mode",
+        "transport",
+        "conversation_token",
+        "provider_conversation_id"
+      ]
+    },
+    "ElevenLabsTextBootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "connection_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "connection_epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "provider": {
+          "const": "elevenlabs"
+        },
+        "agent_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "agent_context": {
+          "$ref": "#/$defs/AgentContext"
+        },
+        "connect_before": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "credential_expires_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "privacy_policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "camera_policy": {
+          "const": "local_preview_only_no_transmission"
+        },
+        "tool_contract_version": {
+          "const": "2.0.0"
+        },
+        "mode": {
+          "const": "text"
+        },
+        "transport": {
+          "const": "websocket"
+        },
+        "signed_url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 8192
+        },
+        "text_only": {
+          "const": true
+        }
+      },
+      "required": [
+        "session_id",
+        "connection_id",
+        "connection_epoch",
+        "provider",
+        "agent_id",
+        "agent_context",
+        "connect_before",
+        "credential_expires_at",
+        "privacy_policy_version",
+        "camera_policy",
+        "tool_contract_version",
+        "mode",
+        "transport",
+        "signed_url",
+        "text_only"
+      ]
+    },
+    "AgentConnectionBootstrap": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ElevenLabsVoiceBootstrap"
+        },
+        {
+          "$ref": "#/$defs/ElevenLabsTextBootstrap"
+        }
+      ]
+    },
+    "ProviderConnection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "connection_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "connection_epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "provider": {
+          "const": "elevenlabs"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "voice",
+            "text"
+          ]
+        },
+        "transport": {
+          "type": "string",
+          "enum": [
+            "webrtc",
+            "websocket"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "created",
+            "connecting",
+            "active",
+            "interrupted",
+            "closed"
+          ]
+        },
+        "provider_conversation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "connection_id",
+        "session_id",
+        "connection_epoch",
+        "provider",
+        "mode",
+        "transport",
+        "state",
+        "provider_conversation_id",
+        "context_version",
+        "version"
+      ]
+    },
+    "ProviderConnectionPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "connecting",
+            "active",
+            "interrupted",
+            "closed"
+          ]
+        },
+        "provider_conversation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "expected_version",
+        "state"
+      ]
+    },
+    "MyJourneyItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "activity_session": {
+          "$ref": "#/$defs/ActivitySession"
+        },
+        "activity": {
+          "$ref": "#/$defs/Activity"
+        },
+        "feedback": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Feedback"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "activity_session",
+        "activity",
+        "feedback"
+      ]
+    },
+    "MyJourneyItemPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MyJourneyItem"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    }
+  },
+  "active_provider": "elevenlabs",
+  "future_provider": "gemini_live_v2_not_a_v1_dependency"
+}

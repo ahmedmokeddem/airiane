@@ -1,0 +1,15 @@
+{
+  "checked_on": "2026-11-14",
+  "evidence": "actual_saved_agent_configuration_readback",
+  "settings": {
+    "record_voice": false,
+    "retention_days": 0,
+    "delete_audio": true,
+    "delete_transcript_and_pii": true,
+    "apply_to_existing_conversations": false,
+    "zero_retention_mode": false,
+    "private_auth_enabled": true
+  },
+  "deletion_behavior": "not_yet_observed",
+  "zero_retention_guarantee": false
+}
