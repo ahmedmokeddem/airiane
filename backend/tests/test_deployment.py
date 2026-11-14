@@ -88,3 +88,32 @@ def test_production_jwt_verifies_signature_issuer_audience_and_expiry():
     ]:
         with pytest.raises(DomainError):
             asyncio.run(verifier.verify("Bearer " + jwt.encode(payload, signer, algorithm="RS256")))
+
+
+def test_readiness_logs_only_safe_reason(caplog):
+    import logging
+    import ssl
+
+    from app.health import readiness_reason
+
+    secret = "postgresql://private-user:private-password@private-host/db"
+    assert readiness_reason(ssl.SSLError(secret)) == "database_tls"
+    assert readiness_reason(ConnectionRefusedError(secret)) == "database_network"
+    assert readiness_reason(TimeoutError(secret)) == "database_timeout"
+    settings = production(
+        database_url="postgresql://fixture:private-test-password@127.0.0.1:1/unavailable?sslmode=verify-full",
+        readiness_timeout=0.2,
+    )
+    with (
+        caplog.at_level(logging.WARNING, logger="uvicorn.error"),
+        TestClient(create_app(settings)) as client,
+    ):
+        assert client.get("/health/ready").status_code == 503
+        assert client.get("/health/ready").status_code == 503
+    records = [r.getMessage() for r in caplog.records if "Readiness failed:" in r.getMessage()]
+    assert len(records) == 1
+    assert records[0] in (
+        "Readiness failed: database_network",
+        "Readiness failed: database_timeout",
+    )
+    assert "private-test-password" not in " ".join(records)

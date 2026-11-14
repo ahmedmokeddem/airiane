@@ -93,3 +93,5 @@ Start with estimates of **1 vCPU / 1 GiB RAM for API**, **1 vCPU / 512 MiB–1 G
 ## Runtime discovery duplicate-key recovery
 
 If service creation reports “Environment variable keys must be unique”, rescan the latest manifest: defaults are now declared only in Dockerfiles, and build-stage telemetry is scoped to the build command. This avoids duplicate declarations during discovery; hosted success remains to be verified. Review generated environment rows for duplicate names before submitting. Check which application services actually exist after a partial creation; reuse existing services where possible and create only missing applications. Do not delete the external Tiger Data database.
+
+Readiness failures emit one sanitized reason at most every 30 seconds in API logs: `database_tls`, `database_authentication`, `database_schema_missing`, `database_permission`, `database_network`, `database_timeout`, or `database_or_catalogue_unavailable`. HTTP responses stay generic. No exception message, connection URL, SQL or patient content is logged.
