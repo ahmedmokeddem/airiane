@@ -110,6 +110,15 @@ TABLES = {
     "observation_sources": table(
         "observation_sources", "observation_id:u source_id:u patient_id:u source_revision:i"
     ),
+    "alert_rules": table("alert_rules", "rule_key:s version:i enabled:b definition:j"),
+    "alerts": table(
+        "alerts",
+        "id:u patient_id:u session_id:u rule_key:s rule_version:i dedup_key:s state:s version:i source_ids:j created_at:t",
+    ),
+    "alert_recipients": table(
+        "alert_recipients",
+        "alert_id:u patient_id:u care_link_id:u consent_grant_id:u delivery_state:s acknowledged_at:t",
+    ),
     "assessment_definitions": table(
         "assessment_definitions", "id:u version:i title:s clinical_instrument:b questions:j"
     ),

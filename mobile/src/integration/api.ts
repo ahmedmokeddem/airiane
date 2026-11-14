@@ -3,11 +3,27 @@ import recommendationFixture from '../../../contracts/fixtures/recommendation.js
 import type { DTO, Session, Recommendation, ActivitySession, Journey } from './types';
 export { uuid } from './runtime';
 export const mode = process.env.EXPO_PUBLIC_API_MODE === 'live' ? 'live' : 'mock';
-const origin = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000';
+// In a browser opened over the LAN, call the backend on the same host that served the page, so a
+// changed Wi-Fi IP doesn't leave the build pointing at a stale address. Native builds use the env URL.
+function apiOrigin(): string {
+  const configured = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000';
+  const page = (globalThis as { location?: { protocol: string; hostname: string } }).location;
+  if (!page || !/^https?:$/.test(page.protocol) || !page.hostname) return configured;
+  // Behind an HTTPS proxy (e.g. Tailscale Serve) /v1 is forwarded on the same origin; an http API
+  // URL here would be blocked as mixed content.
+  if (page.protocol === 'https:') return `https://${page.hostname}${(page as { port?: string }).port ? ':' + (page as { port?: string }).port : ''}`;
+  const url = new URL(configured);
+  url.hostname = page.hostname;
+  return url.origin;
+}
+const origin = apiOrigin();
 const eventBodies = new Map<string, DTO<'ActivityEventRequest'>>();
 const feedbackBodies = new Map<string, DTO<'FeedbackRequest'>>();
 let accessToken = '';
 let mockJourney: Journey = {items:[],next_cursor:null};
+export type Observation = DTO<'Observation'>;
+let mockObservations: Observation[] = [];
+const mockPatient = '11111111-1111-4111-8111-111111111111';
 const recommendation = recommendationFixture.data as Recommendation;
 export function setAccessToken(value: string) { accessToken = value; }
 export async function request<T>(path: string, body?: unknown, method = body ? 'POST' : 'GET', key: string = uuid()): Promise<T> {
@@ -43,4 +59,19 @@ export const api = {
     mockJourney={items:[{activity_session:activity,activity:item.activity,feedback},...mockJourney.items.filter(x=>x.activity_session.activity_session_id!==activity.activity_session_id)],next_cursor:null};
   },
   async journey():Promise<Journey>{return mode==='mock'?mockJourney:request('/my-journey');},
+  async activities():Promise<DTO<'Activity'>[]>{return mode==='mock'?recommendation.options.map(o=>o.activity):(await request<DTO<'ActivityPage'>>('/activities')).items;},
+  /** Observations are always proposed first; only an explicit patient confirmation makes them count. */
+  async observations():Promise<Observation[]>{return mode==='mock'?[...mockObservations]:(await request<DTO<'ObservationPage'>>('/observations?limit=100')).items;},
+  async proposeObservation(kind:Observation['kind'],value:number,key:string=uuid()):Promise<Observation>{
+    const body:DTO<'ObservationCreate'>={session_id:null,kind,value,observed_at:new Date().toISOString(),sources:[]};
+    if(mode==='live')return request('/observations',body,'POST',key);
+    const created:Observation={...body,observation_id:uuid(),patient_id:mockPatient,state:'proposed',version:1,supersedes_observation_id:null};
+    mockObservations=[created,...mockObservations];return created;
+  },
+  async decideObservation(observation:Observation,decision:'confirm'|'reject'):Promise<Observation>{
+    const body:DTO<'ObservationConfirm'>={expected_version:observation.version,decision};
+    if(mode==='live')return request(`/observations/${observation.observation_id}/confirmation`,body);
+    const decided:Observation={...observation,state:decision==='confirm'?'confirmed':'rejected',version:observation.version+1,sources:decision==='confirm'?[{source_id:uuid(),source_revision:1}]:observation.sources};
+    mockObservations=mockObservations.map(o=>o.observation_id===decided.observation_id?decided:o);return decided;
+  },
 };

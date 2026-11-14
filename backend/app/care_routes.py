@@ -4,6 +4,7 @@ from .care import CareService
 from .domain import DomainError
 from .reporting import ReportService
 from .services import utc
+from .wellbeing import AlertService, ObservationService
 
 SHARED_OPERATIONS = {
     "getMe",
@@ -12,6 +13,8 @@ SHARED_OPERATIONS = {
     "listDoctorPatients",
     "listDoctorReports",
     "getDoctorReport",
+    "listDoctorAlerts",
+    "updateDoctorAlert",
 }
 OPERATIONS = {
     "requestReport": ("ReportRequest", "ReportReceipt", 202),
@@ -26,11 +29,19 @@ OPERATIONS = {
     "listDoctorPatients": (None, "DoctorPatientPage", 200),
     "listDoctorReports": (None, "ReportReceiptPage", 200),
     "getDoctorReport": (None, "Report", 200),
+    "createObservation": ("ObservationCreate", "Observation", 201),
+    "listObservations": (None, "ObservationPage", 200),
+    "confirmObservation": ("ObservationConfirm", "Observation", 200),
+    "requestReview": ("ReviewRequest", "Alert", 201),
+    "listPatientAlerts": (None, "AlertPage", 200),
+    "listDoctorAlerts": (None, "AlertPage", 200),
+    "updateDoctorAlert": ("AlertPatch", "Alert", 200),
 }
 
 
 async def dispatch(op, store, actor, p, body, query, pages):
     care, reports = CareService(store), ReportService(store)
+    observations, alerts = ObservationService(store), AlertService(store)
     scope = op + ":" + actor + ":" + p.get("patient_id", "")
 
     def page(rows, view=lambda r: r, key=lambda r: (r["created_at"], r["id"]), descending=True):
@@ -106,4 +117,27 @@ async def dispatch(op, store, actor, p, body, query, pages):
             return page(rows, reports.receipt)
         case "getDoctorReport":
             return await reports.doctor_read(actor, p["patient_id"], p["report_id"])
+        case "createObservation":
+            return await observations.create(actor, body)
+        case "listObservations":
+            rows = await store.all("observations", patient_id=actor)
+            built = page(rows, key=lambda r: (r["observed_at"], r["id"]))
+            built["items"] = [await observations.view(row) for row in built["items"]]
+            return built
+        case "confirmObservation":
+            return await observations.confirm(actor, p["observation_id"], body)
+        case "requestReview":
+            return await alerts.request(actor, body)
+        case "listPatientAlerts":
+            built = page(await store.all("alerts", patient_id=actor), lambda r: r)
+            built["items"] = [await alerts.view(row) for row in built["items"]]
+            return built
+        case "listDoctorAlerts":
+            _, rows = await alerts.visible(actor, p["patient_id"])
+            built = page(rows, lambda r: r)
+            built["items"] = [await alerts.view(row) for row in built["items"]]
+            await care.audit(actor, p["patient_id"], "alerts_read", "alert", None)
+            return built
+        case "updateDoctorAlert":
+            return await alerts.doctor_update(actor, p["patient_id"], p["alert_id"], body)
     raise DomainError("RESOURCE_NOT_FOUND", 404)

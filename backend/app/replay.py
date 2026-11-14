@@ -10,6 +10,8 @@ def metadata(op: str, result: dict) -> dict:
             "tool_call_id": result["tool_call_id"],
             "resource": metadata("tool", result["result"]),
         }
+    if op == "updateDoctorAlert":
+        return {"alert_id": result["alert_id"], "doctor_patient_id": result["patient_id"]}
     if "patient_id" in result and "preferences" in result:
         return {"type": "patient_context"}
     if "missing_fields" in result:
@@ -23,6 +25,8 @@ def metadata(op: str, result: dict) -> dict:
         "report_id",
         "care_link_id",
         "consent_grant_id",
+        "observation_id",
+        "alert_id",
     ]
     return {key: result[key] for key in keys if key in result}
 
@@ -37,6 +41,23 @@ async def restore(op: str, meta: dict, store, patient: str) -> dict:
             patient,
         )
         return {"tool_call_id": meta["tool_call_id"], "contract_version": "2.0.0", "result": result}
+    if "observation_id" in meta:
+        from .wellbeing import ObservationService
+
+        observations = ObservationService(store)
+        return await observations.view(await observations.owned(patient, meta["observation_id"]))
+    if "alert_id" in meta:
+        from .wellbeing import AlertService
+
+        alerts = AlertService(store)
+        if "doctor_patient_id" in meta:
+            # Clinician replay re-checks the live link and alerts grant before returning.
+            _, rows = await alerts.visible(patient, meta["doctor_patient_id"])
+            row = next((r for r in rows if r["id"] == meta["alert_id"]), None)
+            if not row:
+                raise DomainError("RESOURCE_NOT_FOUND", 404)
+            return await alerts.view(row)
+        return await alerts.view(await alerts.owned(patient, meta["alert_id"]))
     if "consent_grant_id" in meta:
         from .care import CareService
 

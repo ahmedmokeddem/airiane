@@ -42,3 +42,21 @@ test('session mutation rejects cross-origin requests',()=>{
 });
 
 test('same-origin checks support the development server internal hostname',()=>{assert.equal(validOrigin(new Request('http://localhost:3000/auth/login',{method:'POST',headers:{origin:'http://127.0.0.1:3000',host:'127.0.0.1:3000'}})),true);});
+
+test('alert read uses clinician path, bearer, no-store and disallows redirects', async () => {
+  let called = false;
+  const fetcher: typeof fetch = async (input, init) => {
+    called = true;
+    assert.equal(String(input), 'http://127.0.0.1:8000/v1/doctor/patients/patient-id/alerts');
+    assert.equal((init?.headers as Record<string,string>).Authorization, 'Bearer fictional-test-token');
+    assert.equal(init?.cache, 'no-store'); assert.equal(init?.redirect, 'error');
+    return Response.json({items:[],next_cursor:null});
+  };
+  const page = await new ClinicianApi('http://127.0.0.1:8000', 'fictional-test-token', fetcher).alerts('patient-id');
+  assert.equal(called,true); assert.deepEqual(page.items,[]);
+});
+
+test('missing alert consent denies alerts without fallback data', async () => {
+  const fetcher: typeof fetch = async () => new Response('', {status:403});
+  await assert.rejects(new ClinicianApi('http://127.0.0.1:8000', 'fictional-test-token', fetcher).alerts('patient-id'), (error: unknown) => error instanceof ApiError && error.status === 403);
+});

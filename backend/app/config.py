@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     elevenlabs_agent_id: str = ""
     provider_privacy_verified: bool = False
     provider_privacy_policy_version: str = ""
+    exa_api_key: str = ""
+    gemini_api_key: str = ""
 
     def model_post_init(self, context: object) -> None:
         if self.demo_auth and self.environment != "development":

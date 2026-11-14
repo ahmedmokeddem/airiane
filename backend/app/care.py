@@ -166,6 +166,11 @@ class CareService:
         return grant["revoked_at"] is None and utc(grant["expires_at"]) > now()
 
     async def authorize_report(self, clinician: str, patient: str, start: str | None = None):
+        return await self.authorize_scope(clinician, patient, "reports", start)
+
+    async def authorize_scope(
+        self, clinician: str, patient: str, scope: str, start: str | None = None
+    ):
         await self.clinician(clinician)
         profile = await self.store.get("patient_profiles", patient_id=patient)
         user = await self.store.get("users", id=patient)
@@ -176,7 +181,7 @@ class CareService:
         )
         for link in links:
             grants = await self.store.all(
-                "consent_grants", patient_id=patient, care_link_id=link["id"], scope="reports"
+                "consent_grants", patient_id=patient, care_link_id=link["id"], scope=scope
             )
             for grant in grants:
                 if self.active_grant(grant) and (

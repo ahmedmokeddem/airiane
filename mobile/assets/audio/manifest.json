@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-11-14T08:58:22.181Z",
+  "sample_rate_hz": 22050,
+  "duration_seconds": 8,
+  "tracks": [
+    {
+      "id": "soundscape-40hz-v1",
+      "file": "nordic-forest-birds-40hz.wav",
+      "description": "Nordic forest birdsong, pine breeze 1/f pink noise, and 40 Hz gamma amplitude-modulated harmonic bed"
+    },
+    {
+      "id": "good-news-ambient-v1",
+      "file": "gentle-rain-stream.wav",
+      "description": "Flowing woodland stream, soft rain droplets, and asynchronous evolving F-maj9 warm pad"
+    },
+    {
+      "id": "grounding-chime-v1",
+      "file": "bilateral-grounding-chimes.wav",
+      "description": "0.8 Hz bilateral alternating stereo drift with 528 Hz singing-bowl chimes and forest air"
+    }
+  ]
+}

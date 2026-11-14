@@ -1,9 +1,99 @@
+import os
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from .domain import DomainError, RecordStore, now, stamp
+from .good_news import FALLBACK_STORIES, GOOD_NEWS_ACTIVITY_ID, get_uplifting_news_instructions
 
 ACTIVITY_ID = "22222222-2222-4222-8222-222222222222"
+
+# Immutable catalog seed rows, in recommendation rank order. Calm Breathing stays first.
+CATALOG = [
+    {
+        "id": ACTIVITY_ID,
+        "slug": "calm-breathing",
+        "version": 1,
+        "kind": "breathing",
+        "title": "Calm Breathing",
+        "description": "Take an optional gentle pause. Stop whenever you want.",
+        "duration_seconds": 60,
+        "config": {
+            "renderer": "breathing_v1",
+            "asset_id": "harmonic-breath-v1",
+            "instructions": ["Breathe comfortably. Stop if uncomfortable."],
+            "inhale_seconds": 4,
+            "exhale_seconds": 4,
+        },
+        "active": True,
+    },
+    {
+        "id": "22222222-2222-4222-8222-222222222223",
+        "slug": "acoustic-resonance",
+        "version": 1,
+        "kind": "nature",
+        "title": "40 Hz Acoustic Resonance",
+        "description": "Gentle rhythmic soundscape pause to support calm focus.",
+        "duration_seconds": 60,
+        "config": {
+            "renderer": "nature_v1",
+            "asset_id": "soundscape-40hz-v1",
+            "instructions": [
+                "Settle into a comfortable position.",
+                "Let the steady rhythm sit in the background.",
+                "Lower the volume or stop whenever you like.",
+            ],
+            "inhale_seconds": None,
+            "exhale_seconds": None,
+        },
+        "active": True,
+    },
+    {
+        "id": GOOD_NEWS_ACTIVITY_ID,
+        "slug": "daily-good-news",
+        "version": 1,
+        "kind": "social_reconnection",
+        "title": "Daily Good News Digest",
+        "description": "Only uplifting, hopeful local and community stories from around you.",
+        "duration_seconds": 60,
+        "config": {
+            "renderer": "social_v1",
+            "asset_id": "good-news-ambient-v1",
+            "instructions": list(FALLBACK_STORIES),
+            "inhale_seconds": None,
+            "exhale_seconds": None,
+        },
+        "active": True,
+    },
+    {
+        "id": "22222222-2222-4222-8222-222222222224",
+        "slug": "gentle-grounding",
+        "version": 1,
+        "kind": "behavioral_activation",
+        "title": "5-Sense Room Grounding",
+        "description": "Notice three calm details in your space at your own pace.",
+        "duration_seconds": 60,
+        "config": {
+            "renderer": "step_v1",
+            "asset_id": "grounding-chime-v1",
+            "instructions": [
+                "Notice one thing you can see.",
+                "Notice one thing you can hear.",
+                "Notice one thing you can feel.",
+            ],
+            "inhale_seconds": None,
+            "exhale_seconds": None,
+        },
+        "active": True,
+    },
+]
+CATALOG_ORDER = {row["id"]: rank for rank, row in enumerate(CATALOG)}
+REASONS = {
+    "breathing": "An optional gentle pause for relaxation.",
+    "nature": "A low-effort listening pause; no reading or typing needed.",
+    "social_reconnection": "Warm, uplifting stories from around you to gently reconnect with the world.",
+    "behavioral_activation": "A small, doable step to reconnect with your surroundings.",
+    "reflection": "A quiet moment to notice one gentle thought.",
+}
 
 
 def uid() -> str:
@@ -148,12 +238,18 @@ class ActivityService:
         }
 
     async def catalog(self) -> dict:
-        return {
-            "items": [
-                self.activity(x) for x in await self.store.all("activity_catalog", active=True)
-            ],
-            "next_cursor": None,
-        }
+        rows = await self.store.all("activity_catalog", active=True)
+        rows.sort(key=lambda r: (CATALOG_ORDER.get(r["id"], len(CATALOG)), r["slug"], r["version"]))
+        exa_key = os.getenv("RE_EXA_API_KEY", "")
+        gemini_key = os.getenv("RE_GEMINI_API_KEY", "")
+        items = []
+        for x in rows:
+            item = self.activity(x)
+            if x["id"] == GOOD_NEWS_ACTIVITY_ID and exa_key:
+                stories = await get_uplifting_news_instructions(exa_key, gemini_key)
+                item = {**item, "config": {**item["config"], "instructions": stories}}
+            items.append(item)
+        return {"items": items, "next_cursor": None}
 
     async def recommend(self, patient: str, body: dict) -> dict:
         session = await self.sessions.owned(patient, body["session_id"])
@@ -176,7 +272,7 @@ class ActivityService:
         )
         options = []
         for rank, activity in enumerate(activities, 1):
-            reason = "An optional gentle pause for relaxation."
+            reason = REASONS.get(activity["kind"], "An optional gentle pause.")
             await self.store.add(
                 "recommendation_items",
                 recommendation_id=rid,

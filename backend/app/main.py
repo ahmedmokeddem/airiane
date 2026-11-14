@@ -18,8 +18,18 @@ from .contracts import SPEC, validate
 from .domain import ConversationController, DomainError, now, stamp
 from .pagination import Pages
 from .provider import ElevenLabsBootstrap
-from .services import ACTIVITY_ID, ActivityService, PatientService, SessionService, utc
+from .services import CATALOG, ActivityService, PatientService, SessionService, utc
 from .storage import SqlStore, engine_for, metadata
+from .wellbeing import REVIEW_RULE, AlertService, ObservationService
+
+TOOL_NAMES = [
+    "present_activity_recommendations",
+    "select_activity",
+    "get_patient_context",
+    "get_next_guided_question",
+    "propose_observation",
+    "request_clinician_review",
+]
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -39,24 +49,31 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 await connection.run_sync(metadata.create_all)
         async with engine.begin() as connection:
             store = SqlStore(connection)
-            if not await store.get("activity_catalog", id=ACTIVITY_ID):
+            for row in CATALOG:
+                existing = await store.get("activity_catalog", id=row["id"])
+                if not existing:
+                    await store.add("activity_catalog", **row)
+                elif (
+                    existing["config"] != row["config"]
+                    or existing["description"] != row["description"]
+                    or existing["title"] != row["title"]
+                ):
+                    await store.update(
+                        "activity_catalog",
+                        {"id": row["id"], "version": row["version"]},
+                        {
+                            "config": row["config"],
+                            "description": row["description"],
+                            "title": row["title"],
+                        },
+                    )
+            if not await store.get("alert_rules", rule_key=REVIEW_RULE, version=1):
                 await store.add(
-                    "activity_catalog",
-                    id=ACTIVITY_ID,
-                    slug="calm-breathing",
+                    "alert_rules",
+                    rule_key=REVIEW_RULE,
                     version=1,
-                    kind="breathing",
-                    title="Calm Breathing",
-                    description="Take an optional gentle pause. Stop whenever you want.",
-                    duration_seconds=60,
-                    config={
-                        "renderer": "breathing_v1",
-                        "asset_id": None,
-                        "instructions": ["Breathe comfortably. Stop if uncomfortable."],
-                        "inhale_seconds": 4,
-                        "exhale_seconds": 4,
-                    },
-                    active=True,
+                    enabled=True,
+                    definition={"trigger": "explicit_patient_request", "clinical_threshold": None},
                 )
         yield
         await engine.dispose()
@@ -77,6 +94,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins.split(","),
+        # Development only: a phone browser on the LAN or Tailscale reaches Metro/portal via the
+        # PC's private IP, which changes between networks. Production uses the explicit list.
+        allow_origin_regex=(
+            r"http://(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+"
+            r"|100\.\d+\.\d+\.\d+):(8081|8082|3000)"
+            if settings.environment == "development"
+            else None
+        ),
         allow_methods=["GET", "POST", "PATCH", "DELETE"],
         allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
     )
@@ -135,12 +160,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         for param_name, value in params.items():
             if param_name == "tool_name":
                 continue
-            if value in [
-                "present_activity_recommendations",
-                "select_activity",
-                "get_patient_context",
-                "get_next_guided_question",
-            ]:
+            if value in TOOL_NAMES:
                 continue
             try:
                 UUID(value)
@@ -395,12 +415,7 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
             if not conn or conn["state"] != "active" or row["state"] != "active":
                 raise DomainError("INVALID_TRANSITION")
             name = p["tool_name"]
-            if name not in [
-                "present_activity_recommendations",
-                "select_activity",
-                "get_patient_context",
-                "get_next_guided_question",
-            ]:
+            if name not in TOOL_NAMES:
                 raise DomainError("VALIDATION_ERROR", 422)
             validate("ToolArgs_" + name, body["arguments"])
             call_hash = hashlib.sha256(
@@ -430,6 +445,14 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                         "memories": [],
                         "recent_observations": [],
                     }
+                elif name == "propose_observation":
+                    observations = ObservationService(store)
+                    result = await observations.view(
+                        await observations.owned(pid, prior["result_resource_id"])
+                    )
+                elif name == "request_clinician_review":
+                    alerts = AlertService(store)
+                    result = await alerts.view(await alerts.owned(pid, prior["result_resource_id"]))
                 else:
                     result = ConversationController().question(row["version"])
                 return {
@@ -452,12 +475,23 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                     "memories": [],
                     "recent_observations": [],
                 }
+            elif name == "propose_observation":
+                # Voice can only propose; the patient confirms in the explicit check-in UI.
+                result = await ObservationService(store).create(
+                    pid, dict(session_id=sid, sources=[], **body["arguments"])
+                )
+            elif name == "request_clinician_review":
+                result = await AlertService(store).request(
+                    pid, {"session_id": sid, "reason": REVIEW_RULE}
+                )
             else:
                 result = ConversationController().question(row["version"])
             resource = (
-                result.get("recommendation_id")
-                if name == "present_activity_recommendations"
-                else result.get("activity_session_id")
+                # ActivitySession also carries recommendation_id, so check it first.
+                result.get("activity_session_id")
+                or result.get("recommendation_id")
+                or result.get("observation_id")
+                or result.get("alert_id")
             )
             await store.add(
                 "tool_calls",
