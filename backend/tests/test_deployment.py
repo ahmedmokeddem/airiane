@@ -117,3 +117,13 @@ def test_readiness_logs_only_safe_reason(caplog):
         "Readiness failed: database_timeout",
     )
     assert "private-test-password" not in " ".join(records)
+
+
+def test_database_ca_accepts_flattened_pem_without_disabling_tls():
+    pem = "-----BEGIN CERTIFICATE-----\nQUJD\nREVG\n-----END CERTIFICATE-----\n"
+    for value in (pem, pem.replace("\n", " "), pem.replace("\n", r"\n")):
+        assert Settings(_env_file=None, database_ca_pem=value).database_ca_pem == (
+            "-----BEGIN CERTIFICATE-----\nQUJDREVG\n-----END CERTIFICATE-----\n"
+        )
+    with pytest.raises(ValueError):
+        Settings(_env_file=None, database_ca_pem="not a PEM certificate")
