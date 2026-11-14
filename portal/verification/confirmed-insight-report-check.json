@@ -1,0 +1,27 @@
+{
+  "checked_at": "2026-11-14",
+  "identity": "explicit fictional Android patient / development clinician",
+  "report_id": "a16fe94d-24e0-4b83-b64b-1d0a3542fae9",
+  "calculation_version": "facts-v2",
+  "patient_report_read_http": 200,
+  "report_request_http": 202,
+  "confirmed_insight_id": "21b2daf3-d252-426b-8ef7-3baa13ae2b1f",
+  "exact_patient_edited_text_preserved": true,
+  "state": "confirmed",
+  "statement_kind": "direct_statement",
+  "source_count": 1,
+  "report_source_count": 7,
+  "factual_overview": {
+    "active_days": 1,
+    "coverage_note": "Counts reflect available confirmed records only; days without records do not imply non-participation.",
+    "feedback_count": 3,
+    "assessment_count": 0,
+    "confirmed_insight_count": 1,
+    "completed_activity_count": 3
+  },
+  "authorized_browser_rendered": true,
+  "temporary_report_grant_http": 201,
+  "temporary_report_grant_revoke_http": 204,
+  "same_report_after_revocation_http": 403,
+  "note": "Android proposal, non-persistence before confirmation and patient edit/confirmation verified separately by root; this receipt verifies stored report and browser presentation only. No real patient material or transcript retained."
+}

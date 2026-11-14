@@ -2,6 +2,7 @@
 
 from .care import CareService
 from .domain import DomainError
+from .insights import InsightService
 from .reporting import ReportService
 from .services import utc
 
@@ -14,6 +15,10 @@ SHARED_OPERATIONS = {
     "getDoctorReport",
 }
 OPERATIONS = {
+    "confirmInsight": ("ConfirmedInsightCreate", "ConfirmedInsight", 201),
+    "listConfirmedInsights": (None, "ConfirmedInsightPage", 200),
+    "correctInsight": ("ConfirmedInsightCorrection", "ConfirmedInsight", 201),
+    "deleteInsight": (None, None, 204),
     "requestReport": ("ReportRequest", "ReportReceipt", 202),
     "listReports": (None, "ReportReceiptPage", 200),
     "getReport": (None, "Report", 200),
@@ -37,6 +42,17 @@ async def dispatch(op, store, actor, p, body, query, pages):
         return pages.build(rows, view, key, query, scope, descending)
 
     match op:
+        case "confirmInsight":
+            return await InsightService(store).confirm(actor, body)
+        case "listConfirmedInsights":
+            return page(
+                await store.all("confirmed_insights", patient_id=actor, state="confirmed"),
+                InsightService.view,
+            )
+        case "correctInsight":
+            return await InsightService(store).correct(actor, p["insight_id"], body)
+        case "deleteInsight":
+            return await InsightService(store).delete(actor, p["insight_id"])
         case "requestReport":
             return await reports.create(actor, body)
         case "listReports":

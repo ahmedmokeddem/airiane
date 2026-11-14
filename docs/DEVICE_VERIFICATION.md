@@ -26,7 +26,7 @@ ANDROID_HOME="$HOME/Android/Sdk" EXPO_PUBLIC_API_URL=http://127.0.0.1:8000 \
   --local --dev-client --detach --wait-ready --port 8082 --localhost --json
 ```
 
-The SDK path above is the installed path on this workstation. The actual build completed in 2m56s. If the CLI exits 22 while reporting “still building,” the detached build continues; follow its log or rerun the identical command to follow that process. Do not launch a second build or clear the project. Port 8082 avoids the already-running user Metro server on 8081.
+The SDK path above is the installed path on this workstation. The latest AIriane build completed in 3m31s. If the CLI exits 22 while reporting “still building,” the detached build continues; follow its log or rerun the identical command to follow that process. Do not launch a second build or clear the project. Port 8082 avoids the already-running user Metro server on 8081.
 
 If the launcher chooses a LAN address unreachable from the phone, open the USB-forwarded URL explicitly:
 
@@ -34,7 +34,7 @@ If the launcher chooses a LAN address unreachable from the phone, open the USB-f
 adb -s SERIAL shell 'am start -a android.intent.action.VIEW -d "exp+re-patient://?__expo_url=http%3A%2F%2F127.0.0.1%3A8082" -p dev.re.patient'
 ```
 
-For a stale reload, close/reopen RE (a cold restart loses in-memory transcript bubbles but does not delete backend activity records). Development sign-in now restores a running activity with a Resume action. It starts a fresh participation timer rather than assuming time spent outside the activity counted as completion.
+For a stale reload, close/reopen AIriane (a cold restart loses in-memory transcript bubbles but does not delete backend activity records). Development sign-in now restores a running activity with a Resume action. It starts a fresh participation timer rather than assuming time spent outside the activity counted as completion.
 
 Set these public mobile settings in `mobile/.env`:
 
@@ -45,7 +45,7 @@ EXPO_PUBLIC_DEMO_AUTH=true
 EXPO_PUBLIC_API_URL=http://127.0.0.1:8000
 ```
 
-The last two settings are for the explicit fictional development identity and USB forwarding. Real Supabase account authentication requires its project URL/public key and a registered patient. In development, use **Development demo sign in**, not the password Sign in button when Supabase is unconfigured. Backend demo authentication is blocked outside development.
+The last two settings are for the explicit fictional development identity and USB forwarding. Real Supabase account authentication requires its project URL/public key and a registered patient. In development, use **Try a sample**, not the password Sign in button when Supabase is unconfigured. Backend demo authentication is blocked outside development.
 
 ## Scenario and evidence
 
@@ -53,7 +53,7 @@ The last two settings are for the explicit fictional development identity and US
 2. Select the card or agree verbally. A repeated selection of the same running activity must reuse the activity ID and not reset its timer. Recommendations retain the running activity's recommendation.
 3. Complete the actual minute, choose a rating, save, and check My Journey. Network errors retain accepted completion and allow feedback retry.
 4. Reload/sign in, refresh My Journey, and verify persistence. Resume any running activity without duplicating it.
-5. Optional camera preview: permission, toggle and lifecycle are independent of voice. Exact disclosure: “Camera preview only — RE cannot see your video yet.” Never take screenshots while preview is active, capture frames, record media, or include sensor content in evidence. Inspect content-free track/transport metadata; the observed voice samples contain only audio tracks. Complete concurrent-preview/egress, permission-denial/revocation and background/reconnect coverage still requires a dedicated device pass.
+5. Optional camera preview: permission, toggle and lifecycle are independent of voice. Exact disclosure: “Camera preview only — AIriane cannot see your video yet.” Never take screenshots while preview is active, capture frames, record media, or include sensor content in evidence. Inspect content-free track/transport metadata; the observed voice samples contain only audio tracks. Complete concurrent-preview/egress, permission-denial/revocation and background/reconnect coverage still requires a dedicated device pass.
 
 Helpful commands (from `mobile/`):
 
@@ -107,3 +107,9 @@ python scripts/check_contracts.py
 ```
 
 Do not run Next's production build concurrently with its development server; both write `.next` output. The initial contract/SQL/design artifacts remain unchanged.
+
+## Native call refactor pass — 14 November 2026
+
+A new native APK built in 2m46s and installed on the same Android phone. The user confirmed real headset voice, synchronized recommendation cards, and corrected speaker → headset hotplug behavior. OS audio policy independently identified RE's active Bluetooth SCO input/output and manual speaker/phone-mic routing. Camera-denied voice startup, optional PiP after tap/allow, unchanged connection ID/epoch during preview, physical preview-off release and final audio/camera/focus cleanup were inspected. No preview images were captured. Existing unfinished activity recovery was exercised within the call, saved with rating 4, and returned to the saved-call state with the same active connection.
+
+See [native call review and screenshots](NATIVE_CALL_REVIEW.md), [sanitized receipt](implementation-validation/native-call/verification.json), and [current status](IMPLEMENTATION_STATUS.md). Hotplug's transient speaker interval was confirmed by the user but not captured by the final two-second OS sampler. Native performance profiling, telephony/competing focus, iOS, wired audio, comprehensive media-egress inspection and automatic recovery of a force-killed active backend connection remain open. Do not classify these as verified from the screenshots or browser reference.

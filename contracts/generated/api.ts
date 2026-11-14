@@ -840,6 +840,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/confirmed-insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listConfirmedInsights
+         * @description Patient-owned confirmed structured insight. Proposals remain in client memory. This operation is never a model tool.
+         */
+        get: operations["listConfirmedInsights"];
+        put?: never;
+        /**
+         * confirmInsight
+         * @description Patient-owned confirmed structured insight. Proposals remain in client memory. This operation is never a model tool.
+         */
+        post: operations["confirmInsight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/confirmed-insights/{insight_id}/corrections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * correctInsight
+         * @description Patient-owned confirmed structured insight. Proposals remain in client memory. This operation is never a model tool.
+         */
+        post: operations["correctInsight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/confirmed-insights/{insight_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * deleteInsight
+         * @description Patient-owned confirmed structured insight. Proposals remain in client memory. This operation is never a model tool.
+         */
+        delete: operations["deleteInsight"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1196,6 +1260,8 @@ export interface components {
             trends: components["schemas"]["Trend"][];
             sources: components["schemas"]["SourceRef"][];
             limitations: string[];
+            confirmed_insights?: components["schemas"]["ConfirmedInsight"][];
+            factual_overview?: components["schemas"]["FactualOverview"];
         };
         CareInviteRequest: {
             /** Format: uuid */
@@ -1497,6 +1563,65 @@ export interface components {
         MyJourneyItemPage: {
             items: components["schemas"]["MyJourneyItem"][];
             next_cursor: string | null;
+        };
+        ConfirmedInsightCreate: {
+            session_id: string | null;
+            /** @enum {string} */
+            theme: "fatigue" | "sleep" | "positive_experience" | "concern" | "clinician_question" | "reflection" | "goal";
+            text: string;
+            /** Format: date-time */
+            observed_at: string;
+            /** @enum {string} */
+            statement_kind: "direct_statement" | "patient_approved_interpretation";
+            /** @constant */
+            confirmation: true;
+        };
+        ConfirmedInsightCorrection: {
+            session_id: string | null;
+            /** @enum {string} */
+            theme: "fatigue" | "sleep" | "positive_experience" | "concern" | "clinician_question" | "reflection" | "goal";
+            text: string;
+            /** Format: date-time */
+            observed_at: string;
+            /** @enum {string} */
+            statement_kind: "direct_statement" | "patient_approved_interpretation";
+            /** @constant */
+            confirmation: true;
+            expected_version: number;
+            reason: string;
+        };
+        ConfirmedInsight: {
+            session_id: string | null;
+            /** @enum {string} */
+            theme: "fatigue" | "sleep" | "positive_experience" | "concern" | "clinician_question" | "reflection" | "goal";
+            text: string;
+            /** Format: date-time */
+            observed_at: string;
+            /** @enum {string} */
+            statement_kind: "direct_statement" | "patient_approved_interpretation";
+            /** Format: uuid */
+            insight_id: string;
+            /** Format: uuid */
+            patient_id: string;
+            /** Format: date-time */
+            confirmed_at: string;
+            version: number;
+            /** @enum {string} */
+            state: "confirmed" | "superseded";
+            supersedes_insight_id: string | null;
+            sources: components["schemas"]["SourceRef"][];
+        };
+        ConfirmedInsightPage: {
+            items: components["schemas"]["ConfirmedInsight"][];
+            next_cursor: string | null;
+        };
+        FactualOverview: {
+            confirmed_insight_count: number;
+            completed_activity_count: number;
+            feedback_count: number;
+            assessment_count: number;
+            active_days: number;
+            coverage_note: string;
         };
     };
     responses: never;
@@ -6451,6 +6576,414 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MyJourneyItemPage"];
                 };
+            };
+            /** @description Invalid or expired authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State, version, idempotency or stale recommendation conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Invalid request/schema/domain bounds */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limited; honor Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unexpected internal failure; sanitized Error only */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider or infrastructure unavailable; no success implied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listConfirmedInsights: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmedInsightPage"];
+                };
+            };
+            /** @description Invalid or expired authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State, version, idempotency or stale recommendation conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Invalid request/schema/domain bounds */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limited; honor Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unexpected internal failure; sanitized Error only */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider or infrastructure unavailable; no success implied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    confirmInsight: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Actor+method+canonical path+key, canonical request hash; retain non-secret outcomes 24h (demo assumption). Same body replays; changed body => 409. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmedInsightCreate"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmedInsight"];
+                };
+            };
+            /** @description Invalid or expired authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State, version, idempotency or stale recommendation conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description BODY_TOO_LARGE; reject without retaining text */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Invalid request/schema/domain bounds */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limited; honor Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unexpected internal failure; sanitized Error only */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider or infrastructure unavailable; no success implied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    correctInsight: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Actor+method+canonical path+key, canonical request hash; retain non-secret outcomes 24h (demo assumption). Same body replays; changed body => 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                insight_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmedInsightCorrection"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmedInsight"];
+                };
+            };
+            /** @description Invalid or expired authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Permission or consent denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible owned resource (conceals other-patient existence) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State, version, idempotency or stale recommendation conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description BODY_TOO_LARGE; reject without retaining text */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Invalid request/schema/domain bounds */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limited; honor Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unexpected internal failure; sanitized Error only */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider or infrastructure unavailable; no success implied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteInsight: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Actor+method+canonical path+key, canonical request hash; retain non-secret outcomes 24h (demo assumption). Same body replays; changed body => 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                insight_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Invalid or expired authentication */
             401: {

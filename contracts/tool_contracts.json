@@ -3363,5 +3363,6 @@
     }
   },
   "active_provider": "elevenlabs",
-  "future_provider": "gemini_live_v2_not_a_v1_dependency"
+  "future_provider": "gemini_live_v2_not_a_v1_dependency",
+  "client_ui_tools": "client_ui_tools.json (transient proposals; not backend dispatch tools)"
 }

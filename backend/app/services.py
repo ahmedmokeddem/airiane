@@ -63,8 +63,39 @@ class PatientService:
             "display_name": profile["display_name"],
             "timezone": profile["timezone"],
             "clinician_verified": False,
-            "avatar": None,
+            "avatar": profile["avatar"] or None,
         }
+
+    async def patch(self, subject: str, body: dict) -> dict:
+        from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+        user = await self.user(subject)
+        if "timezone" in body:
+            try:
+                ZoneInfo(body["timezone"])
+            except (ZoneInfoNotFoundError, ValueError):
+                raise DomainError("VALIDATION_ERROR", 422) from None
+        if "display_name" in body and not body["display_name"].strip():
+            raise DomainError("VALIDATION_ERROR", 422)
+        if body:
+            await self.store.update("patient_profiles", {"patient_id": user["id"]}, body)
+        return await self.me(subject)
+
+    async def context(self, patient: str) -> dict:
+        profile = await self.store.get("patient_profiles", patient_id=patient)
+        return {
+            "patient_id": patient,
+            "preferences": profile["preferences"],
+            "recovery_plan": None,
+            "memories": [],
+            "recent_observations": [],
+        }
+
+    async def patch_context(self, patient: str, body: dict) -> dict:
+        await self.store.update(
+            "patient_profiles", {"patient_id": patient}, {"preferences": body["preferences"]}
+        )
+        return await self.context(patient)
 
 
 class SessionService:

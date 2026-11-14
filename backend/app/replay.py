@@ -5,6 +5,8 @@ from .services import ActivityService, SessionService
 
 
 def metadata(op: str, result: dict) -> dict:
+    if op == "updateProfile":
+        return {"type": "profile"}
     if op == "dispatchTool":
         return {
             "tool_call_id": result["tool_call_id"],
@@ -23,12 +25,27 @@ def metadata(op: str, result: dict) -> dict:
         "report_id",
         "care_link_id",
         "consent_grant_id",
+        "insight_id",
     ]
     return {key: result[key] for key in keys if key in result}
 
 
 async def restore(op: str, meta: dict, store, patient: str) -> dict:
     activities, sessions = ActivityService(store), SessionService(store)
+    if meta.get("type") == "profile":
+        from .services import PatientService
+
+        user = await store.get("users", id=patient)
+        return await PatientService(store).me(user["auth_subject"])
+    if "insight_id" in meta:
+        from .insights import InsightService
+
+        if meta.get("deleted"):
+            row = await store.get("confirmed_insights", id=meta["insight_id"], patient_id=patient)
+            if not row or row["state"] != "deleted":
+                raise DomainError("RESOURCE_NOT_FOUND", 404)
+            return None
+        return InsightService.view(await InsightService(store).owned(patient, meta["insight_id"]))
     if op == "dispatchTool":
         result = await restore(
             "tool",
@@ -54,13 +71,9 @@ async def restore(op: str, meta: dict, store, patient: str) -> dict:
         row = await ReportService(store).owned(patient, meta["report_id"])
         return ReportService.receipt(row)
     if meta.get("type") == "patient_context":
-        return {
-            "patient_id": patient,
-            "preferences": {},
-            "recovery_plan": None,
-            "memories": [],
-            "recent_observations": [],
-        }
+        from .services import PatientService
+
+        return await PatientService(store).context(patient)
     if meta.get("type") == "guided_question":
         session = await sessions.owned(patient, meta["application_session_id"])
         return ConversationController().question(session["version"])

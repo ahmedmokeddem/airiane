@@ -42,3 +42,26 @@ No transcript persistence is implemented in mobile; message bubbles are in-memor
 A development APK built and installed on a physical Samsung SM-G998B running Android 15. A real ElevenLabs voice response and spoken Calm Breathing introduction were confirmed by the user; FastAPI persisted the matching recommendation client-tool call on a voice connection. This proves that path on this device, not complete device coverage. The first full activity attempt exposed a duplicate voice/touch selection race; the backend now reuses the running activity and the app preserves its timer. Home offers Resume, and development sign-in restores a running activity from My Journey after reload, requiring a fresh minute rather than inventing elapsed participation. The recovered device completion/feedback path now passed, with rating 4/5 shown in My Journey and the same activity linked to its voice recommendation in PostgreSQL. Full limits and the clean-repeat gate are tracked in docs/IMPLEMENTATION_STATUS.md.
 
 Reports & sharing now reads/generates real backend JSON reports. A patient can invite a known verified doctor using their connection code, grant report access after acceptance, and revoke it. Mock mode cannot share data. See docs/DEVICE_VERIFICATION.md for exact USB build/launch and test commands. Do not use Expo Go.
+
+## Native call development and audio patch
+
+Run `npm ci` here: postinstall applies the guarded ElevenLabs 1.2.40 audio-route fix in `scripts/patch-elevenlabs.mjs`. Keep the exact SDK pin until this patch is reviewed against an upstream fix. `node scripts/patch-elevenlabs.mjs` verifies/reapplies it idempotently. Do not edit installed SDK files manually. Restart Metro after dependency patches if its transform cache is stale.
+
+The call uses actual provider events plus optional ephemeral audio levels. Camera is an independent local-only PiP; no camera input exists on the adapter. The orb is a native animated fallback because the original `.riv` is absent.
+
+For the connected test phone, from repository root:
+
+```sh
+adb reverse tcp:8000 tcp:8000
+adb reverse tcp:8082 tcp:8082
+cd mobile
+ANDROID_HOME=/home/ahmed/Android/Sdk EXPO_PUBLIC_API_URL=http://127.0.0.1:8000 npx --yes @expo/agent-cli@latest dev --android --device R3CR314RJHZ --local --dev-client --detach --wait-ready --port 8082 --localhost --json
+```
+
+Use the already-running server on 8082; do not start a duplicate. A `DEV_DETACH_STILL_BUILDING` result after 120 seconds is not a build failure: the detached build continues in `.expo/dev/logs/dev-detached.log`. If the development client opens a stale LAN address, open its localhost URL through ADB:
+
+```sh
+adb shell am start -a android.intent.action.VIEW -d 'exp+re-patient://?__expo_url=http%3A%2F%2F127.0.0.1%3A8082' -p dev.re.patient
+```
+
+Checks: `npm run typecheck`, `npm run lint`, `npm test`. Device results and remaining recovery/hotplug/focus checks: [implementation status](../docs/IMPLEMENTATION_STATUS.md). Avoid live source edits during acceptance runs: development Fast Refresh can invalidate an active SDK session and is not a patient flow.

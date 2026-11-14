@@ -1,0 +1,22 @@
+{
+  "schema": "ConfirmedInsight",
+  "data": {
+    "insight_id": "11111111-1111-4111-8111-111111111111",
+    "patient_id": "11111111-1111-4111-8111-111111111112",
+    "session_id": null,
+    "theme": "fatigue",
+    "text": "Fictional patient-approved fatigue summary.",
+    "observed_at": "2026-11-14T08:00:00Z",
+    "statement_kind": "patient_approved_interpretation",
+    "confirmed_at": "2026-11-14T08:01:00Z",
+    "version": 1,
+    "state": "confirmed",
+    "supersedes_insight_id": null,
+    "sources": [
+      {
+        "source_id": "11111111-1111-4111-8111-111111111113",
+        "source_revision": 1
+      }
+    ]
+  }
+}
