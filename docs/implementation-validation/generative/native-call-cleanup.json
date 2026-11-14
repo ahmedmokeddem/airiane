@@ -1,0 +1,20 @@
+{
+  "connections": [
+    {
+      "id": "f29676d5-511b-4039-81e0-0d52f27242b5",
+      "session_id": "7b2e4d93-710b-4d13-90d6-c36b536d3599",
+      "state": "closed",
+      "connection_epoch": 2
+    },
+    {
+      "id": "bf18685d-a8a9-4c8f-9262-addbc04caefa",
+      "session_id": "7b2e4d93-710b-4d13-90d6-c36b536d3599",
+      "state": "closed",
+      "connection_epoch": 1
+    }
+  ],
+  "camera_clients_empty": true,
+  "microphone_appop_running": false,
+  "live_native_generated_voice_tool": "NOT VERIFIED; patient unavailable after bootstrap correction",
+  "notes": "First call failed on stale bootstrap recommendation; second reached Listening with no old card/error. Both were ended through normal call controls."
+}

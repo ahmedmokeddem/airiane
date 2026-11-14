@@ -8,8 +8,12 @@ export class MobileUIBridge {
   if(!Number.isInteger(limit)||limit<1||limit>3)throw new Error('Invalid recommendation limit');
   // Serialize presentations so concurrent tool callbacks cannot overwrite the
   // single pending UI commit acknowledgement and leave a provider tool hanging.
+  return this.enqueue(()=>this.api.recommendations(this.sessionId,limit));
+ }
+ async presentExact(rec:Recommendation){ return this.enqueue(async()=>rec); }
+ private enqueue(load:()=>Promise<Recommendation>){
   const result=this.presentationTail.then(async()=>{
-   const rec=await this.api.recommendations(this.sessionId,limit);
+   const rec=await load();
    this.recommendation=rec;
    await this.render(rec);
    return rec;
@@ -17,6 +21,7 @@ export class MobileUIBridge {
   this.presentationTail=result.then(()=>{},()=>{});
   return result;
  }
+
  async select(id:string,channel:'voice'|'touch'){
   if(!this.recommendation?.options.some(o=>o.activity.activity_id===id))throw new Error('Stale activity selection');
   const activity=await this.api.start(this.sessionId,this.recommendation,id,channel);

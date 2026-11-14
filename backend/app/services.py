@@ -536,6 +536,17 @@ class ActivityService:
                 item = catalog_item
         if not rec or not item or utc(rec["expires_at"]) <= now():
             raise DomainError("STALE_RECOMMENDATION")
+        catalog = await self.store.get("activity_catalog", id=body["activity_id"])
+        generated = bool(catalog and catalog["config"].get("generated_activity_id"))
+        if generated:
+            from .generative.service import definition_for
+
+            definition = await definition_for(self.store, patient, body["activity_id"])
+            if (
+                definition["state"] == "declined"
+                or definition["recommendation_id"] != body["recommendation_id"]
+            ):
+                raise DomainError("STALE_RECOMMENDATION")
         existing = await self.store.get(
             "activity_sessions", patient_id=patient, session_id=session["id"], state="started"
         )
@@ -556,6 +567,23 @@ class ActivityService:
             started_at=stamp(),
             ended_at=None,
         )
+        if generated:
+            await self.store.update(
+                "generated_activity_definitions",
+                {"id": body["activity_id"], "patient_id": patient},
+                {"state": "accepted"},
+            )
+            await self.store.add(
+                "generated_activity_progress",
+                id=row["id"],
+                patient_id=patient,
+                step=0,
+                revision=1,
+                paused=False,
+                confirmed=False,
+                last_hash=None,
+                updated_at=stamp(),
+            )
         return self.view(row)
 
     async def source(self, patient: str, session: str, kind: str, at: str) -> str:
@@ -589,6 +617,14 @@ class ActivityService:
             raise DomainError("VERSION_CONFLICT")
         if row["state"] != "started":
             raise DomainError("INVALID_TRANSITION")
+        if body["event_type"] == "complete":
+            catalog = await self.store.get("activity_catalog", id=row["activity_id"])
+            if catalog and catalog["config"].get("generated_activity_id"):
+                progress = await self.store.get(
+                    "generated_activity_progress", id=aid, patient_id=patient
+                )
+                if not progress or not progress["confirmed"]:
+                    raise DomainError("PATIENT_CONFIRMATION_REQUIRED")
         at = utc(body["event_at"])
         if at > now() + timedelta(seconds=30) or at < utc(row["started_at"]) - timedelta(
             seconds=30

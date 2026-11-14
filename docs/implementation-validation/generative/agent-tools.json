@@ -1,0 +1,10 @@
+{
+  "agent": "Existing AIriane V2",
+  "tools_added": ["generate_activity", "submit_activity_choice"],
+  "new_agent_created": false,
+  "system_prompt_matches_committed_v2": true,
+  "first_message_empty": true,
+  "configuration_and_privacy_preserved": true,
+  "response_timeout_seconds": 45,
+  "verification": "Official API save/readback and an idempotent second application; resolved tool definitions excluded as derived GET response data. No conversation or native tool invocation is claimed by this receipt."
+}

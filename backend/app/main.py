@@ -17,6 +17,7 @@ from .companion import CompanionService
 from .config import Settings
 from .contracts import SPEC, validate
 from .domain import ConversationController, DomainError, now, stamp
+from .generative import routes as generative_routes
 from .pagination import Pages
 from .provider import ElevenLabsBootstrap
 from .reports import routes as pdf_routes
@@ -114,6 +115,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "implemented-first-slice"
                 if operation["operationId"] in IMPLEMENTED
                 or operation["operationId"] in pdf_routes.OPERATIONS
+                or operation["operationId"] in generative_routes.OPERATIONS
                 else "planned-not-routed"
             )
     app.openapi = lambda: exposed_contract
@@ -381,6 +383,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     install_health(app, engine, settings)
     pdf_routes.install(app, engine, auth, settings)
+    generative_routes.install(app, engine, auth, settings)
     return app
 
 

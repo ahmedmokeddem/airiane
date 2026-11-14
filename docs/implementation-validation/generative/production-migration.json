@@ -1,0 +1,20 @@
+{
+  "migration": "0007_generated_activities.sql",
+  "result": "applied",
+  "tables_present": {
+    "activity_generation_grants": true,
+    "activity_generation_jobs": true,
+    "generated_activity_definitions": true,
+    "generated_activity_progress": true
+  },
+  "checksum_sha256": "06f14bf1da6c26ef4687d68096666b93c4f38df1ff5d62f47d34170460eef2e7",
+  "ledger_matches": true,
+  "tls_verified": true,
+  "feature_flag_changed": false,
+  "date": "2026-11-15",
+  "target": "configured Tiger Data PostgreSQL",
+  "ca_der_sha256": "065a750d0d64f62dacdc979e3b83d211954071ea59b8f3407c4e87ca68346457",
+  "hostname_verification": true,
+  "authorization": "Explicit user request to apply migration 0007",
+  "deployment_performed": false
+}

@@ -1,3 +1,8 @@
+import {settleChoice,settleGeneration,settleSelection} from "./src/features/generative/tool-results";
+import {useGeneratedActivities} from "./src/features/generative/use-generated-activities";
+import {CreationPanel} from "./src/features/generative/creation-panel";
+import {GeneratedPlayer} from "./src/features/generative/activity-player";
+import type {GenerationRequest,Transition} from "./src/features/generative/types";
 import { sessionForConnection } from "./src/integration/session-recovery";
 import "./src/features/opening/splash";
 import {CompanionControls} from "./src/features/companion/companion-controls";
@@ -14,6 +19,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   ProductShell,
   ScreenScroll,
+  Surface,
   Brand,
   Button,
   s as productStyles,
@@ -22,6 +28,7 @@ import {
   HomeScreen,
   ChatScreen,
   ActivitiesScreen,
+  ActivityTile,
   ProfileScreen,
   WelcomeScreen,
   BreathingScreen,
@@ -149,6 +156,11 @@ export default function App() {
   const [muted, setMuted] = useState(false);
   const adapter = useRef<VoiceAgentAdapter | null>(null);
   const bridge = useRef<MobileUIBridge | null>(null);
+  const generated = useGeneratedActivities(signedIn,activity,(progress)=>{
+    try {if(connected) adapter.current?.updateContext(JSON.stringify({generated_activity:progress,instruction:"Use only this confirmed step. Never claim unperformed actions. Pause, skip and stop are voluntary; final completion is confirmed in patient UI."}));} catch { /* A context notification cannot undo a saved transition. */ }
+  });
+  const generatedRef = useRef(generated);useEffect(()=>{generatedRef.current=generated;});
+
   const closingConnection = useRef<Promise<void>>(Promise.resolve());
   const connection = useRef<DTO<"ProviderConnection"> | null>(null);
   const renderAck = useRef<(() => void) | null>(null);
@@ -246,10 +258,10 @@ export default function App() {
     renderAck.current = null;
   }, [rec]);
   useEffect(() => {
-    if (screen !== "breathing" || activity?.state !== "started") return;
+    if (screen !== "breathing" || activity?.state !== "started" || generated.progress?.paused) return;
     const timer = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(timer);
-  }, [screen, activity?.state]);
+  }, [screen, activity?.state, generated.progress?.paused]);
   const run = async (action: () => Promise<void>) => {
     if (busy) return;
     setBusy(true);
@@ -544,6 +556,16 @@ export default function App() {
       );
       return;
     }
+    if(b.agent_context.current_recommendation){
+      await bridge.current!.presentExact(b.agent_context.current_recommendation);
+    }else{
+      setRec(null);
+      if(bridge.current)bridge.current.recommendation=null;
+    }
+    if(epoch!==connectEpoch.current){
+      await request(`/conversation-sessions/${s.session_id}/agent-connections/${b.connection_id}`,{state:"closed",expected_version:1},"PATCH");
+      return;
+    }
     const active = await request<DTO<"ProviderConnection">>(
       `/conversation-sessions/${s.session_id}/agent-connections/${b.connection_id}`,
       { state: "connecting", expected_version: 1 },
@@ -569,6 +591,7 @@ export default function App() {
       );
       resolveActive();
       setConnected(true);
+      try{adapter.current?.updateContext(JSON.stringify({generated_activities_enabled:generatedRef.current.enabled,generated_activity:generatedRef.current.getProgress(),instruction:generatedRef.current.enabled?"Optional creation is available only for an explicit patient request and app-granted permission; curated activities remain available.":"Created activities are disabled. Use existing curated recommendations; do not offer or invoke generation."}));}catch{/* Optional availability context cannot invalidate an established conversation. */}
     } catch (e) {
       resolveActive();
       await closeConnection();
@@ -579,6 +602,24 @@ export default function App() {
   };
   const tools = useMemo<ClientTools>(
     () => ({
+      generate_activity: async (args) => {
+        await activeGate.current;
+        const g=generatedRef.current;const sid=sessionRef.current?.session_id;
+        if(connection.current?.state!=="active"||!g.enabled||!sid||!bridge.current)return JSON.stringify({available:false,instruction:"Created activities are unavailable. Offer existing curated choices instead."});
+        return settleGeneration(async()=>{
+          const job=await g.generate(sid,{goal:String(args.goal),format:args.format as GenerationRequest['format'],duration_seconds:Number(args.duration_seconds)});
+          if(job?.recommendation)await bridge.current!.presentExact(job.recommendation);
+          return job;
+        },()=>g.setOpen(true));
+      },
+      submit_activity_choice: async (args) => {
+        await activeGate.current;
+        const g=generatedRef.current,p=g.getProgress();
+        if(connection.current?.state!=="active"||!p)return JSON.stringify({state:"unavailable",instruction:"No active created step; do not claim an action."});
+        if(args.expected_revision!==p.revision||args.step_id!==(p.current?.id??'completion'))return JSON.stringify({state:"stale",current:p});
+        if(!['next','skip','pause','resume'].includes(String(args.action)))return JSON.stringify({state:"patient_confirmation_required",current:p});
+        return settleChoice(()=>g.change(args.action as Transition['action'],{choice_id:args.choice_id as string|undefined,sequence:args.sequence as Transition['sequence']|undefined},true),g.getProgress);
+      },
       get_patient_context: async () => JSON.stringify(await request('/patient-context')),
       get_next_guided_question: async () => {
         const id = sessionRef.current?.session_id;
@@ -671,7 +712,7 @@ export default function App() {
         }
         return JSON.stringify({ opened: !!wanted });
       },
-      select_activity: async (args) => {
+      select_activity: async (args) => settleSelection(async () => {
         if (!bridge.current?.recommendation)
           throw new Error("No current recommendations");
         const current = bridge.current.recommendation;
@@ -683,13 +724,25 @@ export default function App() {
           chosen?.activity.activity_version !== args.activity_version
         )
           throw new Error("Stale recommendation/version");
-        return JSON.stringify(
-          await bridge.current.select(String(args.activity_id), "voice"),
-        );
-      },
+        return await bridge.current.select(String(args.activity_id), "voice");
+      }),
     }),
     [],
   );
+  const generateFromUI=async(input:GenerationRequest)=>{
+    const current=await ensureSession(voiceCallRef.current?'voice':'text');
+    await request(`/conversation-sessions/${current.session_id}/activity-generation-consent`,{allowed:true});
+    const job=await generated.generate(current.session_id,input);
+    if(job?.recommendation){
+      await bridge.current!.presentExact(job.recommendation);
+      try{if(connected)adapter.current?.updateContext(JSON.stringify({current_recommendation:job.recommendation,generated_proposal:job.state==='ready',instruction:"These exact choices are now displayed. Describe them briefly. Wait for the patient's choice; do not automatically start."}));}catch{/* UI and persistence remain authoritative. */}
+    }
+  };
+  const revokeGeneration=async()=>{
+    if(sessionRef.current)await request(`/conversation-sessions/${sessionRef.current.session_id}/activity-generation-consent`,{allowed:false});
+    generated.cancel();
+  };
+  const declineGenerated=async()=>{await generated.decline();setRec(null);if(bridge.current)bridge.current.recommendation=null;try{if(connected)adapter.current?.updateContext(JSON.stringify({current_recommendation:null,generated_proposal_declined:true,instruction:"The patient declined this proposal. Do not start it; keep talking or offer fresh curated choices only when requested."}));}catch{/* A declined proposal stays declined if notification fails. */}};
   const complete = async () => {
     if (!activity || (mode === "mock" && !rec)) return;
     const saved =
@@ -701,6 +754,8 @@ export default function App() {
     setJourney(await api.journey());
     void product.refresh();
     setSavedInCall(true);
+    setRec(null);
+    if(bridge.current)bridge.current.recommendation=null;
     setScreen(voiceCallRef.current ? "voice" : "journey");
     try {
       adapter.current?.updateContext(
@@ -806,6 +861,7 @@ export default function App() {
   };
   const endCall = async () => {
     if (ending) return;
+    generatedRef.current.cancel();
     connectEpoch.current++;
     setEnding(true);
     setCallState("disconnected");
@@ -836,7 +892,7 @@ export default function App() {
           },
         ),
       );
-    setScreen("voice");
+    setScreen(voiceCallRef.current ? "voice" : "activities");
   };
   const immersive =
     signedIn && (screen === "voice" || (screen === "breathing" && voiceCall));
@@ -845,7 +901,7 @@ export default function App() {
       signedIn,
       activeToday: !!product.streak?.active_today,
       // Never interrupt a call, an activity or a questionnaire.
-      blocked: immersive || screen === "breathing" || assessment.state.phase === "asking",
+      blocked: immersive || screen === "breathing" || generated.open || generated.busy || assessment.state.phase === "asking",
     };
   });
   // Shortly after sign-in, and whenever the patient comes back to the app.
@@ -1060,6 +1116,9 @@ export default function App() {
         item.activity_session.activity_session_id ===
         activity?.activity_session_id,
     )?.activity;
+  const generationPanel=generated.open?<CreationPanel busy={generated.busy} error={generated.error} onGenerate={input=>void run(()=>generateFromUI(input))} onClose={generated.cancel} onRevoke={()=>void run(revokeGeneration)}/>:generated.error&&screen!=="breathing"?<View style={{padding:12}}><Text accessibilityLiveRegion="polite">{generated.error}</Text></View>:null;
+  const generatedPlayer=currentActivity?.config.generated_activity_id && activity?.state==='started' ? (generated.definition&&generated.progress?<GeneratedPlayer definition={generated.definition} progress={generated.progress} busy={busy} error={generated.error} rating={rating} onRating={setRating} onChange={(action,extra)=>void run(async()=>{await generated.change(action,extra);})} onComplete={()=>void run(async()=>{if(!generated.progress?.confirmed)await generated.change('confirm_completion');await complete();})} onLeave={()=>void run(leaveCallActivity)}/>:<Surface><Text>{generated.error||"Opening your created activity…"}</Text><Button secondary label="Retry opening activity" onPress={generated.reload}/><Button secondary label="Back to conversation" onPress={()=>setScreen(voiceCallRef.current?'voice':'activities')}/></Surface>):null;
+  const generatedPreview=rec?.options.some(o=>o.activity.config.generated_activity_id)&&screen!=='breathing'&&!(activity?.state==='completed'&&rec.options.some(o=>o.activity.activity_id===activity.activity_id))?<View style={{gap:10}}>{rec.options.map(o=><ActivityTile key={o.activity.activity_id} activity={o.activity} disabled={busy} onPress={()=>void run(async()=>{await bridge.current!.select(o.activity.activity_id,'touch');})}/>)}{activity?.state==='started'&&activity.activity_id!==rec.options[0]?.activity.activity_id&&<><Text>A moment is already in progress. Stop it before starting your new choice.</Text><Button secondary label="Stop current activity" onPress={()=>void run(leaveCallActivity)}/></>}<Button secondary label="Modify proposal" onPress={()=>generated.setOpen(true)}/><Button secondary label="Decline proposal" onPress={()=>void run(declineGenerated)}/></View>:null;
   const body = (
     <SafeAreaProvider>
       <OpeningExperience ready={startupReady}>
@@ -1077,6 +1136,11 @@ export default function App() {
         </View>
       ) : immersive ? (
         <CallScreen
+          generatedPlayer={generatedPlayer}
+          generationPanel={generationPanel}
+          onInvent={generated.enabled?()=>generated.setOpen(true):undefined}
+          onModifyGenerated={()=>generated.setOpen(true)}
+          onDeclineGenerated={()=>void run(declineGenerated)}
           reviewPanel={reviewPanel}
           state={
             error && callState === "connecting" ? "disconnected" : callState
@@ -1202,6 +1266,9 @@ export default function App() {
                     <Button secondary label="Switch without a recap" disabled={busy} onPress={()=>{setHandoffDraft(null);void run(()=>openConversation('voice'));}}/>
                     <Button secondary label="Keep chatting here" disabled={busy} onPress={()=>setHandoffDraft(null)}/>
                   </View>}
+                  {generationPanel}
+                  {generatedPreview && <><Button secondary label="Modify proposal" onPress={()=>generated.setOpen(true)}/><Button secondary label="Decline proposal" onPress={()=>void run(declineGenerated)}/></>}
+                  {generated.enabled && <Button secondary label="Let’s invent something together" onPress={()=>generated.setOpen(true)}/>}
                   {reviewPanel}
                   {!connected && !busy && (
                     <Button label="Connect conversation" onPress={openText} />
@@ -1213,6 +1280,8 @@ export default function App() {
           )}
           {screen === "activities" && (
             <ActivitiesScreen
+              generationPanel={<>{generationPanel}{generatedPreview}</>}
+              onInvent={generated.enabled?()=>generated.setOpen(true):undefined}
               activities={product.activities}
               busy={busy || product.activitiesLoading}
               onBegin={(id) => void run(() => beginActivity(id))}
@@ -1262,7 +1331,8 @@ export default function App() {
               }
             />
           )}
-          {screen === "breathing" && activity && currentActivity && (
+          {screen === "breathing" && generatedPlayer && <ScreenScroll>{generatedPlayer}</ScreenScroll>}
+          {screen === "breathing" && !generatedPlayer && activity && currentActivity && (
             <BreathingScreen
               activity={currentActivity}
               elapsed={elapsed}

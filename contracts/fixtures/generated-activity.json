@@ -1,0 +1,27 @@
+{
+  "schema": "GeneratedActivityDefinition",
+  "data": {
+    "schema_version": "1.0",
+    "title": "A gentle pattern",
+    "purpose": "Enjoy a playful pause",
+    "format": "mini_game",
+    "duration_seconds": 60,
+    "introduction": "Try this at your pace. Skip or stop whenever you like.",
+    "components": [
+      {
+        "id": "pattern",
+        "type": "visual_pattern",
+        "prompt": "Repeat this pattern",
+        "choices": [],
+        "sequence": [
+          "circle",
+          "square",
+          "circle"
+        ],
+        "categories": [],
+        "pace_seconds": 4
+      }
+    ],
+    "feedback_prompt": "Was this enjoyable?"
+  }
+}

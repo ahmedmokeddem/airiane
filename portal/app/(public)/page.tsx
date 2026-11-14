@@ -1,3 +1,4 @@
+import { ActivityPreview } from "@/components/public/activity-preview";
 import { DocumentPreview } from "@/components/public/document-preview";
 import Link from "next/link";
 import { Icon } from "@/components/brand";
@@ -7,7 +8,7 @@ import { Reveal } from "@/components/public/reveal";
 export const metadata = {
   title: { absolute: "AIriane — A little thread through the everyday" },
   description:
-    "A calm space for conversation, guided activities and reflections. Your pace, your Journey, your choice of what to share.",
+    "Explore voice and text conversations, guided activities, creative activity previews and personal reports. Your pace, your Journey, your choice of what to share.",
 };
 export default async function Home({
   searchParams,
@@ -38,8 +39,9 @@ export default async function Home({
             Find your thread.
           </h1>
           <p className="hero-description">
-            Some days, a conversation helps. Others, a moment to breathe.
-            AIriane is a calm space to begin, wherever you are.
+            Talk, play, create, or take a quiet breath. AIriane brings
+            conversation, small activities and the moments you choose to save
+            into one personal thread.
           </p>
           <div className="hero-actions">
             <Link className="button" href="#experience">
@@ -172,6 +174,16 @@ export default async function Home({
           </div>
         </Reveal>
       </section>
+      <section className="section-width creation-section" aria-labelledby="creation-title">
+        <div className="section-heading split-heading">
+          <div>
+            <p className="section-kicker">A new way to find your moment</p>
+            <h2 id="creation-title">A little play.<br />A little possibility.</h2>
+          </div>
+          <p>Alongside familiar guided activities, we’re exploring short experiences shaped around what you ask for. Try a few illustrative examples below.</p>
+        </div>
+        <ActivityPreview />
+      </section>
       <section className="journey-section">
         <div className="section-width journey-layout">
           <Reveal>
@@ -244,8 +256,8 @@ export default async function Home({
               <span>2</span>
               <h3>Choose to share</h3>
               <p>
-                Create a report and grant access to a connected clinician for
-                the relevant period.
+                Create a report from saved records, export a PDF, or grant
+                access to a connected clinician for the relevant period.
               </p>
             </li>
             <li>

@@ -1,0 +1,95 @@
+{
+  "contract_version": "1.0.0",
+  "rules": [
+    "Optional tools; no consent or memory write tools.",
+    "Patient UI grants provider permission; same current agent and session.",
+    "Existing select_activity accepts exact proposed backend IDs.",
+    "Render cards before resolving generation callback; no automatic start.",
+    "Choice actions are versioned; final confirmation is patient UI only."
+  ],
+  "tools": [
+    {
+      "type": "client",
+      "name": "generate_activity",
+      "description": "Only when the patient explicitly asks to invent a purposeful activity and the app has granted generation permission. Send a brief non-identifying everyday goal, requested style and time. Never send notes, records, history or questionnaire answers. The result is a proposal in the existing cards, never an automatic start. If permission is required, invite the patient to tap invent and allow creation. Existing curated tools remain the default.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "goal": {
+            "type": "string",
+            "description": "Brief explicitly requested non-identifying everyday goal; no names, medical history or contact details."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "mini_game",
+              "creative_activity",
+              "guided_experience",
+              "interactive_reflection",
+              "practical_activity"
+            ]
+          },
+          "duration_seconds": {
+            "type": "integer",
+            "description": "Requested time, 30 through 600 seconds."
+          }
+        },
+        "required": [
+          "goal",
+          "format",
+          "duration_seconds"
+        ]
+      },
+      "expects_response": true,
+      "response_timeout_secs": 45
+    },
+    {
+      "type": "client",
+      "name": "submit_activity_choice",
+      "description": "Apply an explicit patient voice choice to the current generated step. Use exact step ID and revision from the latest confirmed state. Never invent completion. Only next, skip, pause and resume are available. Real-world task and final completion confirmation belong to patient UI. Do not send reflection text or drawings. If the request conflicts, use the latest returned state. Explain instructions from the current step without a tool when no transition is requested.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "type": "integer"
+          },
+          "step_id": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "next",
+              "skip",
+              "pause",
+              "resume"
+            ]
+          },
+          "choice_id": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "circle",
+                "square",
+                "triangle"
+              ]
+            }
+          }
+        },
+        "required": [
+          "expected_revision",
+          "step_id",
+          "action"
+        ]
+      },
+      "expects_response": true,
+      "response_timeout_secs": 45
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "artifact": "build/artifacts/AIriane-generative-disabled-internal-arm64.apk",
+  "bytes": 63982574,
+  "sha256": "74098c090e3cf756192e57b99231666e899f0c5d16751e7af6b0cfbf84efa624",
+  "package": "dev.re.patient",
+  "debuggable": false,
+  "api": "https://openly-evolving-hog.eur-1.aiven.app",
+  "demo_auth": false,
+  "server_credentials_detected": false,
+  "feature": "Runtime server flag; remains disabled",
+  "distribution": "Internal development-signed ARM64 release, not store submission",
+  "installed_on_device": "Samsung SM-G998B / Android 15",
+  "install_result": "Success",
+  "installed_date": "2026-11-15",
+  "source_app_sha256": "53e3e1f3848d5482d836473b95b79eeb5106953705eee3aedc68af74285700ce"
+}

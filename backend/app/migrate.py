@@ -31,6 +31,7 @@ async def apply(connection, name, *, adopt=False, check=False):
             return "pending_or_untracked"
         target = {
             "0001_baseline.sql": "re.users",
+            "0007_generated_activities.sql": "re.generated_activity_definitions",
             "0002_confirmed_insights.sql": "re.confirmed_insights",
             "0004_companion_continuity.sql": "re.companion_state",
             "0003_clinical_questionnaires.sql": "re.assessment_definitions",
@@ -116,6 +117,13 @@ async def apply(connection, name, *, adopt=False, check=False):
                     )
                 )
             )
+            if name == "0007_generated_activities.sql":
+                required = [
+                    "activity_generation_grants",
+                    "activity_generation_jobs",
+                    "generated_activity_definitions",
+                    "generated_activity_progress",
+                ]
             for table in required:
                 if not await connection.fetchval("SELECT to_regclass($1)", "re." + table):
                     raise RuntimeError("Incomplete schema cannot be adopted")
@@ -151,6 +159,7 @@ async def main():
             "0004_companion_continuity.sql",
             "0005_medication_reminders.sql",
             "0006_medication_reminder_constraints.sql",
+            "0007_generated_activities.sql",
         ],
     )
     parser.add_argument(

@@ -1,0 +1,50 @@
+{
+  "source": "Real Featherless + local FastAPI + disposable PostgreSQL; API channels simulated, not ElevenLabs voice",
+  "results": [
+    {
+      "format": "mini_game",
+      "state": "ready",
+      "reason": null,
+      "latency_seconds": 3.17,
+      "activity_session_id": "37925483-9b80-4966-b793-58efbf68dc73",
+      "steps": 1,
+      "journey_verified": true
+    },
+    {
+      "format": "creative_activity",
+      "state": "ready",
+      "reason": null,
+      "latency_seconds": 4.15,
+      "activity_session_id": "a19df7da-a706-4393-8478-95895d047c2d",
+      "steps": 1,
+      "journey_verified": true
+    },
+    {
+      "format": "guided_experience",
+      "state": "ready",
+      "reason": null,
+      "latency_seconds": 2.09,
+      "activity_session_id": "45d4da3b-d2d6-465b-a3ae-f4f849cbdfc1",
+      "steps": 1,
+      "journey_verified": true
+    },
+    {
+      "format": "interactive_reflection",
+      "state": "ready",
+      "reason": null,
+      "latency_seconds": 2.4,
+      "activity_session_id": "b6081d47-f44b-42a8-a226-98cafba44ce7",
+      "steps": 1,
+      "journey_verified": true
+    },
+    {
+      "format": "practical_activity",
+      "state": "ready",
+      "reason": null,
+      "latency_seconds": 2.43,
+      "activity_session_id": "85ca6f71-96c2-4cd4-91eb-daa9ce8b861f",
+      "steps": 1,
+      "journey_verified": true
+    }
+  ]
+}

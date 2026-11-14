@@ -1,3 +1,4 @@
+import {formats} from "../generative/types";
 import { useRef, useState, type ReactNode, type ComponentRef } from "react";
 import {
   ActivityIndicator,
@@ -75,7 +76,7 @@ function Orb({
     />
   );
 }
-function ActivityTile({
+export function ActivityTile({
   activity,
   onPress,
   disabled,
@@ -115,7 +116,7 @@ function ActivityTile({
       <View style={p.activityCopy}>
         <Text style={s.eyebrow}>
           {durationLabel(activity.duration_seconds)} ·{" "}
-          {kindLabels[activity.kind]}
+          {formats.find(f=>f.id===activity.config.generated_format)?.label??kindLabels[activity.kind]}
         </Text>
         <Text style={p.activityTitle}>{activity.title}</Text>
         <Text style={p.activityDescription}>{activity.description}</Text>
@@ -220,6 +221,7 @@ export function HomeScreen({
           </View>
           <Pressable
             accessibilityRole="button"
+            testID="start-voice-call"
             accessibilityLabel="Voice Call"
             onPress={onVoice}
             style={p.voiceHero}
@@ -506,6 +508,8 @@ export function ChatScreen({
   );
 }
 export interface ActivitiesScreenProps {
+  generationPanel?: ReactNode;
+  onInvent?: () => void;
   activities: Activity[];
   busy: boolean;
   onBegin: (id: string) => void;
@@ -513,6 +517,8 @@ export interface ActivitiesScreenProps {
   error?: string | null;
 }
 export function ActivitiesScreen({
+  generationPanel,
+  onInvent,
   activities,
   busy,
   onBegin,
@@ -521,6 +527,7 @@ export function ActivitiesScreen({
 }: ActivitiesScreenProps) {
   return (
     <ScreenScroll>
+      {generationPanel}
       <View style={p.greeting}>
         <Text style={s.eyebrow}>SELF-PACED SANCTUARY</Text>
         <Text style={s.title}>A pause that fits you.</Text>
@@ -546,6 +553,7 @@ export function ActivitiesScreen({
           </Text>
         </Surface>
       )}
+      {onInvent && <Button secondary label="Let’s invent something together" icon="edit-3" onPress={onInvent}/>}
       {activities.map((activity) => (
         <ActivityTile
           key={activity.activity_id}

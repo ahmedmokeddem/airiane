@@ -34,6 +34,11 @@ import {
   useAudioTherapy,
 } from "../activity/audio-therapy";
 type Props = {
+  generatedPlayer?: import("react").ReactNode;
+  generationPanel?: import("react").ReactNode;
+  onInvent?: () => void;
+  onModifyGenerated?: () => void;
+  onDeclineGenerated?: () => void;
   reviewPanel?: import("react").ReactNode;
   state: CompanionState;
   levelRef: { current: number };
@@ -65,16 +70,16 @@ export function CallScreen(p: Props) {
   const choices = useRef<ComponentRef<typeof ScrollView>>(null);
   const [choicePosition, setChoicePosition] = useState({ id: "", index: 0 });
   useEffect(() => {
-    if (p.recommendation) {
+    if (p.recommendation || p.saved) {
       panels.current?.scrollTo({y:0,animated:false});
       choices.current?.scrollTo({x:0,animated:false});
     }
-  }, [p.recommendation]);
+  }, [p.recommendation, p.saved]);
   const insets = useSafeAreaInsets();
   const { height, width } = useWindowDimensions();
   const choiceWidth = Math.max(180, Math.min(width - 64, 380));
   const choiceIndex = choicePosition.id === p.recommendation?.recommendation_id ? choicePosition.index : 0;
-  const [showChoiceCaptions, setShowChoiceCaptions] = useState(false);
+  const [showChoiceCaptions, setShowChoiceCaptions] = useState(true);
   const [routesOpen, setRoutesOpen] = useState(false);
   // A disconnected native session must not reopen the route menu on retry.
   useEffect(() => {
@@ -128,18 +133,17 @@ export function CallScreen(p: Props) {
   // Title, prompts and length come from the selected catalog activity.
   const cue = activityCue(p.activityDetail, p.elapsed);
   const sound = useAudioTherapy(
-    p.inActivity && !!p.activity && p.elapsed < cue.duration,
+    p.inActivity && !!p.activity && !p.generatedPlayer && p.activityDetail?.config.renderer !== "generated_v1" && p.elapsed < cue.duration,
     p.activityDetail,
     p.elapsed,
     // LiveKit owns the iOS audio session during a call; do not reconfigure it.
     { inCall: true },
   );
-  const lastCaption = p.inActivity
-    ? cue.cue
-    : p.caption.replace(
-        /\[(?:warmly|calm|calmly|gentle|gently|softly|cheerful|thoughtful)\]\s*/gi,
-        "",
-      );
+  const spokenCaption = p.caption.replace(
+    /\[(?:warmly|calm|calmly|gentle|gently|softly|cheerful|thoughtful)\]\s*/gi,
+    "",
+  );
+  const lastCaption = p.inActivity ? cue.cue : spokenCaption;
   const natureTheme =
     p.inActivity && p.activityDetail?.kind === "nature"
       ? sound.theme
@@ -223,8 +227,16 @@ export function CallScreen(p: Props) {
         )}
       </View>
       <View
-        style={[s.lower, { maxHeight: height * (p.inActivity ? 0.4 : p.recommendation ? (showChoiceCaptions ? 0.5 : 0.42) : 0.36) }]}
+        style={[s.lower, { gap:8, maxHeight: height * (p.inActivity ? 0.5 : p.recommendation ? (showChoiceCaptions ? 0.58 : 0.46) : 0.36) }]}
       >
+          {!!spokenCaption && (p.inActivity || !p.recommendation || showChoiceCaptions) && (
+            <View testID="call-caption" style={[s.caption, {flexShrink:0}]}>
+              <Text style={s.overline}>AIriane</Text>
+              <Text numberOfLines={2} style={s.captionText}>
+                {spokenCaption}
+              </Text>
+            </View>
+          )}
           {!p.inActivity && !p.saved && p.recommendation && (
             <View style={{gap:8,flexShrink:0}} testID="call-recommendation-carousel">
               <Text style={s.overline}>
@@ -233,7 +245,7 @@ export function CallScreen(p: Props) {
               <ScrollView
                 ref={choices}
                 horizontal
-                style={{height:210,flexGrow:0}}
+                style={{height:height < 740 ? 168 : 184,flexGrow:0}}
                 snapToInterval={choiceWidth + 10}
                 decelerationRate="fast"
                 showsHorizontalScrollIndicator={false}
@@ -251,14 +263,14 @@ export function CallScreen(p: Props) {
                     accessibilityLabel={`Begin ${o.activity.title}, ${o.activity.duration_seconds/60} minutes. ${o.reason}`}
                     disabled={p.busy || !p.connected}
                     onPress={() => p.onSelect(o.activity.activity_id)}
-                    style={({pressed}) => [s.recommendation, {width:choiceWidth,flexDirection:"column",alignItems:"flex-start",gap:8}, pressed && s.pressed, (p.busy || !p.connected) && s.disabled]}
+                    style={({pressed}) => [s.recommendation, {width:choiceWidth,flexDirection:"column",alignItems:"flex-start",gap:6}, pressed && s.pressed, (p.busy || !p.connected) && s.disabled]}
                   >
                     <View style={{flexDirection:"row",alignItems:"center",gap:12}}>
                       <Text style={s.activitySymbol}>{activityCue(o.activity,0).symbol}</Text>
                       <Text style={s.detail}>{o.activity.duration_seconds/60} min</Text>
                     </View>
                     <Text numberOfLines={2} style={[s.cardTitle,{fontSize:17}]}>{o.activity.title}</Text>
-                    <Text numberOfLines={2} style={s.detail}>{o.reason}</Text>
+                    <Text numberOfLines={1} style={s.detail}>{o.reason}</Text>
                     <Text style={[s.detail,{color:"#a3eee2",marginTop:4}]}>Choose this activity ›</Text>
                   </Pressable>
                 ))}
@@ -297,22 +309,19 @@ export function CallScreen(p: Props) {
           )}
         <ScrollView
           ref={panels}
-          style={{flexShrink:1,flexGrow:0,marginTop:p.recommendation?10:0}}
+          style={{flexShrink:1,flexGrow:0,minHeight:44}}
           contentContainerStyle={s.panels}
           showsVerticalScrollIndicator
           indicatorStyle="white"
           keyboardShouldPersistTaps="handled"
         >
+          {!p.inActivity && p.recommendation?.options.some(o=>o.activity.config.generated_activity_id) && p.activity?.state==='started' && !p.recommendation.options.some(o=>o.activity.activity_id===p.activity?.activity_id) && <Pressable accessibilityRole="button" onPress={p.onLeaveActivity} style={s.quiet}><Text style={s.detail}>Stop current activity before starting this choice</Text></Pressable>}
+          {!p.inActivity && p.onInvent && <Pressable accessibilityRole="button" onPress={p.onInvent} style={s.quiet}><Text style={s.detail}>{p.saved ? "Create another activity" : p.recommendation ? "None of these? Let’s invent something together" : "Create an activity"}</Text></Pressable>}
+          {!p.inActivity && !p.saved && p.recommendation?.options.some(o=>o.activity.config.generated_activity_id) && <View style={{flexDirection:'row',gap:16}}><Pressable accessibilityRole="button" onPress={p.onModifyGenerated} style={s.quiet}><Text style={s.detail}>Modify proposal</Text></Pressable><Pressable accessibilityRole="button" onPress={p.onDeclineGenerated} style={s.quiet}><Text style={s.detail}>Decline proposal</Text></Pressable></View>}
+          {p.generationPanel}
+          {p.generatedPlayer}
           {p.reviewPanel}
-          {!!lastCaption && !p.inActivity && (!p.recommendation || showChoiceCaptions) && (
-            <View style={s.caption}>
-              <Text style={s.overline}>AIriane</Text>
-              <Text numberOfLines={3} style={s.captionText}>
-                {lastCaption}
-              </Text>
-            </View>
-          )}
-          {p.inActivity && p.activity && (
+          {p.inActivity && p.activity && !p.generatedPlayer && p.activityDetail?.config.renderer !== "generated_v1" && (
             <View testID="call-activity" style={s.activity}>
               <Text style={s.overline}>{cue.eyebrow}</Text>
               <Text style={s.title}>{cue.title}</Text>

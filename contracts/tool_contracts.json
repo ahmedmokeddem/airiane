@@ -2473,7 +2473,8 @@
             "nature_v1",
             "step_v1",
             "reflection_v1",
-            "social_v1"
+            "social_v1",
+            "generated_v1"
           ]
         },
         "asset_id": {
@@ -2519,6 +2520,20 @@
             {
               "type": "null"
             }
+          ]
+        },
+        "generated_activity_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "generated_format": {
+          "type": "string",
+          "enum": [
+            "mini_game",
+            "creative_activity",
+            "guided_experience",
+            "interactive_reflection",
+            "practical_activity"
           ]
         }
       },

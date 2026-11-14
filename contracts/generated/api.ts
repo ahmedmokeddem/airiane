@@ -1059,6 +1059,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/activity-generation/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["generationCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversation-sessions/{session_id}/activity-generation-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["generationConsent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversation-sessions/{session_id}/generated-activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["generateActivity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversation-sessions/{session_id}/activity-generation/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["generationJob"];
+        put?: never;
+        post?: never;
+        delete: operations["cancelGeneration"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/generated-activities/{activity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["generatedDefinition"];
+        put?: never;
+        post?: never;
+        delete: operations["declineGeneratedActivity"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activity-sessions/{activity_session_id}/generated-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["generatedProgress"];
+        put?: never;
+        post: operations["generatedChoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activity-sessions/{activity_session_id}/generated-voice-choice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["generatedVoiceChoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1667,11 +1779,15 @@ export interface components {
         };
         ActivityConfig: {
             /** @enum {string} */
-            renderer: "breathing_v1" | "nature_v1" | "step_v1" | "reflection_v1" | "social_v1";
+            renderer: "breathing_v1" | "nature_v1" | "step_v1" | "reflection_v1" | "social_v1" | "generated_v1";
             asset_id: string | null;
             instructions: string[];
             inhale_seconds: number | null;
             exhale_seconds: number | null;
+            /** Format: uuid */
+            generated_activity_id?: string;
+            /** @enum {string} */
+            generated_format?: "mini_game" | "creative_activity" | "guided_experience" | "interactive_reflection" | "practical_activity";
         };
         QuestionSkip: {
             question_id: string;
@@ -2020,6 +2136,145 @@ export interface components {
             confirmation?: boolean;
             values?: components["schemas"]["DailyCheckinValues"];
             session_id?: string | null;
+        };
+        /** Choice */
+        GeneratedChoice: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Next Step
+             * @default null
+             */
+            next_step: number | null;
+        };
+        /** Component */
+        GeneratedComponent: {
+            /** Id */
+            id: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "visual_pattern" | "creative_canvas" | "guided_focus" | "thought_sort" | "practical_step" | "choice";
+            /** Prompt */
+            prompt: string;
+            /** Choices */
+            choices?: components["schemas"]["GeneratedChoice"][];
+            /** Sequence */
+            sequence?: ("circle" | "square" | "triangle")[];
+            /** Categories */
+            categories?: string[];
+            /**
+             * Pace Seconds
+             * @default 4
+             */
+            pace_seconds: number;
+        };
+        /** Definition */
+        GeneratedActivityDefinition: {
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.0";
+            /** Title */
+            title: string;
+            /** Purpose */
+            purpose: string;
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "mini_game" | "creative_activity" | "guided_experience" | "interactive_reflection" | "practical_activity";
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Introduction */
+            introduction: string;
+            /** Components */
+            components: components["schemas"]["GeneratedComponent"][];
+            /** Feedback Prompt */
+            feedback_prompt: string;
+        };
+        /** GenerationRequest */
+        GenerationRequest: {
+            /** Goal */
+            goal: string;
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "mini_game" | "creative_activity" | "guided_experience" | "interactive_reflection" | "practical_activity";
+            /**
+             * Duration Seconds
+             * @default 180
+             */
+            duration_seconds: number;
+        };
+        /** Consent */
+        GenerationConsent: {
+            /** Allowed */
+            allowed: boolean;
+        };
+        /** Transition */
+        GeneratedTransition: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Step Id */
+            step_id: string;
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "next" | "skip" | "pause" | "resume" | "confirm_completion";
+            /**
+             * Choice Id
+             * @default null
+             */
+            choice_id: string | null;
+            /** Sequence */
+            sequence?: ("circle" | "square" | "triangle")[];
+        };
+        /** GeneratedProgress */
+        GeneratedProgress: {
+            /** Activity Session Id */
+            activity_session_id: string;
+            /** Revision */
+            revision: number;
+            /** Step */
+            step: number;
+            current: components["schemas"]["GeneratedComponent"] | null;
+            /** Paused */
+            paused: boolean;
+            /** Finished */
+            finished: boolean;
+            /** Confirmed */
+            confirmed: boolean;
+        };
+        GeneratedDefinition: {
+            /** Format: uuid */
+            activity_id: string;
+            /** @enum {string} */
+            state: "proposed" | "declined" | "accepted";
+            definition: components["schemas"]["GeneratedActivityDefinition"];
+        };
+        GenerationCapabilities: {
+            enabled: boolean;
+            /** @constant */
+            schema_version: "1.0";
+        };
+        GenerationDeclined: {
+            /** @constant */
+            state: "declined";
+        };
+        GenerationJob: {
+            /** Format: uuid */
+            job_id: string;
+            /** @enum {string} */
+            state: "generating" | "ready" | "fallback" | "cancelled";
+            reason: string | null;
+            recommendation: components["schemas"]["Recommendation"] | null;
         };
     };
     responses: never;
@@ -7960,6 +8215,344 @@ export interface operations {
             };
             /** @description Invalid request/schema/domain bounds */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    generationCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationCapabilities"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    generationConsent: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerationConsent"];
+            };
+        };
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationConsent"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    generateActivity: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerationRequest"];
+            };
+        };
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJob"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    generationJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJob"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    cancelGeneration: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                session_id: string;
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJob"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    generatedDefinition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedDefinition"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    declineGeneratedActivity: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                activity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationDeclined"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    generatedProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activity_session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedProgress"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    generatedChoice: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                activity_session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GeneratedTransition"];
+            };
+        };
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedProgress"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    generatedVoiceChoice: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                activity_session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GeneratedTransition"];
+            };
+        };
+        responses: {
+            /** @description Owned generation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedProgress"];
+                };
+            };
+            /** @description Canonical error */
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };

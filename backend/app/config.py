@@ -13,6 +13,14 @@ class Settings(BaseSettings):
     database_url: str = Field(default="sqlite+aiosqlite:///./re-local.db", repr=False)
     demo_auth: bool = False
     companion_v2_enabled: bool = False
+    generative_activities_enabled: bool = Field(
+        default=False, validation_alias="GENERATIVE_ACTIVITIES_ENABLED"
+    )
+    featherless_api_key: str = Field(default="", repr=False, validation_alias="FEATHERLESS_API_KEY")
+    featherless_base_url: str = Field(
+        default="https://api.featherless.ai/v1", validation_alias="FEATHERLESS_BASE_URL"
+    )
+    featherless_model: str = Field(default="", validation_alias="FEATHERLESS_MODEL")
     supabase_url: str = ""
     jwt_audience: str = "authenticated"
     cors_origins: str = "http://localhost:8081,http://localhost:3000"
@@ -53,6 +61,22 @@ class Settings(BaseSettings):
         return "".join(normalized)
 
     def model_post_init(self, context: object) -> None:
+        if self.generative_activities_enabled:
+            endpoint = urlsplit(self.featherless_base_url)
+            if (
+                endpoint.scheme != "https"
+                or endpoint.hostname != "api.featherless.ai"
+                or endpoint.username
+                or endpoint.password
+                or endpoint.query
+                or endpoint.fragment
+                or endpoint.path.rstrip("/") != "/v1"
+                or not self.featherless_api_key
+                or "nemotron" not in self.featherless_model.lower()
+            ):
+                raise ValueError(
+                    "Generation requires Featherless HTTPS credentials and an exact Nemotron model"
+                )
         if self.environment not in ("development", "production", "test"):
             raise ValueError("Unknown RE_ENVIRONMENT")
         if self.demo_auth and self.environment != "development":

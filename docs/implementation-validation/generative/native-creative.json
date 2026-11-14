@@ -1,0 +1,14 @@
+{
+  "device": "Samsung SM-G998B / Android 15",
+  "build": "Expo Development Build",
+  "backend": "Isolated local FastAPI with disposable PostgreSQL 16",
+  "provider": "Real Featherless Nemotron",
+  "format": "creative_activity",
+  "activity_id": "8adedaa3-8500-43ef-b29d-7072da99753d",
+  "activity_session_id": "becbc4dd-c1af-4624-a0a4-2e80cccefcf6",
+  "state": "completed",
+  "rating": 4,
+  "verification": "Native sample creation handler produced an owned proposal; the Android canvas was visually inspected. A subsequent backend read found the same activity completed with feedback and in My Journey. Native completion was observed rather than forced by the API test script. Gesture geometry and Bluetooth are not inferred.",
+  "camera": "Inactive during visual inspection; no camera screenshot or recording collected",
+  "voice_tool_verified": false
+}

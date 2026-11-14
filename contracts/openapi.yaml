@@ -4868,6 +4868,319 @@ paths:
         description: Actor+method+canonical path+key, canonical request hash; retain
           non-secret outcomes 24h (demo assumption). Same body replays; changed body
           => 409.
+  /activity-generation/capabilities:
+    get:
+      operationId: generationCapabilities
+      security:
+      - supabaseJWT: []
+      parameters: []
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationCapabilities'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /conversation-sessions/{session_id}/activity-generation-consent:
+    post:
+      operationId: generationConsent
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationConsent'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerationConsent'
+  /conversation-sessions/{session_id}/generated-activities:
+    post:
+      operationId: generateActivity
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationJob'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerationRequest'
+  /conversation-sessions/{session_id}/activity-generation/{job_id}:
+    get:
+      operationId: generationJob
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationJob'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      operationId: cancelGeneration
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationJob'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /generated-activities/{activity_id}:
+    get:
+      operationId: generatedDefinition
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: activity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedDefinition'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      operationId: declineGeneratedActivity
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: activity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationDeclined'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /activity-sessions/{activity_session_id}/generated-progress:
+    get:
+      operationId: generatedProgress
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: activity_session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedProgress'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      operationId: generatedChoice
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: activity_session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedProgress'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneratedTransition'
+  /activity-sessions/{activity_session_id}/generated-voice-choice:
+    post:
+      operationId: generatedVoiceChoice
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: activity_session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Owned generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedProgress'
+        default:
+          description: Canonical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneratedTransition'
 components:
   securitySchemes:
     supabaseJWT:
@@ -6563,6 +6876,7 @@ components:
           - step_v1
           - reflection_v1
           - social_v1
+          - generated_v1
         asset_id:
           anyOf:
           - type: string
@@ -6588,6 +6902,12 @@ components:
             minimum: 1
             maximum: 10
           - type: 'null'
+        generated_activity_id:
+          type: string
+          format: uuid
+        generated_format:
+          type: string
+          enum: [mini_game, creative_activity, guided_experience, interactive_reflection, practical_activity]
       required:
       - renderer
       - asset_id
@@ -7632,3 +7952,325 @@ components:
       - local_day
       - expected_version
       - decision
+
+    GeneratedChoice:
+      additionalProperties: false
+      properties:
+        id:
+          pattern: ^[a-z][a-z0-9_]{0,23}$
+          title: Id
+          type: string
+        label:
+          maxLength: 80
+          minLength: 1
+          title: Label
+          type: string
+        next_step:
+          anyOf:
+          - maximum: 7
+            minimum: 0
+            type: integer
+          - type: 'null'
+          default: null
+          title: Next Step
+      required:
+      - id
+      - label
+      title: Choice
+      type: object
+    GeneratedComponent:
+      additionalProperties: false
+      properties:
+        id:
+          pattern: ^[a-z][a-z0-9_]{0,23}$
+          title: Id
+          type: string
+        type:
+          enum:
+          - visual_pattern
+          - creative_canvas
+          - guided_focus
+          - thought_sort
+          - practical_step
+          - choice
+          title: Type
+          type: string
+        prompt:
+          maxLength: 300
+          minLength: 1
+          title: Prompt
+          type: string
+        choices:
+          items:
+            $ref: '#/components/schemas/GeneratedChoice'
+          maxItems: 4
+          title: Choices
+          type: array
+        sequence:
+          items:
+            enum:
+            - circle
+            - square
+            - triangle
+            type: string
+          maxItems: 6
+          title: Sequence
+          type: array
+        categories:
+          items:
+            type: string
+          maxItems: 3
+          title: Categories
+          type: array
+        pace_seconds:
+          default: 4
+          maximum: 8
+          minimum: 2
+          title: Pace Seconds
+          type: integer
+      required:
+      - id
+      - type
+      - prompt
+      title: Component
+      type: object
+    GeneratedActivityDefinition:
+      additionalProperties: false
+      properties:
+        schema_version:
+          const: '1.0'
+          title: Schema Version
+          type: string
+        title:
+          maxLength: 100
+          minLength: 1
+          title: Title
+          type: string
+        purpose:
+          maxLength: 240
+          minLength: 1
+          title: Purpose
+          type: string
+        format:
+          enum:
+          - mini_game
+          - creative_activity
+          - guided_experience
+          - interactive_reflection
+          - practical_activity
+          title: Format
+          type: string
+        duration_seconds:
+          maximum: 600
+          minimum: 30
+          title: Duration Seconds
+          type: integer
+        introduction:
+          maxLength: 300
+          minLength: 1
+          title: Introduction
+          type: string
+        components:
+          items:
+            $ref: '#/components/schemas/GeneratedComponent'
+          maxItems: 8
+          minItems: 1
+          title: Components
+          type: array
+        feedback_prompt:
+          maxLength: 120
+          minLength: 1
+          title: Feedback Prompt
+          type: string
+      required:
+      - schema_version
+      - title
+      - purpose
+      - format
+      - duration_seconds
+      - introduction
+      - components
+      - feedback_prompt
+      title: Definition
+      type: object
+    GenerationRequest:
+      additionalProperties: false
+      properties:
+        goal:
+          maxLength: 240
+          minLength: 3
+          title: Goal
+          type: string
+        format:
+          enum:
+          - mini_game
+          - creative_activity
+          - guided_experience
+          - interactive_reflection
+          - practical_activity
+          title: Format
+          type: string
+        duration_seconds:
+          default: 180
+          maximum: 600
+          minimum: 30
+          title: Duration Seconds
+          type: integer
+      required:
+      - goal
+      - format
+      title: GenerationRequest
+      type: object
+    GenerationConsent:
+      additionalProperties: false
+      properties:
+        allowed:
+          title: Allowed
+          type: boolean
+      required:
+      - allowed
+      title: Consent
+      type: object
+    GeneratedTransition:
+      additionalProperties: false
+      properties:
+        expected_revision:
+          minimum: 1
+          title: Expected Revision
+          type: integer
+        step_id:
+          maxLength: 24
+          title: Step Id
+          type: string
+        action:
+          enum:
+          - next
+          - skip
+          - pause
+          - resume
+          - confirm_completion
+          title: Action
+          type: string
+        choice_id:
+          anyOf:
+          - maxLength: 24
+            type: string
+          - type: 'null'
+          default: null
+          title: Choice Id
+        sequence:
+          items:
+            enum:
+            - circle
+            - square
+            - triangle
+            type: string
+          maxItems: 6
+          title: Sequence
+          type: array
+      required:
+      - expected_revision
+      - step_id
+      - action
+      title: Transition
+      type: object
+    GeneratedProgress:
+      additionalProperties: false
+      properties:
+        activity_session_id:
+          title: Activity Session Id
+          type: string
+        revision:
+          title: Revision
+          type: integer
+        step:
+          title: Step
+          type: integer
+        current:
+          anyOf:
+          - $ref: '#/components/schemas/GeneratedComponent'
+          - type: 'null'
+        paused:
+          title: Paused
+          type: boolean
+        finished:
+          title: Finished
+          type: boolean
+        confirmed:
+          title: Confirmed
+          type: boolean
+      required:
+      - activity_session_id
+      - revision
+      - step
+      - current
+      - paused
+      - finished
+      - confirmed
+      title: GeneratedProgress
+      type: object
+    GeneratedDefinition:
+      type: object
+      additionalProperties: false
+      required:
+      - activity_id
+      - state
+      - definition
+      properties:
+        activity_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - proposed
+          - declined
+          - accepted
+        definition:
+          $ref: '#/components/schemas/GeneratedActivityDefinition'
+    GenerationCapabilities:
+      type: object
+      additionalProperties: false
+      required:
+      - enabled
+      - schema_version
+      properties:
+        enabled:
+          type: boolean
+        schema_version:
+          const: '1.0'
+    GenerationDeclined:
+      type: object
+      properties:
+        state:
+          const: declined
+      required:
+      - state
+      additionalProperties: false
+    GenerationJob:
+      type: object
+      additionalProperties: false
+      required:
+      - job_id
+      - state
+      - reason
+      - recommendation
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - generating
+          - ready
+          - fallback
+          - cancelled
+        reason:
+          type:
+          - string
+          - 'null'
+        recommendation:
+          anyOf:
+          - $ref: '#/components/schemas/Recommendation'
+          - type: 'null'

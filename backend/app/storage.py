@@ -150,6 +150,30 @@ TABLES = {
 }
 
 
+TABLES.update(
+    {
+        "activity_generation_grants": table(
+            "activity_generation_grants",
+            "id:u patient_id:u allowed:b reserved_calls:i updated_at:t",
+        ),
+        "activity_generation_jobs": table(
+            "activity_generation_jobs",
+            "id:u patient_id:u session_id:u request_key:u request_hash:s state:s recommendation_id:u reason:s created_at:t",
+        ),
+        "generated_activity_definitions": table(
+            "generated_activity_definitions",
+            "id:u patient_id:u session_id:u recommendation_id:u definition:j state:s created_at:t",
+        ),
+        "generated_activity_progress": table(
+            "generated_activity_progress",
+            "id:u patient_id:u step:i revision:i paused:b confirmed:b last_hash:s updated_at:t",
+        ),
+    }
+)
+TABLES["activity_generation_jobs"].append_constraint(
+    UniqueConstraint("patient_id", "session_id", "request_key")
+)
+
 TABLES["daily_checkins"].append_constraint(UniqueConstraint("patient_id", "local_day"))
 TABLES["companion_state"].append_constraint(UniqueConstraint("patient_id"))
 

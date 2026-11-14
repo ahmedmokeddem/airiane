@@ -27,8 +27,8 @@ let mockObservations: Observation[] = [];
 const mockPatient = '11111111-1111-4111-8111-111111111111';
 const recommendation = recommendationFixture.data as Recommendation;
 export function setAccessToken(value: string) { accessToken = value; }
-export async function request<T>(path: string, body?: unknown, method = body ? 'POST' : 'GET', key: string = uuid()): Promise<T> {
-  const response = await fetch(`${origin}/v1${path}`, {method, headers: {'Content-Type':'application/json', Authorization:`Bearer ${accessToken}`, ...(method==='GET'?{}:{'Idempotency-Key':key})}, body:body?JSON.stringify(body):undefined, signal:AbortSignal.timeout(30000)});
+export async function request<T>(path: string, body?: unknown, method = body ? 'POST' : 'GET', key: string = uuid(), signal?:AbortSignal): Promise<T> {
+  const response = await fetch(`${origin}/v1${path}`, {method, headers: {'Content-Type':'application/json', Authorization:`Bearer ${accessToken}`, ...(method==='GET'?{}:{'Idempotency-Key':key})}, body:body?JSON.stringify(body):undefined, signal:signal??AbortSignal.timeout(30000)});
   if (!response.ok) { const error = await response.json().catch(()=>({code:'NETWORK_ERROR'})); throw new Error(`${error.code ?? response.status}: ${error.message ?? 'Please retry.'}`); }
   if(response.status===204)return undefined as T;
   return response.json() as Promise<T>;

@@ -74,7 +74,25 @@ class ElevenLabsBootstrap:
             "recommendations", patient_id=patient, session_id=sid
         )
         recommendations.sort(key=lambda x: x["created_at"], reverse=True)
-        for recommendation in recommendations:
+        consumed = {
+            a["recommendation_id"]
+            for a in await self.store.all("activity_sessions", patient_id=patient, session_id=sid)
+            if a["state"] != "started"
+        }
+        if self.settings.generative_activities_enabled:
+            consumed.update(
+                d["recommendation_id"]
+                for d in await self.store.all(
+                    "generated_activity_definitions",
+                    patient_id=patient,
+                    session_id=sid,
+                    state="declined",
+                )
+            )
+        # Only the latest proposal is current. Never revive an older consumed/declined card.
+        for recommendation in recommendations[:1]:
+            if recommendation["id"] in consumed:
+                continue
             try:
                 context["current_recommendation"] = await ActivityService(
                     self.store
