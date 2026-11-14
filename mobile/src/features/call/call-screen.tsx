@@ -69,7 +69,9 @@ export function CallScreen(p: Props) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!p.connected) setRoutesOpen(false);
   }, [p.connected]);
-  const camera = useLocalCamera(!p.ending && p.state !== "disconnected");
+  // docs/FRONTEND_SPEC.md: the local preview may run while voice is connecting
+  // or disconnected; only leaving/ending the call releases the hardware.
+  const camera = useLocalCamera(!p.ending);
   const isPermissionPending = camera.isPermissionPending;
   const routes = useAudioRoutes(p.connected && !p.ending);
   const filterMode = useNoiseFilterMode();
@@ -117,6 +119,7 @@ export function CallScreen(p: Props) {
     p.inActivity && !!p.activity && p.elapsed < cue.duration,
     p.activityDetail,
     p.elapsed,
+    // LiveKit owns the iOS audio session during a call; do not reconfigure it.
     { inCall: true },
   );
   const lastCaption = p.inActivity
@@ -197,7 +200,11 @@ export function CallScreen(p: Props) {
               facing="front"
               mode="picture"
               mute
-              onMountError={camera.fail}
+              onMountError={() => {
+                camera.fail(
+                  "Preview unavailable on this device. Your voice call can continue.",
+                );
+              }}
             />
             <Text style={s.you}>YOU · PREVIEW</Text>
           </View>
@@ -459,6 +466,17 @@ export function CallScreen(p: Props) {
                   {p.error}
                 </Text>
               )}
+              {camera.needsSettings && (
+                <Pressable
+                  testID="call-camera-settings"
+                  accessibilityRole="button"
+                  accessibilityLabel="Open camera settings"
+                  onPress={camera.openSettings}
+                  style={s.quiet}
+                >
+                  <Text style={s.overline}>Open camera settings</Text>
+                </Pressable>
+              )}
             </View>
           )}
           {(p.state === "disconnected" || p.state === "idle") && !p.ending && (
@@ -576,7 +594,7 @@ export function CallScreen(p: Props) {
           muted={p.muted}
           camera={camera.enabled}
           cameraPending={camera.pending}
-          cameraAvailable={p.state !== "disconnected"}
+          cameraAvailable={!p.ending}
           connected={p.connected}
           ending={p.ending}
           onMute={p.onMute}

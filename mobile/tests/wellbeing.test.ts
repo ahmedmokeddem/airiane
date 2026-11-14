@@ -84,7 +84,6 @@ test('audio therapy synthesizer maps each activity to its therapeutic soundscape
   assert.equal(synth.running, false);
 });
 
-
 test('chat check-in reads spoken or typed answers and never guesses', async () => {
   const { parseAnswer, missingToday } = await import('../src/features/checkin/checkin-state');
   assert.equal(parseAnswer('mood', 'about a 6 today'), 6);
