@@ -553,12 +553,27 @@ export default function App() {
     }
     const parent = await ensureSession("text");
     const eligible = await api.recommendations(parent.session_id, 3);
-    if (!eligible.options.some((o) => o.activity.activity_id === id))
+    const inEligible = eligible.options.some((o) => o.activity.activity_id === id);
+    const catalogMatch = product.activities.find((a) => a.activity_id === id);
+    if (!inEligible && !catalogMatch)
       throw new Error(
         "This activity is not available for this moment. Please choose another.",
       );
-    setRec(eligible);
-    bridge.current!.recommendation = eligible;
+    const targetRec = inEligible
+      ? eligible
+      : {
+          ...eligible,
+          options: [
+            ...eligible.options,
+            {
+              activity: catalogMatch!,
+              rank: eligible.options.length + 1,
+              reason: catalogMatch!.description,
+            },
+          ],
+        };
+    setRec(targetRec);
+    bridge.current!.recommendation = targetRec;
     voiceCallRef.current = false;
     setVoiceCall(false);
     await bridge.current!.select(id, "touch");

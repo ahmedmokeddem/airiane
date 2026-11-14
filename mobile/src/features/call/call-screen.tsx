@@ -22,7 +22,11 @@ import { CallControls } from "./call-controls";
 import { useLocalCamera } from "./use-local-camera";
 import { useAudioRoutes } from "./use-audio-routes";
 import { activityCue, type ActivityDetail } from "../activity/activity-cues";
-import { useAudioTherapy } from "../activity/audio-therapy";
+import {
+  NATURE_SOUNDSCAPES,
+  type NatureSoundscapeId,
+  useAudioTherapy,
+} from "../activity/audio-therapy";
 type Props = {
   reviewPanel?: import("react").ReactNode;
   state: CompanionState;
@@ -113,10 +117,26 @@ export function CallScreen(p: Props) {
         /\[(?:warmly|calm|calmly|gentle|gently|softly|cheerful|thoughtful)\]\s*/gi,
         "",
       );
+  const natureTheme =
+    p.inActivity && p.activityDetail?.kind === "nature"
+      ? sound.theme
+      : undefined;
   return (
-    <View testID="immersive-call" style={s.root}>
+    <View
+      testID="immersive-call"
+      style={[
+        s.root,
+        natureTheme && { backgroundImage: natureTheme.bgGradient },
+      ]}
+    >
       <StatusBar style="light" />
-      <View pointerEvents="none" style={s.horizon} />
+      <View
+        pointerEvents="none"
+        style={[
+          s.horizon,
+          natureTheme && { backgroundImage: natureTheme.horizonColor },
+        ]}
+      />
       <View style={[s.header, { paddingTop: insets.top + 16 }]}>
         <View>
           <Text style={s.brand}>AIriane</Text>
@@ -148,6 +168,7 @@ export function CallScreen(p: Props) {
           <Companion
             state={p.state}
             levelRef={p.levelRef}
+            accentTheme={natureTheme}
             size={
               small
                 ? Math.min(width * 0.36, height * 0.16, 140)
@@ -211,9 +232,78 @@ export function CallScreen(p: Props) {
                 <Text style={s.detail}>
                   {sound.soundMuted
                     ? "Soundscape muted · tap to unmute"
-                    : `Soundscape · ${sound.profile.label} · tap to mute`}
+                    : p.activityDetail?.kind === "nature"
+                      ? `Soundscape · ${NATURE_SOUNDSCAPES[sound.soundscape].label} · tap to mute`
+                      : `Soundscape · ${sound.profile.label} · tap to mute`}
                 </Text>
               </Pressable>
+              {p.activityDetail?.kind === "nature" && (
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                  {(Object.keys(NATURE_SOUNDSCAPES) as NatureSoundscapeId[]).map(
+                    (id) => (
+                      <Pressable
+                        key={id}
+                        testID={`soundscape-chip-${id}`}
+                        accessibilityRole="button"
+                        onPress={() => sound.setSoundscape(id)}
+                        style={[
+                          s.route,
+                          sound.soundscape === id && s.routeChosen,
+                          {
+                            paddingVertical: 6,
+                            paddingHorizontal: 10,
+                            minHeight: 32,
+                            backgroundColor:
+                              sound.soundscape === id ? "#65afa533" : "#ffffff0d",
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            s.detail,
+                            {
+                              color:
+                                sound.soundscape === id ? "#c5e9e0" : "#a0b3c3",
+                            },
+                          ]}
+                        >
+                          {NATURE_SOUNDSCAPES[id].label}
+                        </Text>
+                      </Pressable>
+                    ),
+                  )}
+                  <Pressable
+                    testID="soundscape-bilateral-toggle"
+                    accessibilityRole="button"
+                    onPress={sound.toggleBilateral}
+                    style={[
+                      s.route,
+                      sound.bilateralEnabled && s.routeChosen,
+                      {
+                        paddingVertical: 6,
+                        paddingHorizontal: 10,
+                        minHeight: 32,
+                        backgroundColor: sound.bilateralEnabled
+                          ? "#65afa533"
+                          : "#ffffff0d",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        s.detail,
+                        {
+                          color: sound.bilateralEnabled ? "#c5e9e0" : "#a0b3c3",
+                        },
+                      ]}
+                    >
+                      {sound.bilateralEnabled
+                        ? "Bilateral Pan: ON"
+                        : "Bilateral Pan: OFF"}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
               <View
                 accessible
                 accessibilityRole="progressbar"

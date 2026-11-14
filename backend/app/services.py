@@ -385,6 +385,15 @@ class ActivityService:
             activity_id=body["activity_id"],
             activity_version=body["activity_version"],
         )
+        if not item:
+            catalog_item = await self.store.get(
+                "activity_catalog",
+                id=body["activity_id"],
+                version=body["activity_version"],
+                active=True,
+            )
+            if catalog_item:
+                item = catalog_item
         if not rec or not item or utc(rec["expires_at"]) <= now():
             raise DomainError("STALE_RECOMMENDATION")
         existing = await self.store.get(

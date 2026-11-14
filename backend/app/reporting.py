@@ -37,8 +37,9 @@ class ReportService:
     async def create(self, patient: str, body: dict) -> dict:
         start, end = utc(body["period_start"]), utc(body["period_end"])
         cutoff = now()
-        if end <= start or end > cutoff or end - start > timedelta(days=90):
+        if end <= start or end > cutoff + timedelta(seconds=60) or end - start > timedelta(days=90):
             raise DomainError("VALIDATION_ERROR", 422)
+        end = min(end, cutoff)
         profile = await self.store.get("patient_profiles", patient_id=patient)
         report_id = str(uuid4())
         generated = stamp()

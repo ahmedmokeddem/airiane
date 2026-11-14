@@ -7,29 +7,73 @@ export type NatureSoundscapeId =
   | 'nordic_stream'
   | 'gamma_40hz_pink_noise';
 
+export type SoundscapeTheme = {
+  coreColor: string;
+  auraColor: string;
+  orbGradient: string;
+  bgGradient: string;
+  horizonColor: string;
+};
+
 export const NATURE_SOUNDSCAPES: Record<
   NatureSoundscapeId,
-  { label: string; file: string; description: string }
+  { label: string; file: string; description: string; theme: SoundscapeTheme }
 > = {
   nordic_forest_birds: {
     label: 'Nordic Forest & Birds',
     file: '/audio/nordic_forest_birds.mp3',
     description: 'Finnish pine woodland with gentle morning birdsong + 40 Hz AM',
+    theme: {
+      coreColor: '#34d399',
+      auraColor: 'rgba(52, 211, 153, 0.5)',
+      orbGradient:
+        'radial-gradient(circle at 35% 30%, #ffffff 0%, #a7f3d0 28%, #34d399 65%, #064e3b 100%)',
+      bgGradient: 'linear-gradient(180deg, #041510 0%, #0b2e24 48%, #04120e 100%)',
+      horizonColor:
+        'radial-gradient(ellipse at 50% 36%, rgba(52, 211, 153, 0.18) 0%, transparent 65%)',
+    },
   },
   gentle_rain: {
     label: 'Cabin Rain',
     file: '/audio/gentle_rain.mp3',
     description: 'Continuous rainfall on pine needles + 40 Hz AM',
+    theme: {
+      coreColor: '#818cf8',
+      auraColor: 'rgba(129, 140, 248, 0.5)',
+      orbGradient:
+        'radial-gradient(circle at 35% 30%, #ffffff 0%, #c7d2fe 28%, #818cf8 65%, #1e1b4b 100%)',
+      bgGradient: 'linear-gradient(180deg, #070919 0%, #161b3a 48%, #070816 100%)',
+      horizonColor:
+        'radial-gradient(ellipse at 50% 36%, rgba(129, 140, 248, 0.18) 0%, transparent 65%)',
+    },
   },
   nordic_stream: {
     label: 'Woodland Stream',
     file: '/audio/nordic_stream.mp3',
     description: 'Flowing stream over smooth stones + 40 Hz AM',
+    theme: {
+      coreColor: '#38bdf8',
+      auraColor: 'rgba(56, 189, 248, 0.5)',
+      orbGradient:
+        'radial-gradient(circle at 35% 30%, #ffffff 0%, #bae6fd 28%, #38bdf8 65%, #0c4a6e 100%)',
+      bgGradient: 'linear-gradient(180deg, #04131f 0%, #0c2b45 48%, #040f1a 100%)',
+      horizonColor:
+        'radial-gradient(ellipse at 50% 36%, rgba(56, 189, 248, 0.18) 0%, transparent 65%)',
+    },
   },
   gamma_40hz_pink_noise: {
     label: '40 Hz Pink Noise',
     file: '/audio/gamma_40hz_pink_noise.wav',
     description: '1/f pink noise modulated at 40 Hz with 0.5 Hz bilateral sway',
+    theme: {
+      coreColor: '#e879f9',
+      auraColor: 'rgba(232, 121, 249, 0.5)',
+      orbGradient:
+        'radial-gradient(circle at 35% 30%, #ffffff 0%, #f5d0fe 28%, #e879f9 65%, #4a044e 100%)',
+      bgGradient: 'linear-gradient(180deg, #140618 0%, #2c0f38 48%, #100514 100%)',
+      horizonColor:
+        'radial-gradient(ellipse at 50% 36%, rgba(232, 121, 249, 0.18) 0%, transparent 65%)',
+    },
   },
 };
 
@@ -176,6 +220,21 @@ export class AudioTherapySynthesizer {
       this.ctx = ctx;
       if (ctx.state === 'suspended') {
         void ctx.resume().catch(() => {});
+        if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+          const unlock = () => {
+            if (this.ctx && this.ctx.state === 'suspended') {
+              void this.ctx.resume().catch(() => {});
+            }
+            window.removeEventListener('pointerdown', unlock);
+            window.removeEventListener('keydown', unlock);
+          };
+          window.addEventListener('pointerdown', unlock, { once: true });
+          window.addEventListener('keydown', unlock, { once: true });
+          this.disposers.push(() => {
+            window.removeEventListener('pointerdown', unlock);
+            window.removeEventListener('keydown', unlock);
+          });
+        }
       }
 
       const master = ctx.createGain();
@@ -330,6 +389,17 @@ export class AudioTherapySynthesizer {
     noise.start();
     this.disposers.push(() => noise.stop());
 
+    // 1b. Subtle 120 Hz harmonic carrier modulated at 40 Hz (audible on laptop/phone speakers)
+    const carrier = ctx.createOscillator();
+    const carrierGain = ctx.createGain();
+    carrier.type = 'sine';
+    carrier.frequency.setValueAtTime(120, ctx.currentTime);
+    carrierGain.gain.setValueAtTime(0.08, ctx.currentTime);
+    carrier.connect(carrierGain);
+    carrierGain.connect(outputNode);
+    carrier.start();
+    this.disposers.push(() => carrier.stop());
+
     // 2. Asynchronously load real generated nature loop (forest birds / rain / stream / 40Hz pink noise)
     if (typeof fetch === 'function' && typeof window !== 'undefined') {
       let cancelled = false;
@@ -347,15 +417,29 @@ export class AudioTherapySynthesizer {
           src.loop = true;
           const srcGain = ctx.createGain();
           srcGain.gain.setValueAtTime(0.001, ctx.currentTime);
-          srcGain.gain.linearRampToValueAtTime(0.85, ctx.currentTime + 1.2);
-          noiseGain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 1.2);
+          srcGain.gain.linearRampToValueAtTime(0.95, ctx.currentTime + 1.0);
+          noiseGain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 1.0);
+          carrierGain.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 1.0);
           src.connect(srcGain);
           srcGain.connect(outputNode);
           src.start();
           this.disposers.push(() => src.stop());
         })
         .catch(() => {
-          // Keep procedural rain/gamma bed if offline or asset not served.
+          // Fallback: plain HTML5 <audio> loop if decodeAudioData fails
+          if (cancelled || typeof Audio === 'undefined') return;
+          try {
+            const el = new Audio(url);
+            el.loop = true;
+            el.volume = this._muted ? 0 : 0.7;
+            void el.play().catch(() => {});
+            this.disposers.push(() => {
+              el.pause();
+              el.src = '';
+            });
+          } catch {
+            // Keep procedural rain/gamma bed if offline or asset not served.
+          }
         });
     }
   }
@@ -467,6 +551,7 @@ export function useAudioTherapy(active: boolean, activity: ActivityDetail | null
     toggleSound: () => setSoundMuted(m => !m),
     soundscape,
     setSoundscape,
+    theme: NATURE_SOUNDSCAPES[soundscape].theme,
     bilateralEnabled,
     toggleBilateral: () => setBilateralEnabled(b => !b),
   };

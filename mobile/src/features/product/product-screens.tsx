@@ -13,10 +13,14 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { DTO, Journey, Recommendation } from "../../integration/types";
-import { Companion } from "../call/companion";
+import { Companion, type CompanionTheme } from "../call/companion";
 import { theme as t } from "../../theme";
 import { activityCue } from "../activity/activity-cues";
-import { useAudioTherapy } from "../activity/audio-therapy";
+import {
+  NATURE_SOUNDSCAPES,
+  type NatureSoundscapeId,
+  useAudioTherapy,
+} from "../activity/audio-therapy";
 import {
   Brand,
   Button,
@@ -54,9 +58,22 @@ function ErrorNotice({ message }: { message?: string | null }) {
     </View>
   ) : null;
 }
-function Orb({ size = 140 }: { size?: number }) {
+function Orb({
+  size = 140,
+  accentTheme,
+}: {
+  size?: number;
+  accentTheme?: CompanionTheme;
+}) {
   const level = useRef(0);
-  return <Companion state="idle" levelRef={level} size={size} />;
+  return (
+    <Companion
+      state="idle"
+      levelRef={level}
+      size={size}
+      accentTheme={accentTheme}
+    />
+  );
 }
 function ActivityTile({
   activity,
@@ -703,8 +720,13 @@ export function BreathingScreen({
       : "Let your breath out"
     : cue.cue;
   const sound = useAudioTherapy(!finished, activity, elapsed);
+  const natureTheme = activity.kind === "nature" ? sound.theme : undefined;
   return (
-    <ScreenScroll>
+    <ScreenScroll
+      style={
+        natureTheme ? { backgroundImage: natureTheme.bgGradient } : undefined
+      }
+    >
       <View style={p.rowBetween}>
         <Text style={s.eyebrow}>A MOMENT FOR YOU</Text>
         <IconButton name="x" label="Leave activity" onPress={onLeave} />
@@ -719,7 +741,7 @@ export function BreathingScreen({
               : activity.description}
         </Text>
         <View style={p.breathingOrb}>
-          <Orb size={180} />
+          <Orb size={180} accentTheme={natureTheme} />
         </View>
         <Text accessibilityLiveRegion="polite" style={p.breathingPhase}>
           {finished ? "Take your time returning" : phase}
@@ -780,9 +802,78 @@ export function BreathingScreen({
             />{" "}
             {sound.soundMuted
               ? "Soundscape muted · tap to unmute"
-              : `${sound.profile.label} · tap to mute`}
+              : activity.kind === "nature"
+                ? `${NATURE_SOUNDSCAPES[sound.soundscape].label} · tap to mute`
+                : `${sound.profile.label} · tap to mute`}
           </Text>
         </Pressable>
+        {activity.kind === "nature" && (
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: 8,
+              marginTop: 4,
+            }}
+          >
+            {(Object.keys(NATURE_SOUNDSCAPES) as NatureSoundscapeId[]).map(
+              (id) => (
+                <Pressable
+                  key={id}
+                  testID={`activity-soundscape-chip-${id}`}
+                  accessibilityRole="button"
+                  onPress={() => sound.setSoundscape(id)}
+                  style={{
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor:
+                      sound.soundscape === id ? t.accent : t.border,
+                    backgroundColor:
+                      sound.soundscape === id ? `${t.accent}22` : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: sound.soundscape === id ? t.accent : t.muted,
+                    }}
+                  >
+                    {NATURE_SOUNDSCAPES[id].label}
+                  </Text>
+                </Pressable>
+              ),
+            )}
+            <Pressable
+              testID="activity-soundscape-bilateral-toggle"
+              accessibilityRole="button"
+              onPress={sound.toggleBilateral}
+              style={{
+                paddingVertical: 6,
+                paddingHorizontal: 12,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: sound.bilateralEnabled ? t.accent : t.border,
+                backgroundColor: sound.bilateralEnabled
+                  ? `${t.accent}22`
+                  : "transparent",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: sound.bilateralEnabled ? t.accent : t.muted,
+                }}
+              >
+                {sound.bilateralEnabled
+                  ? "Bilateral Pan: ON"
+                  : "Bilateral Pan: OFF"}
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </View>
       <Surface>
         <SectionTitle title="How did this feel?" />
