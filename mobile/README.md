@@ -65,3 +65,7 @@ adb shell am start -a android.intent.action.VIEW -d 'exp+re-patient://?__expo_ur
 ```
 
 Checks: `npm run typecheck`, `npm run lint`, `npm test`. Device results and remaining recovery/hotplug/focus checks: [implementation status](../docs/IMPLEMENTATION_STATUS.md). Avoid live source edits during acceptance runs: development Fast Refresh can invalidate an active SDK session and is not a patient flow.
+
+## Cold-launch opening
+
+AIriane now reveals the approved thread symbol and wordmark over midnight navy on cold launch. Skip and system reduced motion are supported; authentication and APIs do not await the animation. The SVG renderer requires a rebuilt native client (`run:android --device SERIAL --no-bundler` when reusing Metro). See [opening behavior, exact release/debug commands and verified native/web differences](../docs/OPENING_EXPERIENCE.md).

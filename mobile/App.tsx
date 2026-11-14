@@ -1,8 +1,11 @@
+import "./src/features/opening/splash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
+import { OpeningExperience } from "./src/features/opening/opening-experience";
+import { useStartupReady } from "./src/features/opening/use-startup-ready";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
@@ -76,6 +79,7 @@ export default function App() {
     PlusJakartaSansDisplay: require("./assets/fonts/PlusJakartaSans-SemiBold.ttf"),
     ManropeBody: require("./assets/fonts/Manrope-Regular.ttf"),
   });
+  const startupReady = useStartupReady(fontsLoaded || !!fontError);
   const router = useRouter();
   const pathname = usePathname();
   const screen = (pathname === "/" ? "home" : pathname.slice(1)) as Screen;
@@ -619,14 +623,15 @@ export default function App() {
     )?.activity;
   const body = (
     <SafeAreaProvider>
+      <OpeningExperience ready={startupReady}>
       <StatusBar style={immersive ? "light" : "dark"} />
-      {!fontsLoaded && !fontError ? (
+      {!startupReady ? (
         <View
           style={{
             flex: 1,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#faf9f6",
+            backgroundColor: "#081018",
           }}
         >
           <Brand />
@@ -833,6 +838,7 @@ export default function App() {
           )}
         </ProductShell>
       )}
+      </OpeningExperience>
     </SafeAreaProvider>
   );
   return (

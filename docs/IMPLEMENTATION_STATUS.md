@@ -2,6 +2,18 @@
 
 Updated 14 November 2026. Work continued from the existing slice; the baseline migration, existing API operations, technical package identifiers and Stitch assets are preserved. Additive confirmed-insight schemas are documented below. This is a tested development integration, not a production or clinical validation.
 
+## Ariadne opening — 14 November 2026
+
+Implemented a skippable, approximately 2.5-second cold-launch opening using the approved SVG's exact two strokes and original horizontal wordmark. Native splash retention is tied to local readiness, with bounded fallback; authentication, APIs and the mounted app do not await animation completion. Reduced motion skips the drawing, and backgrounding cancels playback. Standard navigation and providers retain their existing ownership.
+
+**VERIFIED ON DEVICE:** Samsung SM-G998B / Android 15, optimized ARM64 release APK (`debuggable=false`), **BUILD SUCCESSFUL in 5m33s**. Actual system mask, thread reveal, lighting and handoff inspected; physical skip, reduced-motion signal and same-process foreground/no-replay passed. Android's mask cropped the initial horizontal system image, so that layer now uses the approved symbol; the wordmark appears in the RN animation. The native light asset replaces platform-dependent SVG/shadow rendering. Original logos, API contracts and backend files are unchanged.
+
+**VERIFIED IN WEB PREVIEW:** drawing, wordmark, fade, skip, reduced motion, interaction passthrough and delayed-font fallback. Port-8082 browser sign-in is blocked by the existing CORS allowlist, separately from animation; no successful web-auth claim. **Automated:** 29 mobile tests, lint and typecheck pass. Low-end frame timing/iOS are not verified; sampled screenshots are not an every-frame or FPS certification.
+
+The development APK was then rebuilt (**3m53s**) and restored on the phone. Real fictional sign-in/Home and Activities → Home passed with no intro replay; the 2-second runtime error window was empty. Metro 8082/FastAPI remain available, and temporary phone settings were restored. No new voice conversation was claimed in this opening-only pass.
+
+Read [Opening implementation, exact commands and native/web differences](OPENING_EXPERIENCE.md) and [native evidence](implementation-validation/opening/native-verification.json). The opening reveals Welcome while signed out; it never bypasses authentication to invent a Home session.
+
 ## AIriane product upgrade — 14 November 2026
 
 The existing app now uses the two official AIriane assets, native launcher/adaptive icon inputs and horizontal welcome/splash/portal artwork. Original SVGs are unchanged; Inter 600 is loaded for wordmark rasterization. Technical IDs and the existing audio SDK versions are retained. Home, Companion, Activities, Journey, reports and profile use the Stitch ivory/navy/teal language, shared typography and persistent four-destination navigation. Companion opens text; immersive calls keep their own toolbar. See [gap analysis](AIRIANE_PRODUCT_GAP_ANALYSIS.md) and [screen review with comparisons](AIRIANE_PRODUCT_REVIEW.md).

@@ -12,3 +12,4 @@ import "./brand.test";
 import "./native-text.test";
 
 import "./wellbeing.test";
+import "./opening.test";

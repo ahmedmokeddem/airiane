@@ -18,7 +18,8 @@ test("AIriane changes visible native identity while retaining technical package 
       (p: unknown) =>
         Array.isArray(p) &&
         p[0] === "expo-splash-screen" &&
-        p[1].image.includes("wordmark"),
+        p[1].image === "./assets/brand/launcher.png" &&
+        p[1].backgroundColor === "#081018",
     ),
   );
 });
