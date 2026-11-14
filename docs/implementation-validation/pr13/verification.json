@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-15",
+  "pr": 13,
+  "pr_head": "9397f19",
+  "base": "087c2b0",
+  "backend_postgresql_tests": 120,
+  "mobile_tests": 160,
+  "portal_tests": 19,
+  "contract_fixtures": 11,
+  "migrations_applied_and_replayed": "0001 through 0008 on disposable PostgreSQL 16 only",
+  "hosted_migration_0008_applied": false,
+  "web_preview": "Mock only: Assessment Center, PHQ-9 and adapted BDI completion at 390x844",
+  "native_device_tested": false,
+  "preserved_file_sha256": {
+    "mobile/src/features/call/call-screen.tsx": "1d55a7bd55224f54401b8e6335ab9ef551210421b772a80ea9e9aabc82291951",
+    "mobile/src/integration/eleven-provider.tsx": "bdef195a5f799037b70b06cce6bf65896f4f868abd53f8cfed013c2ba70f2802",
+    "mobile/src/integration/voice-agent-adapter.ts": "93b268bc9b171a81a2dabc7b2e9a9e543b640c6c6938c789cf024888a047e185",
+    "mobile/scripts/patch-elevenlabs.mjs": "d9c625d31ae8b974d70bc813fc8ae6496ef87eac103f4a433b8f73f326aba87c",
+    "mobile/package.json": "d926e6f1786344b5819862b51160fb0751affe5f97ff5e6377fec8fa592d903a",
+    "mobile/package-lock.json": "0cd564b15f9ad8f50060dfc7d63ce4d213f6c53b10bff65b5516ac0c4e6c7c3a",
+    "backend/app/generative/routes.py": "dfc2bd5abd0d39f7e221c7689d62bed2dfb8b52e01b9e05e30d2bf9703701cab",
+    "backend/app/generative/provider.py": "dcfbcfbd6835df6192b77ae2f27efd1a759de53e90811a608b55c6ed0129db44",
+    "database/migrations/0007_generated_activities.sql": "06f14bf1da6c26ef4687d68096666b93c4f38df1ff5d62f47d34170460eef2e7",
+    "portal/app/(public)/page.tsx": "06ce9f388bfc0d6568233362dcd83dc05a3133734bd565df3797af8831ea1fe7",
+    "portal/components/public/activity-preview.tsx": "05a62fc99bd963eeb9436dbb33d358212f0041969cf60da276766634e4fcee26",
+    "contracts/agents/airiane-v2-system-prompt.md": "bef766ee86420310150571f3378f1e794ceb477fcebb4b13d4d6331925657b2e"
+  },
+  "fixes": [
+    "renumber insight migration to 0008",
+    "combine both route installers and nudge guards",
+    "preserve message session/time/channel provenance",
+    "duplicate message ID rejection",
+    "row-lock share and relationship authorization",
+    "clear insight shares on relationship revocation",
+    "pending insight migration returns 503 without breaking existing care-link revocation"
+  ]
+}

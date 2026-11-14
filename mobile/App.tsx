@@ -87,6 +87,19 @@ import { confirmedOn } from "./src/features/checkin/checkin-state";
 import { CheckInProposals } from "./src/features/checkin/check-in-proposals";
 import { AssessmentPanel } from "./src/features/assessment/assessment-panel";
 import { useAssessment } from "./src/features/assessment/use-assessment";
+import { PHQ9AssessmentScreen } from "./src/features/phq9/phq9-assessment-screen";
+import type { PHQ9Assessment } from "./src/features/phq9/phq9-session";
+import { PHQ9_MAX_SCORE } from "./src/features/phq9/phq9-config";
+import { BDIAssessmentScreen } from "./src/features/bdi/bdi-assessment-screen";
+import type { BDIAssessment } from "./src/features/bdi/bdi-session";
+import { BDI_MAX_SCORE } from "./src/features/bdi/bdi-config";
+import { AssessmentCenterScreen } from "./src/features/assessments/assessment-center-screen";
+import {
+  appendAssessmentHistory,
+  emptyAssessmentHistory,
+  type AssessmentHistory,
+} from "./src/features/assessments/assessment-history";
+import { InsightReportScreen } from "./src/features/insight-reports/insight-report-screen";
 import {
   checkInUpdate,
   isAffirmative,
@@ -110,7 +123,19 @@ type Screen =
   | "journey"
   | "reports"
   | "activities"
-  | "profile";
+  | "profile"
+  | "phq9"
+  | "bdi"
+  | "assessments"
+  | "insights";
+type ChatMessage = {
+  role: string;
+  text: string;
+  id: string;
+  createdAt: string;
+  sessionId: string | null;
+  channel: "typed_text" | "voice_transcription";
+};
 const realVoice = process.env.EXPO_PUBLIC_VOICE_PROVIDER === "elevenlabs";
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -125,6 +150,9 @@ export default function App() {
   const setScreen = (value: Screen) =>
     router.push(value === "home" ? "/" : (`/${value}` as "/"));
   const [signedIn, setSignedIn] = useState(false);
+  const [assessmentHistory, setAssessmentHistory] = useState<AssessmentHistory>(
+    emptyAssessmentHistory,
+  );
   const product = useProductData(signedIn);
   const [proposal, setProposal] = useState<InsightProposal | null>(null);
   const insightAck = useRef<(() => void) | null>(null);
@@ -142,9 +170,7 @@ export default function App() {
   const [rating, setRating] = useState(4);
   const [connected, setConnected] = useState(false);
   const [text, setText] = useState("");
-  const [messages, setMessages] = useState<{ role: string; text: string }[]>(
-    [],
-  );
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [callState, setCallState] = useState<CompanionState>("idle");
   const [voiceCall, setVoiceCall] = useState(false);
   const voiceCallRef = useRef(false);
@@ -170,8 +196,19 @@ export default function App() {
   const [proposalsKey, setProposalsKey] = useState(0);
   // Simulated companion only: the check-in question currently being asked.
   const checkInKind = useRef<CheckInKind | null>(null);
-  const say = (textValue: string) =>
-    setMessages((m) => [...m, { role: "agent", text: textValue }]);
+  const newMessage = (role: string, text: string): ChatMessage => ({
+    role,
+    text,
+    id: uuid(),
+    createdAt: new Date().toISOString(),
+    sessionId: sessionRef.current?.session_id ?? null,
+    channel: connection.current?.mode === "voice" ? "voice_transcription" : "typed_text",
+  });
+  const appendMessage = (role: string, value: string) => {
+    const message = newMessage(role, value);
+    setMessages((items) => [...items, message]);
+  };
+  const say = (textValue: string) => appendMessage("agent", textValue);
   const assessment = useAssessment((question, definition, number, total) => {
     const options = (question.options ?? []).map((o) => o.label).join(" · ");
     if (realVoice) {
@@ -773,7 +810,7 @@ export default function App() {
     const value = text.trim();
     if (!value) return;
     if (!connected) await openConversation("text");
-    setMessages((m) => [...m, { role: "user", text: value }]);
+    appendMessage("user", value);
     setText("");
     const flow = assessment.state;
     if (flow.phase === "paused" && wantsResume(value)) {
@@ -850,13 +887,7 @@ export default function App() {
       );
     } else {
       await bridge.current!.present();
-      setMessages((m) => [
-        ...m,
-        {
-          role: "agent",
-          text: "Simulated response: a few gentle options are in the cards below.",
-        },
-      ]);
+      appendMessage("agent", "Simulated response: a few gentle options are in the cards below.");
     }
   };
   const endCall = async () => {
@@ -901,7 +932,7 @@ export default function App() {
       signedIn,
       activeToday: !!product.streak?.active_today,
       // Never interrupt a call, an activity or a questionnaire.
-      blocked: immersive || screen === "breathing" || generated.open || generated.busy || assessment.state.phase === "asking",
+      blocked: immersive || screen === "breathing" || screen === "phq9" || screen === "bdi" || screen === "assessments" || screen === "insights" || assessment.state.phase === "asking" || generated.open || generated.busy,
     };
   });
   // Shortly after sign-in, and whenever the patient comes back to the app.
@@ -943,7 +974,7 @@ export default function App() {
         await askNextCheckIn(sessionRef.current.session_id);
       if (realVoice) {
         const opener = "I’d like to do my daily check-in.";
-        setMessages((m) => [...m, { role: "user", text: opener }]);
+        appendMessage("user", opener);
         adapter.current!.sendText(opener);
       }
     });
@@ -955,7 +986,7 @@ export default function App() {
       if (!connected) await openConversation("text");
       if (then) await then();
       if (realVoice) {
-        setMessages((m) => [...m, { role: "user", text: liveLine }]);
+        appendMessage("user", liveLine);
         adapter.current!.sendText(liveLine);
       } else say(simulatedLine);
     });
@@ -1038,6 +1069,7 @@ export default function App() {
     setActivity(null);
     setJourney(null);
     setProposal(null);
+    setAssessmentHistory(emptyAssessmentHistory());
     setScreen("home");
   };
   const friendlyError = error
@@ -1183,6 +1215,52 @@ export default function App() {
           onComplete={() => void run(complete)}
           onLeaveActivity={() => void run(leaveCallActivity)}
         />
+      ) : screen === "phq9" ? (
+        <PHQ9AssessmentScreen
+          onExit={() => setScreen("home")}
+          userId={product.profile?.user_id ?? null}
+          onCompleted={(assessment: PHQ9Assessment) =>
+            setAssessmentHistory(history =>
+              appendAssessmentHistory(history, "PHQ-9", {
+                assessmentId: assessment.assessmentId,
+                completedAt: assessment.completedAt,
+                totalScore: assessment.totalScore,
+                maxScore: PHQ9_MAX_SCORE,
+                severity: assessment.severity,
+              }),
+            )
+          }
+        />
+      ) : screen === "bdi" ? (
+        <BDIAssessmentScreen
+          onExit={() => setScreen("assessments")}
+          userId={product.profile?.user_id ?? null}
+          onCompleted={(assessment: BDIAssessment) =>
+            setAssessmentHistory(history =>
+              appendAssessmentHistory(history, "BDI-II-adapted", {
+                assessmentId: assessment.assessmentId,
+                completedAt: assessment.completedAt,
+                totalScore: assessment.totalScore,
+                maxScore: BDI_MAX_SCORE,
+                severity: assessment.severity,
+                preliminaryLabel: assessment.preliminaryLabel,
+              }),
+            )
+          }
+        />
+      ) : screen === "assessments" ? (
+        <AssessmentCenterScreen
+          history={assessmentHistory}
+          onPHQ9={() => setScreen("phq9")}
+          onBDI={() => setScreen("bdi")}
+          onExit={() => setScreen("home")}
+        />
+      ) : screen === "insights" ? (
+        <InsightReportScreen
+          messages={messages.filter(message => message.sessionId === session?.session_id)}
+          sessionId={session?.session_id ?? null}
+          onExit={() => setScreen("home")}
+        />
       ) : !signedIn ? (
         <WelcomeScreen
           email={email}
@@ -1197,6 +1275,7 @@ export default function App() {
           }
           busy={busy}
           error={friendlyError}
+          onAssessments={() => setScreen("assessments")}
         />
       ) : (
         <ProductShell
@@ -1229,6 +1308,8 @@ export default function App() {
               streak={product.streak}
               medication={product.medicationReminder}
               careTeamHint={mode === "live" && !product.hasConnectedDoctor}
+              onAssessments={() => setScreen("assessments")}
+              onInsights={() => setScreen("insights")}
             />
           )}
           {screen === "text" && (
@@ -1410,7 +1491,7 @@ export default function App() {
           tools={tools}
           onAdapter={receiveAdapter}
           onMessage={(role, value) =>
-            setMessages((m) => [...m, { role, text: value }])
+            appendMessage(role, value)
           }
           onDisconnected={() => {
             void closeConnection().catch(() =>

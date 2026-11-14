@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.exc import IntegrityError
 
-from . import assessments, care_routes, guidance, replay
+from . import assessments, care_routes, guidance, insight_reports, replay
 from .auth import Authenticator
 from .care import CareService, current_user
 from .companion import CompanionService
@@ -384,6 +384,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     install_health(app, engine, settings)
     pdf_routes.install(app, engine, auth, settings)
     generative_routes.install(app, engine, auth, settings)
+    insight_reports.install(app, engine, auth, settings)
     return app
 
 

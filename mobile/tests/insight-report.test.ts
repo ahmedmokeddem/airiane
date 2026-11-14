@@ -1,0 +1,109 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { buildMockInsightReport, createInsightReport } from '../src/features/insight-reports/api';
+
+const conversation = [
+  { role: 'user', text: 'I feel sad and hopeless and I cannot sleep.' },
+  { role: 'assistant', text: 'I am sorry you are having a hard week.' },
+  { role: 'user', text: 'I still feel sad and down this evening.' },
+  { role: 'user', text: 'Walking helped a little and my friend supported me.' },
+  { role: 'user', text: 'Sometimes I want to die.' },
+];
+
+test('Conversation insight mock report is versioned, evidence-linked and non-diagnostic', () => {
+  const response = buildMockInsightReport(conversation);
+  const report = response.report;
+  assert.equal(report.schema_version, 'conversation-insight/v1');
+  assert.equal(response.status, 'private_draft');
+  assert.equal(report.coverage.message_count, 5);
+  assert.equal(report.coverage.patient_message_count, 4);
+  assert.equal(report.safety.present, true);
+  assert.equal(report.safety.evidence[0].speaker, 'patient');
+  assert.equal(report.assessments.phq9, null);
+  assert.equal(report.assessments.bdi_ii, null);
+  assert.equal(report.positive_experiences.status, 'user_reported');
+  assert.ok(report.dimensions.some(item => item.status === 'observed_pattern'));
+  assert.ok(report.limitations.some(item => item.includes('not a diagnosis')));
+  assert.equal(JSON.stringify(report).toLowerCase().includes('probability'), false);
+  assert.equal(JSON.stringify(report).toLowerCase().includes('you have depression'), false);
+});
+
+test('Conversation insight mock report ignores assistant-only safety language', () => {
+  const response = buildMockInsightReport([
+    { role: 'assistant', text: 'You should kill yourself.' },
+    { role: 'user', text: 'I had a calm afternoon with a friend.' },
+  ]);
+  assert.equal(response.report.safety.present, false);
+  assert.equal(response.report.safety.evidence.length, 0);
+  assert.equal(response.report.coverage.assistant_message_count, 1);
+});
+
+test('Conversation insight mock report ignores negated safety and symptom denials', () => {
+  const response = buildMockInsightReport([
+    { role: 'user', text: 'I am not suicidal and I do not want to die.' },
+    { role: 'user', text: 'I am not sad.' },
+    { role: 'user', text: 'I am not sleeping and I cannot focus.' },
+  ]);
+  assert.equal(response.report.safety.present, false);
+  const emotional = response.report.dimensions.find(item => item.key === 'emotional');
+  const sleep = response.report.dimensions.find(item => item.key === 'sleep_appetite');
+  const cognitive = response.report.dimensions.find(item => item.key === 'cognitive');
+  assert.equal(emotional?.status, 'not_assessed');
+  assert.equal(sleep?.status, 'user_reported');
+  assert.equal(cognitive?.status, 'user_reported');
+});
+
+test('Conversation insight requires explicit analysis consent', async () => {
+  await assert.rejects(
+    createInsightReport('session-1', [{ role: 'user', text: 'I feel sad.' }], false),
+    /consent/,
+  );
+});
+
+test('Conversation insight UI requires preview, recipient selection and explicit consent', () => {
+  const screen = readFileSync(
+    new URL('../src/features/insight-reports/insight-report-screen.tsx', import.meta.url),
+    'utf8',
+  );
+  assert.match(screen, /Prepare private draft/);
+  assert.match(screen, /insight-analysis-consent/);
+  assert.match(screen, /Only the most recent 100 messages/);
+  assert.match(screen, /insight-consent/);
+  assert.match(screen, /accessibilityRole="checkbox"/);
+  assert.match(screen, /Share report/);
+  assert.match(screen, /Revoke sharing/);
+  assert.match(screen, /No authorized connected therapist/);
+  assert.match(screen, /evidence/);
+  assert.match(screen, /status === 'shared'/);
+  assert.match(screen, /consent/);
+
+  const app = readFileSync(new URL('../App.tsx', import.meta.url), 'utf8');
+  assert.match(app, /screen === "insights"/);
+  assert.match(app, /<InsightReportScreen/);
+  assert.match(app, /onInsights=\{\(\) => setScreen\("insights"\)\}/);
+  assert.match(app, /screen === "insights" \|\| assessment\.state\.phase/);
+
+  const home = readFileSync(
+    new URL('../src/features/product/product-screens.tsx', import.meta.url),
+    'utf8',
+  );
+  assert.match(home, /Open conversation insights/);
+  assert.match(home.replace(/\s+/g, ' '), /nothing is shared until you review/i);
+});
+
+test('Insight submission preserves session, time and actual voice/text channel', async () => {
+  const { prepareInsightTurns } = await import('../src/features/insight-reports/api');
+  const now = '2026-11-15T10:00:00Z';
+  const input = [
+    { role: 'user', text: 'Old session', id: 'old', createdAt: now, sessionId: 'old-session', channel: 'typed_text' as const },
+    { role: 'user', text: 'Spoken', id: 'voice', createdAt: now, sessionId: 'current', channel: 'voice_transcription' as const },
+    { role: 'agent', text: 'Reply', id: 'text', createdAt: now, sessionId: 'current', channel: 'typed_text' as const },
+    { role: 'user', text: 'Unknown provenance' },
+  ];
+  assert.deepEqual(prepareInsightTurns('current', input), [
+    { message_id: 'voice', session_id: 'current', speaker: 'patient', text: 'Spoken', event_at: now, channel: 'voice_transcription' },
+    { message_id: 'text', session_id: 'current', speaker: 'assistant', text: 'Reply', event_at: now, channel: 'typed_text' },
+  ]);
+  assert.deepEqual(prepareInsightTurns('another', input), []);
+});

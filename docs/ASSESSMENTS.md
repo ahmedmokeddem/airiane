@@ -50,3 +50,29 @@ Doctors' patient lists flag a positive Q9 ("all answers sent to you") or a PHQ-9
 
 Database: apply `database/migrations/0003_clinical_questionnaires.sql` on PostgreSQL (the
 baseline forbade clinical questionnaires). The development SQLite database needs nothing.
+
+## Standalone Assessment Center (PHQ-9 + adapted BDI-II)
+
+The mobile app now has a shared Assessment Center at `/assessments` with two independent
+self-assessments:
+
+- **PHQ-9** — the existing standalone nine-item screening feature at `/phq9`, unchanged.
+- **BDI-II (adapted themes)** — a new 21-item check at `/bdi`, built from the project-authorized
+  paraphrased BDI-II themes in `assets/Book1.ods` and the existing backend content.
+
+The adapted check is deliberately labelled **adapted / indicative**, not the validated standard
+BDI-II. It uses the project-defined intensity choices (with the Q4 enjoyment item reversed),
+reports both the conventional 0–13 / 14–19 / 20–28 / 29–63 reference categories and a simplified
+low / moderate / high presentation, and never combines its score with PHQ-9. The two assessments
+can be completed independently. Both keep results in memory for the session and never share
+automatically with a therapist. The existing conversational assessment flow and backend
+`bdi_themes` records are unchanged.
+
+References: `assets/Book1.ods`, Sheet3 citations (`hiv.uw.edu` PHQ-9 screening, VA/DoD MDD
+guideline, APA depression guideline, PMC3782729). These citations are reference metadata, not a
+substitute for the licensed instrument's item-specific response statements.
+
+## Conversation insight reports
+
+See [INSIGHT_REPORTS.md](INSIGHT_REPORTS.md) for the isolated agent, JSON contract, consent and
+therapist authorization flow.

@@ -1,0 +1,430 @@
+{
+  "$defs": {
+    "AssessmentSection": {
+      "additionalProperties": false,
+      "properties": {
+        "phq9": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssessmentSummary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bdi_ii": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssessmentSummary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "phq9",
+        "bdi_ii",
+        "note"
+      ],
+      "title": "AssessmentSection",
+      "type": "object"
+    },
+    "AssessmentSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "instrument": {
+          "enum": [
+            "phq9",
+            "bdi_themes"
+          ],
+          "title": "Instrument",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "total": {
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        },
+        "max_total": {
+          "minimum": 1,
+          "title": "Max Total",
+          "type": "integer"
+        },
+        "severity": {
+          "title": "Severity",
+          "type": "string"
+        },
+        "validated": {
+          "title": "Validated",
+          "type": "boolean"
+        },
+        "safety_item_positive": {
+          "title": "Safety Item Positive",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "instrument",
+        "title",
+        "version",
+        "observed_at",
+        "total",
+        "max_total",
+        "severity",
+        "validated",
+        "safety_item_positive"
+      ],
+      "title": "AssessmentSummary",
+      "type": "object"
+    },
+    "ConsentSection": {
+      "additionalProperties": false,
+      "properties": {
+        "analysis_consent": {
+          "const": true,
+          "title": "Analysis Consent",
+          "type": "boolean"
+        },
+        "sharing_status": {
+          "enum": [
+            "private_draft",
+            "shared"
+          ],
+          "title": "Sharing Status",
+          "type": "string"
+        },
+        "recipient_care_link_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Recipient Care Link Id"
+        },
+        "shared_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Shared At"
+        }
+      },
+      "required": [
+        "analysis_consent",
+        "sharing_status",
+        "recipient_care_link_id",
+        "shared_at"
+      ],
+      "title": "ConsentSection",
+      "type": "object"
+    },
+    "Coverage": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "message_count": {
+          "minimum": 1,
+          "title": "Message Count",
+          "type": "integer"
+        },
+        "patient_message_count": {
+          "minimum": 0,
+          "title": "Patient Message Count",
+          "type": "integer"
+        },
+        "assistant_message_count": {
+          "minimum": 0,
+          "title": "Assistant Message Count",
+          "type": "integer"
+        },
+        "period_start": {
+          "format": "date-time",
+          "title": "Period Start",
+          "type": "string"
+        },
+        "period_end": {
+          "format": "date-time",
+          "title": "Period End",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "message_count",
+        "patient_message_count",
+        "assistant_message_count",
+        "period_start",
+        "period_end"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "EvidenceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "message_id": {
+          "title": "Message Id",
+          "type": "string"
+        },
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "event_at": {
+          "format": "date-time",
+          "title": "Event At",
+          "type": "string"
+        },
+        "speaker": {
+          "const": "patient",
+          "title": "Speaker",
+          "type": "string"
+        },
+        "quote": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "message_id",
+        "session_id",
+        "event_at",
+        "speaker",
+        "quote"
+      ],
+      "title": "EvidenceReference",
+      "type": "object"
+    },
+    "ReportDimension": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "user_reported",
+            "observed_pattern",
+            "insufficient_information",
+            "not_assessed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "count": {
+          "minimum": 0,
+          "title": "Count",
+          "type": "integer"
+        },
+        "first_seen": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "First Seen"
+        },
+        "last_seen": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Seen"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "status",
+        "count",
+        "first_seen",
+        "last_seen",
+        "evidence",
+        "note"
+      ],
+      "title": "ReportDimension",
+      "type": "object"
+    },
+    "SafetySection": {
+      "additionalProperties": false,
+      "properties": {
+        "present": {
+          "title": "Present",
+          "type": "boolean"
+        },
+        "evidence_type": {
+          "enum": [
+            "user_reported",
+            "observed_pattern",
+            "insufficient_information",
+            "not_assessed"
+          ],
+          "title": "Evidence Type",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "present",
+        "evidence_type",
+        "evidence",
+        "message"
+      ],
+      "title": "SafetySection",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "conversation-insight/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "report_id": {
+      "title": "Report Id",
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "patient_id": {
+      "title": "Patient Id",
+      "type": "string"
+    },
+    "coverage": {
+      "$ref": "#/$defs/Coverage"
+    },
+    "assessments": {
+      "$ref": "#/$defs/AssessmentSection"
+    },
+    "dimensions": {
+      "items": {
+        "$ref": "#/$defs/ReportDimension"
+      },
+      "title": "Dimensions",
+      "type": "array"
+    },
+    "functional_impact": {
+      "$ref": "#/$defs/ReportDimension"
+    },
+    "positive_experiences": {
+      "$ref": "#/$defs/ReportDimension"
+    },
+    "safety": {
+      "$ref": "#/$defs/SafetySection"
+    },
+    "information_gaps": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Information Gaps",
+      "type": "array"
+    },
+    "follow_up_suggestions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Follow Up Suggestions",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "consent": {
+      "$ref": "#/$defs/ConsentSection"
+    }
+  },
+  "required": [
+    "schema_version",
+    "report_id",
+    "generated_at",
+    "patient_id",
+    "coverage",
+    "assessments",
+    "dimensions",
+    "functional_impact",
+    "positive_experiences",
+    "safety",
+    "information_gaps",
+    "follow_up_suggestions",
+    "limitations",
+    "consent"
+  ],
+  "title": "InsightReportPayload",
+  "type": "object"
+}

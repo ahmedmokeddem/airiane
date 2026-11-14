@@ -1,6 +1,10 @@
 # AIriane implementation status
 
 
+## PR #13 integration — 15 November 2026
+
+Integrated standalone PHQ-9, adapted BDI themes, Assessment Center and private conversation insight reports without replacing the existing call, generative activity or landing experiences. The PR's conflicting migration is renumbered **0008**; applied generated-activity migration 0007 is unchanged. Session provenance and revocation/re-invitation regressions were fixed during review. Backend **120 PostgreSQL tests**, mobile **160 tests**, portal **19 tests**, typecheck/lint, 11 contract fixtures, mobile web export and portal compilation passed. Browser checks used fictional mock data; native verification is pending. Hosted migration 0008 has **not** been applied. [Review, rollout commands and limits](PR13_INTEGRATION.md).
+
 ## Pushed release candidate and APK — 15 November 2026
 
 Feature commit `09ab58ff23ed06225821175dc1a35f717a1ce30d` was pushed to `main` in both `khoidm2004/Junction` and `ahmedmokeddem/Junction`; remote references were read back and matched. The updated internal ARM64 release APK built successfully in **31 seconds** with the public Aiven API, real authentication and V2 client support. It contains the pinned caption layout and “Create another activity” action. Signing matches the previous internal APK; configured server credentials were absent from the inspected archive. [Current APK receipt](implementation-validation/generative/apk.json).

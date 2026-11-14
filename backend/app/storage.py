@@ -16,6 +16,7 @@ from sqlalchemy import (
     Table,
     UniqueConstraint,
     Uuid,
+    inspect,
     select,
     update,
 )
@@ -147,6 +148,10 @@ TABLES = {
         "medication_reminders",
         "id:u patient_id:u clinician_id:u message:s schedule_time:s active:b updated_at:t created_at:t",
     ),
+    "insight_reports": table(
+        "insight_reports",
+        "id:u patient_id:u session_id:u status:s schema_version:s period_start:t period_end:t shared_care_link_id:u shared_at:t created_at:t payload:j",
+    ),
 }
 
 
@@ -203,6 +208,12 @@ def exported(row: Any) -> dict:
 class SqlStore:
     def __init__(self, connection: AsyncConnection):
         self.connection = connection
+
+    async def has_table(self, name: str) -> bool:
+        schema = None if self.connection.dialect.name == "sqlite" else "re"
+        return await self.connection.run_sync(
+            lambda connection: inspect(connection).has_table(TABLES[name].name, schema=schema)
+        )
 
     async def all(self, name: str, **filters: Any) -> list[dict]:
         t = TABLES[name]

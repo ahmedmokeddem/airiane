@@ -113,6 +113,35 @@ class CareService:
                             {"id": grant["id"], "revoked_at": None},
                             {"revoked_at": stamp()},
                         )
+                # Re-inviting this same relationship must not revive old insight shares.
+                insight_shares = (
+                    await self.store.all(
+                        "insight_reports",
+                        shared_care_link_id=link_id,
+                        patient_id=row["patient_id"],
+                        status="shared",
+                    )
+                    if await self.store.has_table("insight_reports")
+                    else []
+                )
+                for report in insight_shares:
+                    payload = dict(report["payload"])
+                    payload["consent"] = {
+                        "analysis_consent": True,
+                        "sharing_status": "private_draft",
+                        "recipient_care_link_id": None,
+                        "shared_at": None,
+                    }
+                    await self.store.update(
+                        "insight_reports",
+                        {"id": report["id"]},
+                        {
+                            "status": "private_draft",
+                            "shared_care_link_id": None,
+                            "shared_at": None,
+                            "payload": payload,
+                        },
+                    )
             row["state"] = target
         await self.audit(actor, row["patient_id"], "care_link_" + action, "care_link", link_id)
         return self.link_view(row)
