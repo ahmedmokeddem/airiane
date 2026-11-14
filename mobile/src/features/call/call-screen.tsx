@@ -117,6 +117,8 @@ export function CallScreen(p: Props) {
     p.inActivity && !!p.activity && p.elapsed < cue.duration,
     p.activityDetail,
     p.elapsed,
+    // LiveKit owns the iOS audio session during a call; do not reconfigure it.
+    { configureAudioMode: false },
   );
   const lastCaption = p.inActivity
     ? cue.cue

@@ -85,6 +85,72 @@ test('audio therapy synthesizer maps each activity to its therapeutic soundscape
 });
 
 
+test('on native the soundscape loops a bundled asset through a real player, not the Web Audio API', () => {
+  type FakePlayer = {
+    source: unknown; loop: boolean; muted: boolean; volume: number;
+    plays: number; removes: number; play(): void; pause(): void; remove(): void;
+  };
+  const players: FakePlayer[] = [];
+  let audioModeCalls = 0;
+  const backend = {
+    createPlayer(source: number | string | { uri: string }) {
+      const player: FakePlayer = {
+        source, loop: false, muted: false, volume: 1, plays: 0, removes: 0,
+        play() { this.plays++; }, pause() {}, remove() { this.removes++; },
+      };
+      players.push(player);
+      return player;
+    },
+    configureAudioMode() { audioModeCalls++; },
+  };
+  const nativeAssets = {
+    'nordic_forest_birds.mp3': 11,
+    'gentle_rain.mp3': 44,
+    'gentle-rain-stream.wav': 22,
+    'bilateral-grounding-chimes.wav': 33,
+  };
+  const synth = new AudioTherapySynthesizer({ platform: 'native', nativeBackend: backend, nativeAssets });
+  const nature: ActivityDetail = {
+    ...breathing, kind: 'nature', title: '40 Hz Acoustic Resonance',
+    config: { ...config('nature_v1', ['Settle', 'Listen']), asset_id: 'soundscape-40hz-v1' },
+  };
+
+  synth.start(nature);
+  assert.equal(players.length, 1);
+  assert.equal(players[0].source, 11);      // default switcher choice, from assets/audio
+  assert.equal(players[0].loop, true);
+  assert.equal(players[0].plays, 1);
+  assert.equal(audioModeCalls, 1);
+
+  // The hook re-calls start() every elapsed tick; the loop must not restart.
+  synth.start(nature);
+  synth.start(nature, { bilateral: false });
+  assert.equal(players.length, 1);
+
+  synth.setMuted(true);
+  assert.equal(players[0].muted, true);
+  synth.setMuted(false);
+  assert.equal(players[0].muted, false);
+
+  // Switching the soundscape swaps the file and releases the previous player.
+  synth.start(nature, { soundscape: 'gentle_rain' });
+  assert.equal(players.length, 2);
+  assert.equal(players[1].source, 44);
+  assert.equal(players[0].removes, 1);
+
+  // `harmonic-breath-v1` is absent from assets/audio/manifest.json: breathing
+  // must still get an audible bundled loop.
+  synth.start(breathing);
+  assert.equal(players.length, 3);
+  assert.equal(players[2].source, 22);
+  assert.equal(players[2].loop, true);
+  assert.equal(audioModeCalls, 1);          // configured once per synthesizer
+
+  synth.stop();
+  assert.equal(synth.running, false);
+  assert.equal(players[2].removes, 1);
+});
+
 test('chat check-in reads spoken or typed answers and never guesses', async () => {
   const { parseAnswer, missingToday } = await import('../src/features/checkin/checkin-state');
   assert.equal(parseAnswer('mood', 'about a 6 today'), 6);
