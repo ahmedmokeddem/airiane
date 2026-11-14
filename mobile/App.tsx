@@ -555,6 +555,24 @@ export default function App() {
       setScreen("breathing");
       return;
     }
+    if (activity?.state === "started" && mode === "live") {
+      try {
+        await request<ActivitySession>(
+          `/activity-sessions/${activity.activity_session_id}/events`,
+          {
+            client_event_id: uuid(),
+            expected_version: activity.version,
+            event_type: "abandon",
+            elapsed_seconds: elapsed,
+            event_at: new Date().toISOString(),
+          },
+        );
+      } catch {
+        // Ignore if already ended/abandoned on the server.
+      }
+      activityRef.current = null;
+      setActivity(null);
+    }
     const parent = await ensureSession("text");
     const eligible = await api.recommendations(parent.session_id, 3);
     const inEligible = eligible.options.some((o) => o.activity.activity_id === id);

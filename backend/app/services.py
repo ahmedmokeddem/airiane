@@ -290,7 +290,10 @@ class ActivityService:
             "activity_sessions", patient_id=patient, session_id=session["id"], state="started"
         )
         if running:
-            return await self.recommendation(patient, running["recommendation_id"])
+            try:
+                return await self.recommendation(patient, running["recommendation_id"])
+            except DomainError:
+                pass
         activities = (await self.catalog())["items"][: body["limit"]]
         rid, expiry = uid(), (now() + timedelta(minutes=10)).isoformat()
         await self.store.add(
@@ -450,7 +453,7 @@ class ActivityService:
         if row["state"] != "started":
             raise DomainError("INVALID_TRANSITION")
         at = utc(body["event_at"])
-        if at > now() + timedelta(seconds=30) or at < utc(row["started_at"]):
+        if at > now() + timedelta(seconds=30) or at < utc(row["started_at"]) - timedelta(seconds=30):
             raise DomainError("VALIDATION_ERROR", 422)
         source = await self.source(patient, row["session_id"], "activity_event", body["event_at"])
         await self.store.add(
@@ -497,8 +500,7 @@ class ActivityService:
     async def journey(self, patient: str, limit: int = 20) -> dict:
         rows = await self.store.all("activity_sessions", patient_id=patient)
         rows.sort(key=lambda r: (r["started_at"], r["id"]), reverse=True)
-        if len(rows) > limit:
-            raise DomainError("PAGINATION_NOT_IMPLEMENTED", 422)
+        rows = rows[:limit]
         items = []
         for row in rows:
             activity = await self.store.get("activity_catalog", id=row["activity_id"])
