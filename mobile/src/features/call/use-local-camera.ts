@@ -12,6 +12,7 @@ export function useLocalCamera(allowed: boolean) {
   const epoch = useRef(0);
   const permissionPendingRef = useRef(false);
   const resume = useRef<number | null>(null);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const allowedRef = useRef(allowed);
   // Synchronize the camera hardware lifetime with an external call ending.
   useEffect(() => {
@@ -19,8 +20,10 @@ export function useLocalCamera(allowed: boolean) {
     if (!allowed) {
       epoch.current++;
       resume.current = null;
-      // External call termination must release native camera hardware.
+      permissionPendingRef.current = false;
       // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPending(false);
+      // External call termination must release native camera hardware.
       setEnabled(false);
     }
     return () => {
@@ -33,9 +36,21 @@ export function useLocalCamera(allowed: boolean) {
   useEffect(() => {
     const sub = AppState.addEventListener("change", (value) => {
       if (value === "active") {
-        if (resume.current === epoch.current && allowedRef.current)
-          setEnabled(true);
-        resume.current = null;
+        if (resume.current === epoch.current && allowedRef.current) {
+          if (settleTimer.current) clearTimeout(settleTimer.current);
+          settleTimer.current = setTimeout(() => {
+            if (
+              resume.current === epoch.current &&
+              allowedRef.current &&
+              AppState.currentState === "active"
+            ) {
+              setEnabled(true);
+              resume.current = null;
+              permissionPendingRef.current = false;
+              setPending(false);
+            }
+          }, 300);
+        }
       } else if (!permissionPendingRef.current) {
         epoch.current++;
         resume.current = null;
@@ -44,7 +59,10 @@ export function useLocalCamera(allowed: boolean) {
       // The Android permission dialog temporarily backgrounds the app. There is
       // no active preview yet; let its result settle before enabling on foreground.
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+    };
   }, []);
   const toggle = async () => {
     if (permissionPendingRef.current) return;
@@ -64,8 +82,24 @@ export function useLocalCamera(allowed: boolean) {
       const result = permission?.granted ? permission : await request();
       if (current === epoch.current && allowedRef.current) {
         if (result.granted) {
-          if (AppState.currentState === "active") setEnabled(true);
-          else resume.current = current;
+          // Let the just-returned-from-background state settle (avoids a flash /
+          // race where the camera mounts a beat before the OS finishes handing
+          // focus back after the permission dialog) before actually enabling.
+          resume.current = current;
+          if (AppState.currentState === "active") {
+            settleTimer.current = setTimeout(() => {
+              if (
+                current === epoch.current &&
+                allowedRef.current &&
+                AppState.currentState === "active"
+              ) {
+                setEnabled(true);
+                resume.current = null;
+                permissionPendingRef.current = false;
+                setPending(false);
+              }
+            }, 300);
+          }
         } else if (result.canAskAgain) {
           setError("Camera access is off. Your voice call can continue.");
         } else {
@@ -79,8 +113,10 @@ export function useLocalCamera(allowed: boolean) {
     } catch {
       setError("Preview unavailable. Your voice call can continue.");
     } finally {
-      permissionPendingRef.current = false;
-      setPending(false);
+      if (resume.current === null) {
+        permissionPendingRef.current = false;
+        setPending(false);
+      }
     }
   };
   // The preview itself could not start (no camera, hardware busy, unsupported

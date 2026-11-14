@@ -20,3 +20,5 @@ docs
 **/verification
 **/.pytest_cache
 **/.ruff_cache
+
+**/.next-*

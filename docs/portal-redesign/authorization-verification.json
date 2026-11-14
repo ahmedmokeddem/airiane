@@ -1,0 +1,15 @@
+{
+  "real_isolated_fastapi": true,
+  "fictional_data_only": true,
+  "unauthorizedDashboardDenied": true,
+  "unauthorizedPdf401": true,
+  "verifiedClinicianLogin": true,
+  "httpOnlySession": true,
+  "patientReminderSaved": true,
+  "authorizedPdf200": true,
+  "exportButtonDownload": true,
+  "revokedPdf403": true,
+  "oldReportRemoved": true,
+  "patientRoleDenied": true,
+  "pageErrors": []
+}

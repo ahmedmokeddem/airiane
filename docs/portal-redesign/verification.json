@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-14",
+  "deployed": false,
+  "hosted_patient_data_used": false,
+  "provider_configuration_changed": false,
+  "backend_source_changed": false,
+  "unit_tests": 17,
+  "responsive_route_viewport_combinations": 30,
+  "additional_small_width": 320,
+  "browser": "Chromium",
+  "native_device_claim": false,
+  "supabase_real_account_login": "not tested; isolated fictional backend identity used",
+  "production_https_cookie_flow": "not tested; sealing/origin invariants covered by unit tests",
+  "production_build": true,
+  "standalone_docker_build": true,
+  "container_non_root_uid": 1000,
+  "container_route_checks": 10,
+  "private_credential_scan": "passed"
+}

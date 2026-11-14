@@ -1,164 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ActivityDetail } from './activity-cues';
-import audioManifest from '../../../assets/audio/manifest.json';
 
-export type NatureSoundscapeId =
-  | 'nordic_forest_birds'
-  | 'gentle_rain'
-  | 'nordic_stream'
-  | 'gamma_40hz_pink_noise';
+import {NATURE_SOUNDSCAPES,describeSoundscape,type NatureSoundscapeId,type SoundscapeProfile} from "./soundscapes";
 
-export type SoundscapeTheme = {
-  coreColor: string;
-  auraColor: string;
-  orbGradient: string;
-  bgGradient: string;
-  horizonColor: string;
-};
-
-export const NATURE_SOUNDSCAPES: Record<
-  NatureSoundscapeId,
-  {
-    label: string;
-    /** Web only: served from `mobile/public/audio/` at the site root. */
-    file: string;
-    /** Native only: file name inside `mobile/assets/audio/` (same bytes as `file`). */
-    asset: string;
-    description: string;
-    theme: SoundscapeTheme;
-  }
-> = {
-  nordic_forest_birds: {
-    label: 'Nordic Forest & Birds',
-    file: '/audio/nordic_forest_birds.mp3',
-    asset: 'nordic_forest_birds.mp3',
-    description: 'Finnish pine woodland with gentle morning birdsong + 40 Hz AM',
-    theme: {
-      coreColor: '#34d399',
-      auraColor: 'rgba(52, 211, 153, 0.5)',
-      orbGradient:
-        'radial-gradient(circle at 35% 30%, #ffffff 0%, #a7f3d0 28%, #34d399 65%, #064e3b 100%)',
-      bgGradient: 'linear-gradient(180deg, #041510 0%, #0b2e24 48%, #04120e 100%)',
-      horizonColor:
-        'radial-gradient(ellipse at 50% 36%, rgba(52, 211, 153, 0.18) 0%, transparent 65%)',
-    },
-  },
-  gentle_rain: {
-    label: 'Cabin Rain',
-    file: '/audio/gentle_rain.mp3',
-    asset: 'gentle_rain.mp3',
-    description: 'Continuous rainfall on pine needles + 40 Hz AM',
-    theme: {
-      coreColor: '#818cf8',
-      auraColor: 'rgba(129, 140, 248, 0.5)',
-      orbGradient:
-        'radial-gradient(circle at 35% 30%, #ffffff 0%, #c7d2fe 28%, #818cf8 65%, #1e1b4b 100%)',
-      bgGradient: 'linear-gradient(180deg, #070919 0%, #161b3a 48%, #070816 100%)',
-      horizonColor:
-        'radial-gradient(ellipse at 50% 36%, rgba(129, 140, 248, 0.18) 0%, transparent 65%)',
-    },
-  },
-  nordic_stream: {
-    label: 'Woodland Stream',
-    file: '/audio/nordic_stream.mp3',
-    asset: 'nordic_stream.mp3',
-    description: 'Flowing stream over smooth stones + 40 Hz AM',
-    theme: {
-      coreColor: '#38bdf8',
-      auraColor: 'rgba(56, 189, 248, 0.5)',
-      orbGradient:
-        'radial-gradient(circle at 35% 30%, #ffffff 0%, #bae6fd 28%, #38bdf8 65%, #0c4a6e 100%)',
-      bgGradient: 'linear-gradient(180deg, #04131f 0%, #0c2b45 48%, #040f1a 100%)',
-      horizonColor:
-        'radial-gradient(ellipse at 50% 36%, rgba(56, 189, 248, 0.18) 0%, transparent 65%)',
-    },
-  },
-  gamma_40hz_pink_noise: {
-    label: '40 Hz Pink Noise',
-    file: '/audio/gamma_40hz_pink_noise.wav',
-    asset: 'gamma_40hz_pink_noise.wav',
-    description: '1/f pink noise modulated at 40 Hz with 0.5 Hz bilateral sway',
-    theme: {
-      coreColor: '#e879f9',
-      auraColor: 'rgba(232, 121, 249, 0.5)',
-      orbGradient:
-        'radial-gradient(circle at 35% 30%, #ffffff 0%, #f5d0fe 28%, #e879f9 65%, #4a044e 100%)',
-      bgGradient: 'linear-gradient(180deg, #140618 0%, #2c0f38 48%, #100514 100%)',
-      horizonColor:
-        'radial-gradient(ellipse at 50% 36%, rgba(232, 121, 249, 0.18) 0%, transparent 65%)',
-    },
-  },
-};
-
-export type SoundscapeProfile = {
-  id: string;
-  label: string;
-  frequenciesHz: number[];
-  binauralBeatHz: number | null;
-  modulationHz: number | null;
-  ambientNoise: boolean;
-  stepChimeHz: number | null;
-};
-
-/**
- * Pure descriptor of the therapeutic soundscape for a given catalog activity.
- * Safe to call in unit tests and UI components without touching audio hardware.
- */
-export function describeSoundscape(activity: ActivityDetail | null | undefined): SoundscapeProfile {
-  switch (activity?.kind) {
-    case 'nature':
-      return {
-        id: activity.config.asset_id ?? 'soundscape-40hz-v1',
-        label: '40 Hz gamma entrainment · 200/240 Hz binaural + soft rain',
-        frequenciesHz: [120, 200, 240],
-        binauralBeatHz: 40,
-        modulationHz: 40,
-        ambientNoise: true,
-        stepChimeHz: null,
-      };
-    case 'social_reconnection':
-      return {
-        id: activity.config.asset_id ?? 'good-news-ambient-v1',
-        label: 'Warm F-maj7 ambient pad · Uplifting news accompaniment',
-        frequenciesHz: [174.61, 220.0, 261.63, 329.63],
-        binauralBeatHz: null,
-        modulationHz: 0.12,
-        ambientNoise: false,
-        stepChimeHz: null,
-      };
-    case 'behavioral_activation':
-      return {
-        id: activity.config.asset_id ?? 'grounding-chime-v1',
-        label: '528 Hz singing-bowl step chimes · Grounding drone',
-        frequenciesHz: [144.0, 216.0],
-        binauralBeatHz: null,
-        modulationHz: null,
-        ambientNoise: false,
-        stepChimeHz: 528,
-      };
-    case 'reflection':
-      return {
-        id: activity.config.asset_id ?? 'reflection-pad-v1',
-        label: 'Quiet reflective harmonic drone',
-        frequenciesHz: [216.0, 324.0],
-        binauralBeatHz: null,
-        modulationHz: 0.08,
-        ambientNoise: false,
-        stepChimeHz: null,
-      };
-    case 'breathing':
-    case undefined:
-      return {
-        id: activity?.config.asset_id ?? 'harmonic-breath-v1',
-        label: 'Respiratory harmonic swell · 4s inhale / 4s exhale',
-        frequenciesHz: [130.81, 196.0, 246.94, 293.66],
-        binauralBeatHz: null,
-        modulationHz: 0.125,
-        ambientNoise: false,
-        stepChimeHz: null,
-      };
-  }
-}
+export * from "./soundscapes";
 
 type WebAudioContextCtor = new () => AudioContext;
 
@@ -168,130 +13,6 @@ function resolveAudioContextCtor(): WebAudioContextCtor | null {
     webkitAudioContext?: WebAudioContextCtor;
   };
   return g.AudioContext ?? g.webkitAudioContext ?? null;
-}
-
-export type PlatformKind = 'web' | 'native';
-
-/** Minimal slice of expo-audio's AudioPlayer that this engine uses. */
-export type NativeAudioPlayerHandle = {
-  loop: boolean;
-  muted: boolean;
-  volume: number;
-  play(): void;
-  pause(): void;
-  remove(): void;
-};
-
-export type NativeAudioBackend = {
-  createPlayer(source: number | string | { uri: string }): NativeAudioPlayerHandle;
-  /** Called at most once per process, before the first player is created. */
-  configureAudioMode?(): void;
-};
-
-export type AudioTherapyOptions = {
-  /** Defaults to runtime detection. Tests pass this explicitly. */
-  platform?: PlatformKind;
-  /** Defaults to a lazily-required expo-audio backend. */
-  nativeBackend?: NativeAudioBackend | null;
-  /** File name -> Metro asset id. Defaults to ./native-audio-assets. */
-  nativeAssets?: Record<string, number> | null;
-  /** When false, never calls setAudioModeAsync (call screen: LiveKit owns the session). */
-  configureAudioMode?: boolean;
-};
-
-/** Volume for the bundled native loop (expo-audio range 0.0-1.0). */
-const NATIVE_SOUNDSCAPE_VOLUME = 0.85;
-
-/**
- * expo-audio gives every player a 500 ms `playbackStatusUpdate` loop by default
- * (node_modules/expo-audio/build/ExpoAudio.js createAudioPlayer): iOS adds an
- * AVPlayer periodic time observer on the main queue and Android runs a
- * Dispatchers.Main coroutine, each building a 17-field status object and emitting
- * it into JS twice a second. This engine never subscribes to it, so stretch the
- * interval to one minute instead of paying for it for a whole activity.
- * Never 0: Android would `delay(0)` in a tight loop and iOS rejects a zero CMTime.
- */
-const NATIVE_STATUS_INTERVAL_MS = 60_000;
-
-/**
- * Bundled ambient bed for asset_ids that assets/audio/manifest.json does not
- * list (`harmonic-breath-v1`, `reflection-pad-v1`, a null/unknown backend id).
- * Without this, breathing and reflection activities would stay silent on native.
- */
-const NATIVE_FALLBACK_FILE = 'gentle-rain-stream.wav';
-
-/**
- * react-native-web always runs in a browser (document + AudioContext exist);
- * the native Hermes runtime has neither, and so does the plain-Node test runner.
- * Deliberately avoids importing `Platform` from 'react-native': that module is
- * imported by mobile/tests/wellbeing.test.ts in plain Node.
- * See findings/MOBILE_AUDIO.md.
- */
-function detectPlatform(): PlatformKind {
-  return typeof document !== 'undefined' && resolveAudioContextCtor() ? 'web' : 'native';
-}
-
-let cachedBackend: NativeAudioBackend | null | undefined;
-
-function defaultNativeBackend(): NativeAudioBackend | null {
-  if (cachedBackend !== undefined) return cachedBackend;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require('expo-audio') as {
-      createAudioPlayer: (
-        source: unknown,
-        options?: { updateInterval?: number },
-      ) => NativeAudioPlayerHandle;
-      setAudioModeAsync: (mode: Record<string, unknown>) => Promise<void>;
-    };
-    cachedBackend = {
-      createPlayer: source =>
-        mod.createAudioPlayer(source, {
-          updateInterval: NATIVE_STATUS_INTERVAL_MS,
-        }),
-      configureAudioMode: () => {
-        // playsInSilentMode: audible even with the iOS ringer switch on silent.
-        // mixWithOthers: never yank the session from another audio producer.
-        void mod.setAudioModeAsync({
-          playsInSilentMode: true,
-          interruptionMode: 'mixWithOthers',
-        }).catch(() => {});
-      },
-    };
-  } catch {
-    cachedBackend = null; // not a Metro/native runtime (unit tests, node scripts)
-  }
-  return cachedBackend;
-}
-
-let cachedAssets: Record<string, number> | null | undefined;
-
-function defaultNativeAssets(): Record<string, number> | null {
-  if (cachedAssets !== undefined) return cachedAssets;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    cachedAssets = (require('./native-audio-assets') as {
-      NATIVE_AUDIO_ASSETS: Record<string, number>;
-    }).NATIVE_AUDIO_ASSETS;
-  } catch {
-    cachedAssets = null;
-  }
-  return cachedAssets;
-}
-
-/**
- * File name inside `mobile/assets/audio/` for the soundscape that should loop.
- * Nature activities follow the on-screen soundscape switcher so the chips work;
- * every other kind resolves its `asset_id` through assets/audio/manifest.json.
- */
-export function resolveNativeSoundscapeFile(
-  activity: ActivityDetail | null | undefined,
-  profileId: string,
-  soundscape: NatureSoundscapeId,
-): string {
-  if (activity?.kind === 'nature') return NATURE_SOUNDSCAPES[soundscape].asset;
-  const track = audioManifest.tracks.find(t => t.id === profileId);
-  return track?.file ?? NATIVE_FALLBACK_FILE;
 }
 
 /**
@@ -311,20 +32,6 @@ export class AudioTherapySynthesizer {
   private lastChimeStep: number = -1;
   private _muted = false;
   private _running = false;
-  private readonly platform: PlatformKind;
-  private readonly backendOverride: NativeAudioBackend | null | undefined;
-  private readonly assetsOverride: Record<string, number> | null | undefined;
-  private readonly configureAudioMode: boolean;
-  private nativePlayer: NativeAudioPlayerHandle | null = null;
-  private activeNativeFile: string | null = null;
-  private audioModeConfigured = false;
-
-  constructor(options?: AudioTherapyOptions) {
-    this.platform = options?.platform ?? detectPlatform();
-    this.backendOverride = options?.nativeBackend;
-    this.assetsOverride = options?.nativeAssets;
-    this.configureAudioMode = options?.configureAudioMode ?? true;
-  }
 
   get running(): boolean {
     return this._running;
@@ -345,33 +52,6 @@ export class AudioTherapySynthesizer {
     const profile = describeSoundscape(activity);
     const nextSoundscape = options?.soundscape ?? this.activeSoundscape;
     const nextBilateral = options?.bilateral ?? this.activeBilateral;
-
-    if (this.platform !== 'web') {
-      const nextFile = resolveNativeSoundscapeFile(activity, profile.id, nextSoundscape);
-      // start() re-runs whenever the hook's start effect re-runs (activity
-      // identity, soundscape, mute or bilateral) - never per elapsed tick, which
-      // only drives syncElapsed(). Only restart when the looping file changes.
-      // `bilateral` has no native equivalent (it is baked into the bundled mix),
-      // so toggling it must not restart the loop.
-      if (
-        this._running &&
-        this.activeProfileId === profile.id &&
-        this.activeNativeFile === nextFile &&
-        this.nativePlayer
-      ) {
-        this.activeSoundscape = nextSoundscape;
-        this.activeBilateral = nextBilateral;
-        return profile;
-      }
-      this.stop();
-      this._running = true;
-      this.activeProfileId = profile.id;
-      this.activeSoundscape = nextSoundscape;
-      this.activeBilateral = nextBilateral;
-      this.lastChimeStep = -1;
-      this.startNativeSoundscape(nextFile);
-      return profile;
-    }
 
     if (
       this._running &&
@@ -437,54 +117,8 @@ export class AudioTherapySynthesizer {
     return profile;
   }
 
-  private startNativeSoundscape(file: string): void {
-    const backend = this.backendOverride ?? defaultNativeBackend();
-    const assets = this.assetsOverride ?? defaultNativeAssets();
-    if (!backend || !assets) return; // expo-audio unavailable: stay silent, never throw
-    const source = assets[file];
-    if (source === undefined) return; // asset not bundled
-    try {
-      if (this.configureAudioMode && !this.audioModeConfigured) {
-        this.audioModeConfigured = true;
-        backend.configureAudioMode?.();
-      }
-      const player = backend.createPlayer(source);
-      player.loop = true;                               // set before play()
-      player.volume = this._muted ? 0 : NATIVE_SOUNDSCAPE_VOLUME;
-      player.muted = this._muted;
-      // Muted means paused, not "playing into a zero gain": a silent player
-      // would still decode and emit status for the whole activity.
-      if (!this._muted) player.play();
-      this.nativePlayer = player;
-      this.activeNativeFile = file;
-      this.disposers.push(() => {
-        player.pause();
-        player.remove();                                // frees the native player
-        this.nativePlayer = null;
-        this.activeNativeFile = null;
-      });
-    } catch {
-      // Never crash the activity UI because audio could not start.
-    }
-  }
-
   setMuted(muted: boolean): void {
-    const changed = muted !== this._muted;
     this._muted = muted;
-    // Every expo-audio property write is a blocking hop onto the native main
-    // thread (android AudioModule.kt wraps each Property in runOnMain), so only
-    // write when the value actually changed. New players already get the current
-    // mute state applied in startNativeSoundscape().
-    if (this.nativePlayer && changed) {
-      try {
-        this.nativePlayer.muted = muted;
-        this.nativePlayer.volume = muted ? 0 : NATIVE_SOUNDSCAPE_VOLUME;
-        if (muted) this.nativePlayer.pause();
-        else this.nativePlayer.play();
-      } catch {
-        // Player already released.
-      }
-    }
     if (this.ctx && this.masterGain) {
       const now = this.ctx.currentTime;
       if (!muted && this.ctx.state === 'suspended') {
@@ -500,9 +134,6 @@ export class AudioTherapySynthesizer {
    * - Rings a gentle 528 Hz singing-bowl chime on each grounding step transition
    */
   syncElapsed(activity: ActivityDetail | null | undefined, elapsed: number): void {
-    // Native: the bundled loop needs no per-second driving, and the
-    // grounding-chime file already contains the 528 Hz chimes, so there is
-    // nothing to schedule. `this.ctx` is null on native, so this returns.
     if (!this._running || !this.ctx) return;
     if (this.ctx.state === 'suspended' && !this._muted) {
       void this.ctx.resume().catch(() => {});
@@ -542,8 +173,6 @@ export class AudioTherapySynthesizer {
         // Ignore cleanup errors on already-stopped nodes.
       }
     }
-    this.nativePlayer = null;
-    this.activeNativeFile = null;
     this.breathFilter = null;
     this.breathGain = null;
     this.masterGain = null;
@@ -629,9 +258,7 @@ export class AudioTherapySynthesizer {
     carrier.start();
     this.disposers.push(() => carrier.stop());
 
-    // 2. Web only: swap in the real nature loop served from `mobile/public/audio/`.
-    //    Native plays the byte-identical file from `mobile/assets/audio/` through
-    //    expo-audio instead (see startNativeSoundscape / findings/MOBILE_AUDIO.md).
+    // 2. Asynchronously load real generated nature loop (forest birds / rain / stream / 40Hz pink noise)
     if (typeof fetch === 'function' && typeof window !== 'undefined') {
       let cancelled = false;
       this.disposers.push(() => {
@@ -741,15 +368,8 @@ export class AudioTherapySynthesizer {
   }
 }
 
-export function useAudioTherapy(
-  active: boolean,
-  activity: ActivityDetail | null | undefined,
-  elapsed: number,
-  options?: { configureAudioMode?: boolean },
-) {
-  // Read into a boolean: `options` is an inline literal at the call sites and
-  // would change identity on every render if used in a dependency array.
-  const configureAudioMode = options?.configureAudioMode ?? true;
+export function useAudioTherapy(active: boolean, activity: ActivityDetail | null | undefined, elapsed: number, options?: {inCall?:boolean}) {
+  void options;
   const synthRef = useRef<AudioTherapySynthesizer | null>(null);
   const [soundMuted, setSoundMuted] = useState(false);
   const [soundscape, setSoundscape] = useState<NatureSoundscapeId>('nordic_forest_birds');
@@ -758,7 +378,7 @@ export function useAudioTherapy(
 
   useEffect(() => {
     if (!synthRef.current) {
-      synthRef.current = new AudioTherapySynthesizer({ configureAudioMode });
+      synthRef.current = new AudioTherapySynthesizer();
     }
     const synth = synthRef.current;
     if (active) {
@@ -770,7 +390,7 @@ export function useAudioTherapy(
     return () => {
       if (!active) synth.stop();
     };
-  }, [active, activity, soundMuted, soundscape, bilateralEnabled, configureAudioMode]);
+  }, [active, activity, soundMuted, soundscape, bilateralEnabled]);
 
   useEffect(() => {
     synthRef.current?.setMuted(soundMuted);
@@ -786,6 +406,11 @@ export function useAudioTherapy(
 
   return {
     profile,
+    playbackError: "",
+    loading: false,
+    playing: active && !soundMuted,
+    retryPlayback: () => { synthRef.current?.stop(); synthRef.current?.start(activity, {soundscape,bilateral:bilateralEnabled}); synthRef.current?.setMuted(soundMuted); },
+    supportsBilateral: true,
     soundMuted,
     toggleSound: () => setSoundMuted(m => !m),
     soundscape,

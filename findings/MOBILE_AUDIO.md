@@ -3,6 +3,22 @@
 Context: `Artifacts/plan.md` — "make the activity soundscape audible on
 native iOS/Android" (`mobile/src/features/activity/audio-therapy.ts`).
 
+**Superseded note (post-merge with `main`):** the native-audio engine
+described in the first two sections below (single-file platform branching
+in `audio-therapy.ts`, the `native-audio-assets.ts` Metro `require()`
+table, and the `NATIVE_STATUS_INTERVAL_MS` tweak in the third section) was
+replaced wholesale when this branch merged `main`'s independently-built,
+more complete rewrite: `audio-therapy.ts` is now the shared/web-only module
+again (re-exporting `soundscapes.ts`), and native playback lives in the
+sibling `audio-therapy.native.ts` + `native-playback.ts` +
+`native-audio-session.ts`, using `expo-audio`'s `useAudioPlayer`/
+`useAudioPlayerStatus` hooks directly (with retry/loading/error UX) instead
+of a hand-rolled backend. `native-audio-assets.ts` was deleted; the
+`Record<string, number>` asset table now lives inline in
+`audio-therapy.native.ts`. The asset-duplication fact (next section) still
+holds regardless of architecture — it's a filesystem fact, not an
+implementation detail.
+
 ## `mobile/assets/audio/` and `mobile/public/audio/` are byte-identical mirrors
 
 `md5 assets/audio/* public/audio/*` (run from `mobile/`) shows the same 8
@@ -19,9 +35,9 @@ fe1229521c2fbc2a6971c1286143063e  gentle_rain.mp3                  (both dirs)
 54ca9e646972b02dcb0c1474c732c842  nordic_stream.mp3                (both dirs)
 ```
 
-Native reads `mobile/assets/audio/` via
-`mobile/src/features/activity/native-audio-assets.ts` (Metro `require()`
-table, numeric asset ids). Web reads `/audio/*` served from
+Native reads `mobile/assets/audio/` via the `tracks` map inline in
+`mobile/src/features/activity/audio-therapy.native.ts` (Metro `require()`
+table, numeric asset ids; see the superseded note above). Web reads `/audio/*` served from
 `mobile/public/audio/` (fetched by `build40HzResonanceGraph` in
 `audio-therapy.ts`). Both paths point at the same bytes today, but the two
 directories are maintained separately (~9 MB duplicated). Deduping — e.g.
@@ -44,33 +60,38 @@ AudioContext: undefined | document: undefined | node v24.19.0
 `mobile/tests/wellbeing.test.ts` imports
 `src/features/activity/audio-therapy.ts` directly into that plain-Node
 process and exercises `AudioTherapySynthesizer` (`start`/`setMuted`/
-`syncElapsed`/`stop`).
+`syncElapsed`/`stop`) — the web-only implementation now re-exported from
+`soundscapes.ts`.
 
-Consequence: `audio-therapy.ts`, and anything it statically imports, must
-never statically `import` `react-native`, `expo-audio`, or any `*.wav`/
-`*.mp3` file — any of those would execute React Native / expo-modules-core
-or a Metro-only asset require inside the Node test process and can break
-`npm test`. All native wiring (the `expo-audio` backend and the
-`native-audio-assets.ts` Metro `require()` table) must be loaded lazily via
-`require(...)` inside `try/catch`, and tests inject fakes through the
-`AudioTherapyOptions` constructor parameter (`platform`, `nativeBackend`,
-`nativeAssets`) instead of mocking modules.
+Consequence: `audio-therapy.ts` (the shared/web module), and anything it
+statically imports, must never statically `import` `react-native`,
+`expo-audio`, or any `*.wav`/`*.mp3` file — any of those would execute
+React Native / expo-modules-core or a Metro-only asset require inside the
+Node test process and can break `npm test`. The native implementation now
+lives entirely in the sibling `audio-therapy.native.ts` (resolved by Metro
+via the platform-extension convention, never imported by the plain-Node
+test runner), which uses `expo-audio`'s `useAudioPlayer` hook and is
+exercised by `mobile/tests/native-playback.test.ts` instead.
 
-## Steady-state cost of the native soundscape player (measured in expo-audio 58.0.12)
+## Steady-state cost of a native soundscape player (measured in expo-audio 58.0.12)
 
-`createAudioPlayer(source)` defaults to `updateInterval = 500` ms
-(`node_modules/expo-audio/build/ExpoAudio.js` `createAudioPlayer`). iOS registers an
+`createAudioPlayer`/`useAudioPlayer` defaults to `updateInterval = 500` ms
+(`node_modules/expo-audio/build/ExpoAudio.js`). iOS registers an
 AVPlayer periodic time observer on the main queue that builds a 17-field status
 dictionary and emits it to JS (`ios/AudioPlayer.swift` `registerTimeObserver` ->
 `updateStatus` -> `currentStatus`); Android runs the same loop in a
 `Dispatchers.Main` coroutine (`android/.../BaseAudioPlayer.kt` `startUpdating`).
-Nothing in this app subscribes to `playbackStatusUpdate`, so the engine now asks
-for a 60 s interval (`NATIVE_STATUS_INTERVAL_MS` in `audio-therapy.ts`). Never use
-`0`: Android would `delay(0)` in a tight loop and iOS rejects a zero `CMTime`.
-Every expo-audio property write is also a blocking hop to the native main thread
-(each `Property` in `android/.../AudioModule.kt` is wrapped in `runOnMain`), which
-is why `setMuted()` only writes when the value changed, and why muting pauses the
-player instead of leaving it decoding at volume 0.
+This is no longer wasted in the merged implementation: `audio-therapy.native.ts`
+passes the explicit `updateInterval: 500` and actually subscribes via
+`useAudioPlayerStatus` to drive `loading`/`playbackError`/`playing` UI state, so
+the 2×/s status emission has a real consumer — unlike the superseded
+single-file implementation this finding originally described, which asked for
+`updateInterval: 500` but never read it. If a future change stops using the
+status object, revisit the interval. Every expo-audio property write is also a
+blocking hop to the native main thread (each `Property` in
+`android/.../AudioModule.kt` is wrapped in `runOnMain`); worth keeping in mind
+for any future change to how often `NativePlayback` writes `loop`/`muted`/
+`volume`.
 
 Known, still open (not caused by the branch, not fixed here):
 

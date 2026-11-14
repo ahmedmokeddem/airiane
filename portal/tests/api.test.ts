@@ -106,3 +106,19 @@ test('the doctor client reads a questionnaire sent after a positive Q9 from the 
  await api.alertAssessment('patient-id','alert-id');
  assert.equal(url,'http://127.0.0.1:8000/v1/doctor/patients/patient-id/alerts/alert-id/assessment');
 });
+
+import {sealSession,openSession} from '../lib/session';
+const testEnvironment=process.env as Record<string,string|undefined>;
+test('production sessions are sealed, expire and reject tampering',()=>{
+ const previous={env:testEnvironment.NODE_ENV,key:process.env.PORTAL_SESSION_KEY};
+ try{testEnvironment.NODE_ENV='production';process.env.PORTAL_SESSION_KEY=Buffer.alloc(32,7).toString('base64');const sealed=sealSession('fictional-session-token',60);assert.ok(!sealed.includes('fictional-session-token'));assert.equal(openSession(sealed),'fictional-session-token');assert.equal(openSession(sealed.slice(0,-5)+'ABCDE'),undefined);assert.equal(openSession(sealSession('expired-fictional-token',-1)),undefined);assert.equal(openSession('unsealed-token'),undefined);}
+ finally{if(previous.env===undefined)delete testEnvironment.NODE_ENV;else testEnvironment.NODE_ENV=previous.env;if(previous.key===undefined)delete process.env.PORTAL_SESSION_KEY;else process.env.PORTAL_SESSION_KEY=previous.key;}
+});
+test('production mutations require the configured public origin',()=>{
+ const previous={env:testEnvironment.NODE_ENV,url:process.env.PORTAL_PUBLIC_URL};
+ try{testEnvironment.NODE_ENV='production';process.env.PORTAL_PUBLIC_URL='https://portal.example.invalid';assert.equal(validOrigin(new Request('https://portal.example.invalid/care/accept',{headers:{origin:'https://attacker.example.invalid'}})),false);assert.equal(validOrigin(new Request('https://portal.example.invalid/care/accept',{headers:{origin:'https://portal.example.invalid'}})),true);}
+ finally{if(previous.env===undefined)delete testEnvironment.NODE_ENV;else testEnvironment.NODE_ENV=previous.env;if(previous.url===undefined)delete process.env.PORTAL_PUBLIC_URL;else process.env.PORTAL_PUBLIC_URL=previous.url;}
+});
+test('directory and report pagination encode cursors without changing authorization',async()=>{
+ const urls:string[]=[];const fetcher:typeof fetch=async(input,init)=>{urls.push(String(input));assert.equal(init?.cache,'no-store');assert.equal((init?.headers as Record<string,string>).Authorization,'Bearer fictional-token');return Response.json({items:[],next_cursor:null});};const api=new ClinicianApi('https://api.example.invalid','fictional-token',fetcher);await api.patients('cursor&patient=other');await api.reports('patient/id','cursor&report=other');assert.deepEqual(urls,['https://api.example.invalid/v1/doctor/patients?cursor=cursor%26patient%3Dother','https://api.example.invalid/v1/doctor/patients/patient%2Fid/reports?cursor=cursor%26report%3Dother']);
+});
