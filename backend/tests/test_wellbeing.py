@@ -251,10 +251,11 @@ def test_daily_good_news_digest_curates_strictly_uplifting_stories(client):  # n
     assert good_news["config"]["asset_id"] == "good-news-ambient-v1"
     assert len(good_news["config"]["instructions"]) >= 3
 
-    assert _is_strictly_uplifting("Espoo volunteers plant 500 native birch trees in community park.")
+    assert _is_strictly_uplifting(
+        "Espoo volunteers plant 500 native birch trees in community park."
+    )
     assert not _is_strictly_uplifting("Breaking: market crash and political crisis spark protests.")
     assert not _is_strictly_uplifting("Severe accident causes death on highway.")
     assert len(_clean_story("A" * 600)) <= 420
     fallback = asyncio.run(get_uplifting_news_instructions("", ""))
     assert len(fallback) == 4 and all(_is_strictly_uplifting(s) for s in fallback)
-
