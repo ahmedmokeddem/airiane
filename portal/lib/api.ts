@@ -1,4 +1,5 @@
 import type { AssessmentResponse, Alert, DoctorPatient, Page, Report, ReportReceipt } from './types';
+import type { InsightReportResponse } from './insight-types';
 
 export class ApiError extends Error {
   constructor(public readonly status: number) { super(status === 403 ? 'Patient authorization is unavailable or has been revoked.' : status === 401 ? 'Clinician sign-in is required.' : status === 409 ? 'The report is not ready yet.' : 'Reports could not be loaded. Try again.'); }
@@ -21,4 +22,6 @@ export class ClinicianApi {
   alertAssessment(patientId: string, alertId: string) { return this.get<AssessmentResponse>(`/v1/doctor/patients/${encodeURIComponent(patientId)}/alerts/${encodeURIComponent(alertId)}/assessment`); }
   reports(patientId: string,cursor?:string) { return this.get<Page<ReportReceipt>>(`/v1/doctor/patients/${encodeURIComponent(patientId)}/reports`+(cursor?"?cursor="+encodeURIComponent(cursor):"")); }
   report(patientId: string, reportId: string) { return this.get<Report>(`/v1/doctor/patients/${encodeURIComponent(patientId)}/reports/${encodeURIComponent(reportId)}`); }
+  insightReports(patientId: string) { return this.get<Page<InsightReportResponse>>(`/v1/doctor/patients/${encodeURIComponent(patientId)}/insight-reports`); }
+  insightReport(patientId: string, reportId: string) { return this.get<InsightReportResponse>(`/v1/doctor/patients/${encodeURIComponent(patientId)}/insight-reports/${encodeURIComponent(reportId)}`); }
 }

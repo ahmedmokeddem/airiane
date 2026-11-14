@@ -107,6 +107,55 @@ test('the doctor client reads a questionnaire sent after a positive Q9 from the 
  assert.equal(url,'http://127.0.0.1:8000/v1/doctor/patients/patient-id/alerts/alert-id/assessment');
 });
 
+test('the doctor client reads shared conversation insight reports from the isolated path', async () => {
+  let url = '';
+  const api = new ClinicianApi('http://127.0.0.1:8000', 'fictional', async input => {
+    url = String(input);
+    return Response.json({ items: [], next_cursor: null });
+  });
+  await api.insightReports('patient-id');
+  assert.equal(url, 'http://127.0.0.1:8000/v1/doctor/patients/patient-id/insight-reports');
+  let detailUrl = '';
+  const detail = new ClinicianApi('http://127.0.0.1:8000', 'fictional', async input => {
+    detailUrl = String(input);
+    return Response.json({ report_id: 'report-id' });
+  });
+  await detail.insightReport('patient-id', 'report-id');
+  assert.equal(detailUrl, 'http://127.0.0.1:8000/v1/doctor/patients/patient-id/insight-reports/report-id');
+});
+
+import { InsightReportPanel } from '../components/insight-report';
+test('conversation insight panel renders evidence, safety, separate assessments and no raw JSON', () => {
+  const dimension = (key: string, label: string, status: 'observed_pattern' | 'not_assessed', quote?: string) => ({
+    key, label, status, count: quote ? 2 : 0, first_seen: quote ? '2026-11-14T10:00:00Z' : null,
+    last_seen: quote ? '2026-11-14T10:05:00Z' : null,
+    evidence: quote ? [{ message_id: 'message-1', session_id: 'session-1', event_at: '2026-11-14T10:00:00Z', speaker: 'patient' as const, quote }] : [],
+    note: quote ? 'Two or more patient messages explicitly referenced this area.' : 'The patient did not explicitly mention this area.',
+  });
+  const report = {
+    report_id: 'report-1', patient_id: 'patient-1', session_id: 'session-1', status: 'shared' as const,
+    schema_version: 'conversation-insight/v1', created_at: '2026-11-14T10:10:00Z', shared_at: '2026-11-14T10:11:00Z',
+    recipient_care_link_id: 'link-1',
+    report: {
+      schema_version: 'conversation-insight/v1' as const, report_id: 'report-1', generated_at: '2026-11-14T10:10:00Z', patient_id: 'patient-1',
+      coverage: { session_id: 'session-1', message_count: 3, patient_message_count: 2, assistant_message_count: 1, period_start: '2026-11-14T10:00:00Z', period_end: '2026-11-14T10:05:00Z' },
+      assessments: { phq9: { instrument: 'phq9' as const, title: 'PHQ-9', version: 1, observed_at: '2026-11-14T10:00:00Z', total: 9, max_total: 27, severity: 'Mild', validated: true, safety_item_positive: false }, bdi_ii: null, note: 'PHQ-9 and BDI-II are separate instruments and are never combined.' },
+      dimensions: [dimension('emotional', 'Emotional experiences', 'observed_pattern', 'I feel sad and hopeless.'), dimension('interest', 'Interest and motivation', 'not_assessed')],
+      functional_impact: dimension('functioning', 'Daily functioning', 'not_assessed'),
+      positive_experiences: dimension('positive', 'Positive experiences and support', 'observed_pattern', 'Walking helped.'),
+      safety: { present: true, evidence_type: 'user_reported' as const, evidence: [{ message_id: 'message-2', session_id: 'session-1', event_at: '2026-11-14T10:05:00Z', speaker: 'patient' as const, quote: 'I want to die.' }], message: 'The submitted messages contain explicit safety-related language.' },
+      information_gaps: ['Interest and motivation'], follow_up_suggestions: ['Review the existing safety workflow.'],
+      limitations: ['This report is not a diagnosis, a risk classification, or a treatment recommendation.'],
+      consent: { analysis_consent: true, sharing_status: 'shared' as const, recipient_care_link_id: 'link-1', shared_at: '2026-11-14T10:11:00Z' },
+    },
+  };
+  const html = renderToStaticMarkup(createElement(InsightReportPanel, { reports: [report], patientName: 'Fictional patient' }));
+  for (const text of ['Shared conversation insight reports', 'Fictional patient', 'PHQ-9: 9/27', 'BDI-II (adapted): not available', 'I feel sad and hopeless', 'Walking helped', 'Safety-related language', 'I want to die', 'not a diagnosis', 'Evidence (1 source message)']) assert.ok(html.includes(text), text);
+  assert.equal(html.includes('schema_version'), false);
+  assert.equal(renderToStaticMarkup(createElement(InsightReportPanel, { reports: [], patientName: 'x' })), '');
+});
+
+
 import {sealSession,openSession} from '../lib/session';
 const testEnvironment=process.env as Record<string,string|undefined>;
 test('production sessions are sealed, expire and reject tampering',()=>{

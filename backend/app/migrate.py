@@ -36,6 +36,7 @@ async def apply(connection, name, *, adopt=False, check=False):
             "0003_clinical_questionnaires.sql": "re.assessment_definitions",
             "0005_medication_reminders.sql": "re.medication_reminders",
             "0006_medication_reminder_constraints.sql": "re.medication_reminders",
+            "0007_insight_reports.sql": "re.insight_reports",
         }[name]
         exists = await connection.fetchval("SELECT to_regclass($1)", target)
         if name == "0003_clinical_questionnaires.sql":
@@ -111,7 +112,11 @@ async def apply(connection, name, *, adopt=False, check=False):
                                 "0005_medication_reminders.sql",
                                 "0006_medication_reminder_constraints.sql",
                             )
-                            else ["companion_state", "daily_checkins"]
+                            else (
+                                ["insight_reports"]
+                                if name == "0007_insight_reports.sql"
+                                else ["companion_state", "daily_checkins"]
+                            )
                         )
                     )
                 )
@@ -151,6 +156,7 @@ async def main():
             "0004_companion_continuity.sql",
             "0005_medication_reminders.sql",
             "0006_medication_reminder_constraints.sql",
+            "0007_insight_reports.sql",
         ],
     )
     parser.add_argument(

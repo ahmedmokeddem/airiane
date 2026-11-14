@@ -21,6 +21,13 @@ import "./production-config.test";
 import './companion.test';
 import "./noise-filter.test";
 import "./assessment.test";
+import "./phq9-scoring.test";
+import "./phq9-form.test";
+import "./phq9-ui.test";
+import "./bdi-scoring.test";
+import "./bdi-form.test";
+import "./bdi-ui.test";
+import "./insight-report.test";
 import "./nudges.test";
 
 import "./native-playback.test";

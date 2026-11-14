@@ -3,8 +3,10 @@ import { patient, patientReports } from "@/lib/workspace";
 import { ReportList } from "@/components/workspace/report-list";
 import { AlertList } from "@/components/alert-list";
 import { AssessmentResults } from "@/components/assessment-results";
+import { InsightReportPanel } from "@/components/insight-report";
 import { Icon } from "@/components/brand";
 import type { Alert, AssessmentResponse } from "@/lib/types";
+import type { InsightReportResponse } from "@/lib/insight-types";
 export const metadata = { title: "Patient record" };
 export default async function PatientPage({
   params,
@@ -24,6 +26,8 @@ export default async function PatientPage({
   let alerts: Alert[] = [];
   let alertMessage: string | undefined;
   let questionnaires: AssessmentResponse[] = [];
+  let insightReports: InsightReportResponse[] = [];
+  let insightUnavailable: string | undefined;
   if (
     !d.mock &&
     (d.patient.scopes.includes("alerts") || d.patient.attention?.flagged)
@@ -40,6 +44,15 @@ export default async function PatientPage({
       questionnaires = [];
       alertMessage =
         "Requests are unavailable under current access or could not be loaded. Refresh to check again.";
+    }
+  }
+  if (!d.mock) {
+    try {
+      insightReports = (await d.api!.insightReports(patientId)).items;
+    } catch {
+      insightReports = [];
+      insightUnavailable =
+        "Shared conversation insight reports are unavailable under current access.";
     }
   }
   return (
@@ -117,6 +130,11 @@ export default async function PatientPage({
               heading="Shared questionnaire records"
             />
           )}
+          <InsightReportPanel
+            reports={insightReports}
+            patientName={d.patient.display_name}
+            unavailable={insightUnavailable}
+          />
         </section>
         <aside className="patient-context">
           <div className="context-note">

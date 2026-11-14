@@ -146,6 +146,10 @@ export interface HomeScreenProps {
   medication?: { message: string; schedule_time: string } | null;
   /** True when no doctor is connected: show one gentle, optional invitation. */
   careTeamHint?: boolean;
+  /** Opens the shared Assessment Center. */
+  onAssessments?: () => void;
+  /** Opens the private conversation insight report screen. */
+  onInsights?: () => void;
 }
 export function HomeScreen({
   profile,
@@ -162,6 +166,8 @@ export function HomeScreen({
   streak,
   medication,
   careTeamHint,
+  onAssessments,
+  onInsights,
 }: HomeScreenProps) {
   const completed =
     journey?.items.filter((item) => item.activity_session.state === "completed")
@@ -279,6 +285,39 @@ export function HomeScreen({
         </Surface>
       )}
       {checkIn}
+      {onAssessments && (
+        <Surface>
+          <Text style={s.eyebrow}>A PRIVATE CHECK ┬╖ OPTIONAL</Text>
+          <Text style={p.activityTitle}>
+            PHQ-9 and adapted BDI-II
+          </Text>
+          <Text style={s.small}>
+            Two separate self-assessments about the past two weeks. They are
+            screening and self-reflection tools, not diagnoses, and nothing is
+            shared automatically.
+          </Text>
+          <Button
+            secondary
+            label="Open Assessment Center"
+            onPress={onAssessments}
+          />
+        </Surface>
+      )}
+      {onInsights && (
+        <Surface>
+          <Text style={s.eyebrow}>CONVERSATION INSIGHT · PRIVATE</Text>
+          <Text style={p.activityTitle}>Prepare a therapist report</Text>
+          <Text style={s.small}>
+            Create a structured draft from your current conversation. Nothing is
+            shared until you review it and give explicit consent.
+          </Text>
+          <Button
+            secondary
+            label="Open conversation insights"
+            onPress={onInsights}
+          />
+        </Surface>
+      )}
       <View style={p.rowBetween}>
         <SectionTitle title="Gentle invitations" />
         <Pressable
@@ -687,6 +726,8 @@ export interface WelcomeScreenProps {
   onDemo?: () => void;
   busy: boolean;
   error?: string | null;
+  /** Opens the shared Assessment Center, available without an account. */
+  onAssessments?: () => void;
 }
 export function WelcomeScreen({
   email,
@@ -697,6 +738,7 @@ export function WelcomeScreen({
   onDemo,
   busy,
   error,
+  onAssessments,
 }: WelcomeScreenProps) {
   const insets = useSafeAreaInsets();
   return (
@@ -768,6 +810,21 @@ export function WelcomeScreen({
               <Text style={s.small}>
                 The sample uses fictional records. It is separate from your
                 personal account.
+              </Text>
+            </>
+          )}
+          {onAssessments && (
+            <>
+              <Button
+                secondary
+                label="Open Assessment Center"
+                disabled={busy}
+                onPress={onAssessments}
+              />
+              <Text style={s.small}>
+                No account needed. PHQ-9 and an adapted BDI-II check. They are
+                separate self-assessments, not diagnoses, and results stay on
+                this screen.
               </Text>
             </>
           )}

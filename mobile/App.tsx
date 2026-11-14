@@ -79,6 +79,19 @@ import { confirmedOn } from "./src/features/checkin/checkin-state";
 import { CheckInProposals } from "./src/features/checkin/check-in-proposals";
 import { AssessmentPanel } from "./src/features/assessment/assessment-panel";
 import { useAssessment } from "./src/features/assessment/use-assessment";
+import { PHQ9AssessmentScreen } from "./src/features/phq9/phq9-assessment-screen";
+import type { PHQ9Assessment } from "./src/features/phq9/phq9-session";
+import { PHQ9_MAX_SCORE } from "./src/features/phq9/phq9-config";
+import { BDIAssessmentScreen } from "./src/features/bdi/bdi-assessment-screen";
+import type { BDIAssessment } from "./src/features/bdi/bdi-session";
+import { BDI_MAX_SCORE } from "./src/features/bdi/bdi-config";
+import { AssessmentCenterScreen } from "./src/features/assessments/assessment-center-screen";
+import {
+  appendAssessmentHistory,
+  emptyAssessmentHistory,
+  type AssessmentHistory,
+} from "./src/features/assessments/assessment-history";
+import { InsightReportScreen } from "./src/features/insight-reports/insight-report-screen";
 import {
   checkInUpdate,
   isAffirmative,
@@ -102,7 +115,11 @@ type Screen =
   | "journey"
   | "reports"
   | "activities"
-  | "profile";
+  | "profile"
+  | "phq9"
+  | "bdi"
+  | "assessments"
+  | "insights";
 const realVoice = process.env.EXPO_PUBLIC_VOICE_PROVIDER === "elevenlabs";
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -117,6 +134,9 @@ export default function App() {
   const setScreen = (value: Screen) =>
     router.push(value === "home" ? "/" : (`/${value}` as "/"));
   const [signedIn, setSignedIn] = useState(false);
+  const [assessmentHistory, setAssessmentHistory] = useState<AssessmentHistory>(
+    emptyAssessmentHistory,
+  );
   const product = useProductData(signedIn);
   const [proposal, setProposal] = useState<InsightProposal | null>(null);
   const insightAck = useRef<(() => void) | null>(null);
@@ -832,7 +852,7 @@ export default function App() {
       signedIn,
       activeToday: !!product.streak?.active_today,
       // Never interrupt a call, an activity or a questionnaire.
-      blocked: immersive || screen === "breathing" || assessment.state.phase === "asking",
+      blocked: immersive || screen === "breathing" || screen === "phq9" || screen === "bdi" || screen === "assessments" || screen === "insights" || assessment.state.phase === "asking",
     };
   });
   // Shortly after sign-in, and whenever the patient comes back to the app.
@@ -969,6 +989,7 @@ export default function App() {
     setActivity(null);
     setJourney(null);
     setProposal(null);
+    setAssessmentHistory(emptyAssessmentHistory());
     setScreen("home");
   };
   const friendlyError = error
@@ -1106,6 +1127,52 @@ export default function App() {
           onComplete={() => void run(complete)}
           onLeaveActivity={() => void run(leaveCallActivity)}
         />
+      ) : screen === "phq9" ? (
+        <PHQ9AssessmentScreen
+          onExit={() => setScreen("home")}
+          userId={product.profile?.user_id ?? null}
+          onCompleted={(assessment: PHQ9Assessment) =>
+            setAssessmentHistory(history =>
+              appendAssessmentHistory(history, "PHQ-9", {
+                assessmentId: assessment.assessmentId,
+                completedAt: assessment.completedAt,
+                totalScore: assessment.totalScore,
+                maxScore: PHQ9_MAX_SCORE,
+                severity: assessment.severity,
+              }),
+            )
+          }
+        />
+      ) : screen === "bdi" ? (
+        <BDIAssessmentScreen
+          onExit={() => setScreen("assessments")}
+          userId={product.profile?.user_id ?? null}
+          onCompleted={(assessment: BDIAssessment) =>
+            setAssessmentHistory(history =>
+              appendAssessmentHistory(history, "BDI-II-adapted", {
+                assessmentId: assessment.assessmentId,
+                completedAt: assessment.completedAt,
+                totalScore: assessment.totalScore,
+                maxScore: BDI_MAX_SCORE,
+                severity: assessment.severity,
+                preliminaryLabel: assessment.preliminaryLabel,
+              }),
+            )
+          }
+        />
+      ) : screen === "assessments" ? (
+        <AssessmentCenterScreen
+          history={assessmentHistory}
+          onPHQ9={() => setScreen("phq9")}
+          onBDI={() => setScreen("bdi")}
+          onExit={() => setScreen("home")}
+        />
+      ) : screen === "insights" ? (
+        <InsightReportScreen
+          messages={messages}
+          sessionId={session?.session_id ?? null}
+          onExit={() => setScreen("home")}
+        />
       ) : !signedIn ? (
         <WelcomeScreen
           email={email}
@@ -1120,6 +1187,7 @@ export default function App() {
           }
           busy={busy}
           error={friendlyError}
+          onAssessments={() => setScreen("assessments")}
         />
       ) : (
         <ProductShell
@@ -1152,6 +1220,8 @@ export default function App() {
               streak={product.streak}
               medication={product.medicationReminder}
               careTeamHint={mode === "live" && !product.hasConnectedDoctor}
+              onAssessments={() => setScreen("assessments")}
+              onInsights={() => setScreen("insights")}
             />
           )}
           {screen === "text" && (
