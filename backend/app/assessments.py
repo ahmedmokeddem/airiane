@@ -174,6 +174,26 @@ BDI_QUESTIONS = [
     for i, text in enumerate(BDI_WORDING, 1)
 ]
 
+# Sheet2's "Suggested action", rewritten for the patient. Supportive, never a label.
+NEXT_STEPS = {
+    "low": (
+        "Keep going with small daily steps. Your check-ins help you notice how you are doing, "
+        "and a calming activity is a good next step."
+    ),
+    "mild": (
+        "Keep going with small daily steps, and keep an eye on how you feel. A calming activity "
+        "is a good next step."
+    ),
+    "moderate": (
+        "It could really help to talk this through with a qualified professional. If you have a "
+        "doctor connected, you can ask them to check in with you."
+    ),
+    "high": (
+        "Please arrange to talk with a mental health professional soon. You can ask your care "
+        "team to check in now; you do not have to wait for things to get harder."
+    ),
+}
+
 PHQ9_BANDS = [
     {
         "min": 0,
@@ -345,6 +365,7 @@ def score(assessment_id: str, answers: list[dict]) -> dict | None:
         "level": band["level"],
         "severity": band["label"],
         "suggested_action": band["action"],
+        "patient_next_step": NEXT_STEPS[band["level"]],
         "interpretation": band["interpretation"],
         "bands": [{k: b[k] for k in ["min", "max", "level", "label"]} for b in d["bands"]],
         "functional_impairment": None if impairment is None else DIFFICULTY_OPTIONS[impairment],

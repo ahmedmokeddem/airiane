@@ -18,3 +18,4 @@ import "./report-export.test";
 
 import "./noise-filter.test";
 import "./assessment.test";
+import "./nudges.test";

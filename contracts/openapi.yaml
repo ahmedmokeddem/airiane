@@ -5609,6 +5609,11 @@ components:
           type: string
           minLength: 1
           maxLength: 600
+        patient_next_step:
+          description: Sheet2's suggested action, worded for the patient.
+          type: string
+          minLength: 1
+          maxLength: 300
         bands:
           type: array
           items:

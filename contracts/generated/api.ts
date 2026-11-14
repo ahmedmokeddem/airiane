@@ -1372,6 +1372,8 @@ export interface components {
             severity: string;
             suggested_action: string | null;
             interpretation: string;
+            /** @description Sheet2's suggested action, worded for the patient. */
+            patient_next_step?: string;
             bands: {
                 min: number;
                 max: number;

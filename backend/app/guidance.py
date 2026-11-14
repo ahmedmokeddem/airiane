@@ -179,15 +179,56 @@ async def missing_checkin_fields(store: RecordStore, patient: str) -> list[str]:
     return [field for field in CHECKIN_FIELDS if field not in done]
 
 
-def tailor(activities: list[dict], state: dict[str, float]) -> list[tuple[dict, str]]:
-    """Order catalog activities for today's confirmed check-in and attach a reason to each.
+def questionnaire_signals(result: dict | None, answers: list[dict] | None) -> list[tuple]:
+    """Activity rules from a recent questionnaire (Sheet2 groups / PHQ-9 items).
 
-    With no check-in the catalog order is unchanged. Each matching rule moves its activities
-    forward; later rules win, so the patient's energy decides between otherwise equal options.
+    A symptom counts when the PHQ-9 item was answered "More than half the days" or more, or
+    when the extended set's symptom group scored at least half of its maximum.
+    """
+    if not result:
+        return []
+    values = {a["question_id"]: a["value"] for a in answers or []}
+    groups = {d["name"]: d["score"] / d["max"] for d in result.get("domains", [])}
+    phq = result["instrument"] == "phq9"
+
+    def present(item: str, group: str) -> bool:
+        return values.get(item, 0) >= 2 if phq else groups.get(group, 0) >= 0.5
+
+    prefix = "From your recent questionnaire, "
+    return [
+        (
+            present("q7", "Cognitive functioning"),
+            [GROUNDING, BREATHING],
+            prefix + "focus has been hard: ",
+        ),
+        (
+            not phq and groups.get("Behavioral state", 0) >= 0.5,
+            [BREATHING, RELEASE],
+            prefix + "you've felt on edge: ",
+        ),
+        (present("q1", "Social engagement"), ACTIVATING, prefix + "interest has been low: "),
+        (
+            present("q3", "Energy and physical state"),
+            AFTER_SHORT_SLEEP,
+            prefix + "sleep has been unsettled: ",
+        ),
+        (present("q4", "Energy and physical state"), LOW_EFFORT, prefix + "energy has been low: "),
+    ]
+
+
+def tailor(
+    activities: list[dict], state: dict[str, float], questionnaire: list[tuple] | None = None
+) -> list[tuple[dict, str]]:
+    """Order catalog activities for the patient and attach a reason to each.
+
+    With no signals the catalog order is unchanged. Each matching rule moves its activities
+    forward; later rules win. Questionnaire rules come first and today's confirmed check-in
+    last, because it is the most recent, so today's energy decides between equal options.
     """
     order = {a["activity_id"]: float(i) for i, a in enumerate(activities)}
     lead = {}
     rules = [
+        *(questionnaire or []),
         (
             state.get("mood") is not None and state["mood"] <= 4,
             ACTIVATING,

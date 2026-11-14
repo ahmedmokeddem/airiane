@@ -1,6 +1,6 @@
 import "./src/features/opening/splash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { AppState, ScrollView, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
@@ -64,13 +64,26 @@ import type {
 import { primeNoiseFilter } from "./src/features/call/noise-filter";
 import { ReportsSharing } from "./src/features/reports/reports-sharing";
 import { DailyCheckIn } from "./src/features/checkin/daily-check-in";
+import { NudgePopup } from "./src/features/nudges/nudge-popup";
+import { ReminderSettingsPanel } from "./src/features/nudges/reminder-settings";
+import { shouldShowPopup } from "./src/features/nudges/nudge-plan";
+import {
+  getReminderSettings,
+  listenForReminders,
+  refreshReminders,
+  remindersSupported,
+} from "./src/features/nudges/reminders";
+import { confirmedOn } from "./src/features/checkin/checkin-state";
 import { CheckInProposals } from "./src/features/checkin/check-in-proposals";
 import { AssessmentPanel } from "./src/features/assessment/assessment-panel";
 import { useAssessment } from "./src/features/assessment/use-assessment";
 import {
   checkInUpdate,
+  isAffirmative,
+  isNegative,
   matchOption,
   wantsAssessment,
+  wantsResume,
 } from "./src/features/assessment/assessment-flow";
 import {
   fields as checkInFields,
@@ -170,6 +183,48 @@ export default function App() {
   useEffect(() => {
     assessmentRef.current = assessment;
   }, [assessment]);
+  // Which conversation flow receives the patient's messages: the daily check-in or the
+  // questionnaire. Starting one pauses the other, so neither swallows the other's answers.
+  const activeFlow = useRef<"checkin" | "assessment" | null>(null);
+  const hasDoctorRef = useRef(false);
+  useEffect(() => {
+    hasDoctorRef.current = mode === "live" && product.hasConnectedDoctor;
+  }, [product.hasConnectedDoctor]);
+  // Gentle check-ins without a doctor: an occasional in-app pop-up and optional phone reminders.
+  const [nudge, setNudge] = useState<{ checkInDone: boolean; offerReminders: boolean } | null>(null);
+  const lastNudgeAt = useRef<number | null>(null);
+  const remindersOffered = useRef(false);
+  const nudgeState = useRef({ signedIn: false, activeToday: false, blocked: false });
+  useEffect(() => {
+    try {
+      const saved = globalThis.localStorage?.getItem("re.lastNudgeAt");
+      if (saved) lastNudgeAt.current = Number(saved);
+    } catch {
+      /* Storage unavailable: the gap is kept for this session only. */
+    }
+  }, []);
+  const maybeNudge = useCallback(async (force = false) => {
+    const { signedIn: inApp, activeToday, blocked } = nudgeState.current;
+    if (!inApp || (blocked && !force)) return;
+    if (!force && !shouldShowPopup({ now: Date.now(), lastShownAt: lastNudgeAt.current, activeToday }))
+      return;
+    const today = confirmedOn(await api.observations().catch(() => []), new Date());
+    const offerReminders =
+      remindersSupported && !remindersOffered.current && !(await getReminderSettings().catch(() => null));
+    remindersOffered.current = remindersOffered.current || offerReminders;
+    lastNudgeAt.current = Date.now();
+    try {
+      globalThis.localStorage?.setItem("re.lastNudgeAt", String(lastNudgeAt.current));
+    } catch {
+      /* Not persisted; still applies now. */
+    }
+    setNudge({ checkInDone: !!(today.mood && today.energy && today.sleep_hours), offerReminders });
+  }, []);
+  const assessmentPhase = assessment.state.phase;
+  useEffect(() => {
+    if (assessmentPhase === "asking") activeFlow.current = "assessment";
+    else if (activeFlow.current === "assessment") activeFlow.current = null;
+  }, [assessmentPhase]);
   const dispatchTool = useRef<
     | ((
         name: string,
@@ -385,10 +440,13 @@ export default function App() {
       );
       return;
     }
+    if (activeFlow.current === "checkin") activeFlow.current = null;
     say(
       greet
         ? "Welcome back. Your check-in for today is saved. Here are a few small things that might help right now."
-        : "Thank you, that’s today’s check-in saved. Based on what you shared, here are a few small things that might help. If you’d like a fuller check at some point, just say “full assessment”.",
+        : assessmentRef.current.state.phase === "paused"
+          ? "Thank you, that’s today’s check-in saved. Your questionnaire is still waiting whenever you want to continue it."
+          : "Thank you, that’s today’s check-in saved. Based on what you shared, here are a few small things that might help. If you’d like a fuller check at some point, just say “full assessment”.",
     );
     await bridge.current?.present();
   };
@@ -558,8 +616,26 @@ export default function App() {
             String(args.question_id),
             Number(args.value),
           ),
-          awaiting_patient_tap: true,
+          awaiting_patient_confirmation: true,
         }),
+      // After the patient says "yes" to the repeated answer, record the highlighted option.
+      confirm_assessment_answer: async (args) => {
+        const flow = assessmentRef.current.state;
+        if (
+          flow.phase !== "asking" ||
+          flow.question.question_id !== String(args.question_id) ||
+          flow.suggested !== Number(args.value)
+        )
+          return JSON.stringify({
+            recorded: false,
+            reason: "Highlight the answer with propose_assessment_answer and ask the patient first.",
+          });
+        const recorded = await assessmentRef.current.confirmSuggested(
+          sessionRef.current?.session_id ?? null,
+          hasDoctorRef.current,
+        );
+        return JSON.stringify({ recorded });
+      },
       open_assessment: async (args) => {
         const definitions = await assessmentRef.current.offer();
         const wanted = definitions.find((d) =>
@@ -567,7 +643,10 @@ export default function App() {
             ? d.title.startsWith("PHQ-9")
             : !d.title.startsWith("PHQ-9"),
         );
-        if (wanted) assessmentRef.current.begin(wanted);
+        if (wanted) {
+          activeFlow.current = "assessment";
+          assessmentRef.current.begin(wanted);
+        }
         return JSON.stringify({ opened: !!wanted });
       },
       select_activity: async (args) => {
@@ -620,17 +699,35 @@ export default function App() {
     setMessages((m) => [...m, { role: "user", text: value }]);
     setText("");
     const flow = assessment.state;
-    if (flow.phase === "asking") {
-      // Highlight what the patient said; they tap the option to record it.
+    if (flow.phase === "paused" && wantsResume(value)) {
+      activeFlow.current = "assessment";
+      assessment.resume();
+      if (realVoice) adapter.current!.sendText(value);
+      return;
+    }
+    if (flow.phase === "asking" && activeFlow.current === "assessment") {
+      if (realVoice) {
+        // The live companion highlights and confirms answers through its tools.
+        adapter.current!.sendText(value);
+        return;
+      }
+      // Simulated companion: repeat the answer back, then record it when the patient says yes.
+      if (flow.suggested !== null && isAffirmative(value)) {
+        await assessment.confirmSuggested(sessionRef.current?.session_id ?? null, hasDoctorRef.current);
+        return;
+      }
+      if (flow.suggested !== null && isNegative(value)) {
+        assessment.clearSuggestion();
+        say("Okay. Which option fits better? You can say it or tap it.");
+        return;
+      }
       const heard = matchOption(flow.question, value);
       if (heard !== null) assessment.suggest(flow.question.question_id, heard);
-      if (realVoice) adapter.current!.sendText(value);
-      else
-        say(
-          heard !== null
-            ? `I heard “${flow.question.options?.find((o) => o.value === heard)?.label}”. Tap it to confirm, or choose another.`
-            : "Thank you. Which option fits best? You can tap it below.",
-        );
+      say(
+        heard !== null
+          ? `I heard “${flow.question.options?.find((o) => o.value === heard)?.label}”. Is that right? Say yes, or tap it.`
+          : "Thank you. Which option fits best? You can say it or tap it below.",
+      );
       return;
     }
     if (wantsAssessment(value)) {
@@ -721,6 +818,36 @@ export default function App() {
   };
   const immersive =
     signedIn && (screen === "voice" || (screen === "breathing" && voiceCall));
+  useEffect(() => {
+    nudgeState.current = {
+      signedIn,
+      activeToday: !!product.streak?.active_today,
+      // Never interrupt a call, an activity or a questionnaire.
+      blocked: immersive || screen === "breathing" || assessment.state.phase === "asking",
+    };
+  });
+  // Shortly after sign-in, and whenever the patient comes back to the app.
+  useEffect(() => {
+    if (!signedIn || !product.streak) return;
+    const timer = setTimeout(() => void maybeNudge(), 1500);
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") void maybeNudge();
+    });
+    return () => {
+      clearTimeout(timer);
+      sub.remove();
+    };
+  }, [signedIn, product.streak, maybeNudge]);
+  // A tapped phone reminder opens the same gentle check-in.
+  useEffect(() => {
+    if (!signedIn) return;
+    return listenForReminders(() => void maybeNudge(true));
+  }, [signedIn, maybeNudge]);
+  // Keep reminders topped up; skip today once something calming is done.
+  useEffect(() => {
+    if (signedIn && product.streak)
+      void refreshReminders(product.streak.active_today).catch(() => {});
+  }, [signedIn, product.streak]);
   const openText = () => {
     setScreen("text");
     if (connected && connection.current?.mode === "text") return;
@@ -728,6 +855,9 @@ export default function App() {
   };
   const startCheckIn = () => {
     setScreen("text");
+    if (assessment.pause())
+      say("I’ve paused your questionnaire. You can continue it any time after the check-in.");
+    activeFlow.current = "checkin";
     void run(async () => {
       const already = connected && connection.current?.mode === "text";
       if (!already && !(connected && !realVoice)) await openConversation("text");
@@ -757,12 +887,14 @@ export default function App() {
       "Of course. Tell me the new number, for example “my mood is 6 now” or “I slept 7 hours”.",
       "I’d like to update my check-in.",
     );
-  const startAssessment = () =>
+  const startAssessment = () => {
+    activeFlow.current = "assessment";
     openChatFor(
       "Here are two optional questionnaires. You can stop at any time, and nothing is saved until you finish.",
       "I’d like to do a full assessment.",
       () => assessment.offer(),
     );
+  };
   const beginActivity = async (id: string) => {
     if (activity?.state === "started" && activity.activity_id === id) {
       setScreen("breathing");
@@ -851,22 +983,35 @@ export default function App() {
         busy={busy}
         dark={immersive}
         hasDoctor={mode === "live" && product.hasConnectedDoctor}
-        onAnswer={(value) =>
+        onAnswer={(questionId, value) =>
           void run(async () => {
             await assessment.answer(
+              questionId,
               value,
               sessionRef.current?.session_id ?? null,
-              mode === "live" && product.hasConnectedDoctor,
+              hasDoctorRef.current,
             );
             void product.refresh();
           })
         }
         onAskCareTeam={() => void run(assessment.askCareTeam)}
+        onTryActivity={() =>
+          void run(async () => {
+            // Suggestions follow the questionnaire's answers (and today's check-in).
+            assessment.stop();
+            if (bridge.current) await bridge.current.present();
+            else setScreen("activities");
+          })
+        }
       />
       <CheckInProposals
         refreshKey={proposalsKey}
         dark={immersive}
-        onDecided={(o) => void run(() => onCheckInDecided(o))}
+        onDecided={(o) =>
+          void onCheckInDecided(o).catch((e) =>
+            setError(e instanceof Error ? e.message : "Please retry."),
+          )
+        }
       />
       {insightPanel}
     </>
@@ -1056,10 +1201,13 @@ export default function App() {
               onReports={() => setScreen("reports")}
               onSignOut={() => void run(signOut)}
               insightsPanel={
-                <SavedInsights
-                  insights={product.insights}
-                  onChanged={product.refresh}
-                />
+                <>
+                  <ReminderSettingsPanel activeToday={!!product.streak?.active_today} />
+                  <SavedInsights
+                    insights={product.insights}
+                    onChanged={product.refresh}
+                  />
+                </>
               }
             />
           )}
@@ -1105,6 +1253,29 @@ export default function App() {
               </Text>
             </View>
           )}
+          <NudgePopup
+            visible={!!nudge && !immersive}
+            name={product.profile?.display_name.trim().split(/\s+/)[0]}
+            checkInDone={!!nudge?.checkInDone}
+            offerReminders={!!nudge?.offerReminders}
+            onClose={() => setNudge(null)}
+            onCheckIn={() => {
+              setNudge(null);
+              startCheckIn();
+            }}
+            onCalm={() => {
+              setNudge(null);
+              setScreen("text");
+              void run(async () => {
+                if (!connected) await openConversation("text");
+                await bridge.current?.present();
+              });
+            }}
+            onReminders={() => {
+              setNudge(null);
+              setScreen("profile");
+            }}
+          />
         </ProductShell>
       )}
       </OpeningExperience>

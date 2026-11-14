@@ -8,8 +8,8 @@ import type { useAssessment } from './use-assessment';
  * A spoken or typed answer is only highlighted; tapping records it. Patients see their total
  * neutrally; severity wording is written for the doctor's report.
  */
-export function AssessmentPanel({ assessment, busy, dark = false, hasDoctor, onAnswer, onAskCareTeam }: { assessment: ReturnType<typeof useAssessment>; busy: boolean; dark?: boolean; hasDoctor: boolean; onAnswer: (value: number) => void; onAskCareTeam: () => void }) {
-  const { state, safety, requested } = assessment;
+export function AssessmentPanel({ assessment, busy, dark = false, hasDoctor, onAnswer, onAskCareTeam, onTryActivity }: { assessment: ReturnType<typeof useAssessment>; busy: boolean; dark?: boolean; hasDoctor: boolean; onAnswer: (questionId: string, value: number) => void; onAskCareTeam: () => void; onTryActivity: () => void }) {
+  const { state, safety, requested, settled } = assessment;
   const ink = dark ? '#f1f6f8' : t.ink;
   const muted = dark ? '#a0b3c3' : t.muted;
   const card = [c.card, dark ? c.cardDark : c.cardLight];
@@ -17,6 +17,16 @@ export function AssessmentPanel({ assessment, busy, dark = false, hasDoctor, onA
   // Told before starting: a Q9 answer above 0 sends every answer to the connected doctor.
   const notice = hasDoctor && <Text testID="assessment-sharing-notice" style={[c.small, c.notice, dark && c.noticeDark]}>If you answer question 9 with anything other than “Not at all”, all your answers will be sent to your connected doctor so they can follow up with you.</Text>;
   if (state.phase === 'idle') return crisis || null;
+  if (state.phase === 'paused')
+    return <View style={c.stack}>
+      {crisis}
+      <View testID="assessment-paused" style={card}>
+        <Text style={[c.eyebrow, { color: dark ? '#83c9bd' : t.accent }]}>QUESTIONNAIRE PAUSED</Text>
+        <Text style={[c.body, { color: ink }]}>{state.definition.title.split(' · ')[0]} is waiting at question {state.number} of {state.total}. Your answers so far are kept on this phone.</Text>
+        <Pressable testID="assessment-resume" accessibilityRole="button" disabled={busy} onPress={() => assessment.resume()} style={[c.option, dark ? c.optionDark : c.optionLight]}><Text style={[c.optionText, { color: ink }]}>Continue the questionnaire</Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={assessment.stop} style={c.quiet}><Text style={[c.small, { color: muted }]}>Discard it</Text></Pressable>
+      </View>
+    </View>;
   if (state.phase === 'offer')
     return <View testID="assessment-offer" style={card}>
       <Text style={[c.eyebrow, { color: dark ? '#83c9bd' : t.accent }]}>A FULLER CHECK · OPTIONAL</Text>
@@ -33,14 +43,14 @@ export function AssessmentPanel({ assessment, busy, dark = false, hasDoctor, onA
     return <View style={c.stack}>
       {crisis}
       <View testID="assessment-question" style={card}>
-        <View style={c.row}><Text style={[c.eyebrow, { color: dark ? '#83c9bd' : t.accent }]}>{definition.title.split(' · ')[0].toUpperCase()} · {number} OF {total}</Text><Pressable testID="assessment-stop" accessibilityRole="button" onPress={assessment.stop}><Text style={[c.small, { color: muted }]}>Stop</Text></Pressable></View>
+        <View style={c.row}><Text style={[c.eyebrow, { color: dark ? '#83c9bd' : t.accent }]}>{definition.title.split(' · ')[0].toUpperCase()} · {number} OF {total}</Text><View style={c.actions}>{number > 1 && <Pressable testID="assessment-back" accessibilityRole="button" accessibilityLabel="Back to the previous question" disabled={busy} onPress={assessment.back} hitSlop={8}><Text style={[c.small, { color: muted }]}>Back</Text></Pressable>}<Pressable testID="assessment-stop" accessibilityRole="button" onPress={assessment.stop} hitSlop={8}><Text style={[c.small, { color: muted }]}>Stop</Text></Pressable></View></View>
         <View style={[c.track, dark && { backgroundColor: '#ffffff14' }]}><View style={[c.fill, { width: `${Math.round(((number - 1) / total) * 100)}%` }]} /></View>
         {number === 1 && definition.instructions && <Text style={[c.small, { color: muted }]}>{definition.instructions}</Text>}
         {number === 1 && notice}
         <Text style={[c.question, { color: ink }]}>{question.wording}</Text>
-        {(question.options ?? []).map(o => <Pressable key={o.value} testID={`assessment-answer-${o.value}`} accessibilityRole="radio" accessibilityState={{ selected: suggested === o.value }} accessibilityLabel={o.label} disabled={busy} onPress={() => onAnswer(o.value)} style={[c.option, dark ? c.optionDark : c.optionLight, suggested === o.value && c.suggested]}>
+        {(question.options ?? []).map(o => <Pressable key={o.value} testID={`assessment-answer-${o.value}`} accessibilityRole="radio" accessibilityState={{ selected: suggested === o.value }} accessibilityLabel={o.label} disabled={busy || !settled} onPress={() => onAnswer(question.question_id, o.value)} style={[c.option, dark ? c.optionDark : c.optionLight, suggested === o.value && c.suggested, !settled && c.settling]}>
           <Text style={[c.optionText, { color: suggested === o.value ? '#fff' : ink }]}>{o.label}</Text>
-          {suggested === o.value && <Text style={[c.small, { color: '#e6f6f2' }]}>I heard this — tap to confirm</Text>}
+          {suggested === o.value && <Text style={[c.small, { color: '#e6f6f2' }]}>I heard this — say “yes” or tap to confirm</Text>}
         </Pressable>)}
       </View>
     </View>;
@@ -53,6 +63,12 @@ export function AssessmentPanel({ assessment, busy, dark = false, hasDoctor, onA
       <Text style={[c.eyebrow, { color: dark ? '#83c9bd' : t.accent }]}>THANK YOU</Text>
       <Text style={[c.question, { color: ink }]}>You finished {definition.title.split(' · ')[0]}.</Text>
       {result && <Text testID="assessment-total" style={[c.body, { color: ink }]}>Your total was {result.total} out of {result.max_total}. Your doctor can help you understand what it means.</Text>}
+      {result?.patient_next_step && <View testID="assessment-next-step" style={[c.nextStep, dark && c.nextStepDark]}>
+        <Text style={[c.eyebrow, { color: dark ? '#83c9bd' : t.accent }]}>A GENTLE NEXT STEP</Text>
+        <Text style={[c.body, { color: ink }]}>{result.patient_next_step}</Text>
+        <Pressable testID="assessment-try-activity" accessibilityRole="button" disabled={busy} onPress={onTryActivity} style={[c.option, dark ? c.optionDark : c.optionLight]}><Text style={[c.optionText, { color: ink }]}>Try a calming activity chosen for you</Text></Pressable>
+        {(result.level === 'moderate' || result.level === 'high') && safety === 'none' && <Pressable testID="assessment-ask-care-team" accessibilityRole="button" disabled={busy || requested} onPress={onAskCareTeam} style={[c.option, dark ? c.optionDark : c.optionLight]}><Text style={[c.optionText, { color: ink }]}>{requested ? 'Check-in request sent to your care team' : 'Ask my care team to check in'}</Text></Pressable>}
+      </View>}
       {sharedWithDoctor && <Text testID="assessment-shared" style={[c.body, { color: ink }]}>Because of your answer to question 9, all your answers were sent to your doctor so they can follow up with you.</Text>}
       <Text style={[c.small, { color: muted }]}>{reportCreated ? 'It’s in a new report in Reports & sharing. Your doctor sees it only if you share reports with them.' : 'Your answers are saved. Create a report in Reports & sharing to include them.'}</Text>
       <Pressable accessibilityRole="button" onPress={assessment.stop} style={c.quiet}><Text style={[c.small, { color: muted }]}>Close</Text></Pressable>
@@ -65,6 +81,10 @@ const c = StyleSheet.create({
   cardLight: { backgroundColor: t.surface, borderColor: t.border },
   cardDark: { backgroundColor: '#132a3be8', borderColor: '#65afa54a' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  actions: { flexDirection: 'row', gap: 18 },
+  settling: { opacity: 0.55 },
+  nextStep: { gap: 8, padding: 12, borderRadius: 16, backgroundColor: t.sage },
+  nextStepDark: { backgroundColor: '#ffffff0d' },
   eyebrow: { fontFamily: t.type.body, fontSize: 10, fontWeight: '700', letterSpacing: 1.4 },
   question: { fontFamily: t.type.display, fontSize: 17, fontWeight: '600', lineHeight: 24 },
   body: { fontFamily: t.type.body, fontSize: 14, lineHeight: 21 },

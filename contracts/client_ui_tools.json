@@ -66,7 +66,7 @@
   },
   {
    "name": "propose_assessment_answer",
-   "description": "While the patient is answering a questionnaire shown on screen, highlight the answer option that matches what they said. Saves nothing: the patient taps an option to answer.",
+   "description": "While the patient answers a questionnaire shown on screen, highlight the option that matches what they said, then repeat it back and ask them to confirm. Saves nothing by itself.",
    "parameters": {
     "type": "object",
     "additionalProperties": false,
@@ -96,7 +96,7 @@
    },
    "result": {
     "highlighted": "boolean",
-    "awaiting_patient_tap": "boolean"
+    "awaiting_patient_confirmation": "boolean"
    }
   },
   {
@@ -126,6 +126,40 @@
    },
    "result": {
     "opened": "boolean"
+   }
+  },
+  {
+   "name": "confirm_assessment_answer",
+   "description": "Record the highlighted answer after the patient clearly confirmed it (for example 'yes' or 'that's right'). Only works for the option currently highlighted with propose_assessment_answer on the question on screen.",
+   "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "question_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "The question_id of the question currently on screen."
+     },
+     "value": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "The highlighted option value the patient confirmed."
+     }
+    },
+    "required": [
+     "question_id",
+     "value"
+    ]
+   },
+   "provider_binding": {
+    "provider": "elevenlabs",
+    "type": "client",
+    "expects_response": true
+   },
+   "result": {
+    "recorded": "boolean"
    }
   }
  ]

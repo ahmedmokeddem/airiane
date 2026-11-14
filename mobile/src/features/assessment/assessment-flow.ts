@@ -75,3 +75,44 @@ export function checkInUpdate(text: string): { kind: 'mood' | 'energy' | 'sleep_
 
 export const wantsAssessment = (text: string) =>
   /\b(full|fuller|deeper|longer)\b.*\b(check|assessment|questions)\b|\bquestionnaire\b|\bassessment\b|\bphq\b/i.test(text);
+
+/** How long a new question is shown before taps count, so taps queued during lag cannot skip ahead. */
+export const TAP_SETTLE_MS = 700;
+
+/** The question to go back to: the last one answered, in questionnaire order. */
+export function previousQuestion(definition: Definition, answers: Answers) {
+  const answered = applicable(definition, answers).filter(q => answers[q.question_id] !== undefined);
+  return answered.at(-1);
+}
+
+/** Drop the answer to `questionId` (and any follow-up that depended on it) to ask it again. */
+export function withoutAnswer(definition: Definition, answers: Answers, questionId: string): Answers {
+  const next = { ...answers };
+  delete next[questionId];
+  for (const q of definition.questions) if (q.follow_up_of === questionId) delete next[q.question_id];
+  return next;
+}
+
+/** "yes", "that's right": confirms the answer the companion repeated back. */
+export const isAffirmative = (text: string) =>
+  /^\s*(yes|yeah|yep|yup|correct|right|exactly|confirm|sure|ok|okay)\b|\bthat'?s (right|correct|it)\b/i.test(text);
+/** "no", "not quite": the repeated answer was wrong. */
+export const isNegative = (text: string) => /^\s*(no|nope|nah|wrong|not (quite|really|that))\b/i.test(text);
+export const wantsResume = (text: string) => /\b(resume|continue|back to)\b.*\b(questionnaire|assessment|questions)\b/i.test(text);
+
+/**
+ * Whether an answer may be recorded: it must be for the question on screen, a valid option, not
+ * during a submission, and — for taps — after the question has been visible for TAP_SETTLE_MS.
+ */
+export function acceptAnswer(
+  current: Question | null,
+  questionId: string,
+  value: number,
+  source: 'tap' | 'voice',
+  shownForMs: number,
+  submitting: boolean,
+) {
+  if (!current || submitting || current.question_id !== questionId) return false;
+  if (source === 'tap' && shownForMs < TAP_SETTLE_MS) return false;
+  return (current.options ?? []).some(o => o.value === value);
+}

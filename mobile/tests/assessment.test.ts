@@ -58,11 +58,59 @@ test('check-in updates and assessment requests are recognised in conversation', 
 test('safety: crisis support is shown immediately and patients never see severity labels', () => {
   const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
   const hook = read('../src/features/assessment/use-assessment.ts');
-  assert.ok(hook.includes("question.question_id === 'q9' && value > 0) setSafety('concern')"));
+  // Crisis support follows the current Q9 answer, so correcting Q9 with Back clears it.
+  assert.ok(hook.includes("setSafety((answers.q9 ?? 0) > 0 ? 'concern' : 'none')"));
   const panel = read('../src/features/assessment/assessment-panel.tsx');
   assert.ok(!/result\.severity|result\.interpretation|suggested_action/.test(panel));
   assert.ok(read('../src/features/assessment/crisis-support.tsx').includes("tel:112"));
   // Told before starting, and confirmed afterwards, when answers go to the doctor.
   assert.ok(panel.includes('all your answers will be sent to your connected doctor'));
   assert.ok(panel.includes('all your answers were sent to your doctor'));
+});
+
+test('lagging taps cannot skip from question 3 to question 10', async () => {
+  const { acceptAnswer, TAP_SETTLE_MS, nextQuestion: next } = await import('../src/features/assessment/assessment-flow');
+  // Replays the reported bug: five taps on "Nearly every day" in quick succession at question 3.
+  const answers: Answers = { q1: 1, q2: 1 };
+  let shownAt = 0; let clock = 0; let recorded = 0;
+  for (let tap = 0; tap < 5; tap++) {
+    clock += 120; // taps 120 ms apart, delivered to whatever question is on screen
+    const current = next(phq9, answers)!;
+    if (acceptAnswer(current, current.question_id, 3, 'tap', clock - shownAt, false)) {
+      answers[current.question_id] = 3; recorded++; shownAt = clock;
+    }
+  }
+  assert.equal(recorded, 0, 'question 3 had just appeared, so none of the burst counts');
+  clock = shownAt + TAP_SETTLE_MS + 1;
+  const q3 = next(phq9, answers)!;
+  assert.ok(acceptAnswer(q3, 'q3', 3, 'tap', clock - shownAt, false));
+  answers.q3 = 3; shownAt = clock;
+  // An immediate second tap lands on question 4 and is ignored; Q9 is never reached by a burst.
+  const q4 = next(phq9, answers)!;
+  assert.equal(acceptAnswer(q4, 'q4', 3, 'tap', 150, false), false);
+  assert.equal(answers.q9, undefined);
+  // A stale button for an earlier question, a submission in progress, or an unknown option: ignored.
+  assert.equal(acceptAnswer(q4, 'q3', 3, 'tap', 5000, false), false);
+  assert.equal(acceptAnswer(q4, 'q4', 3, 'tap', 5000, true), false);
+  assert.equal(acceptAnswer(q4, 'q4', 7, 'tap', 5000, false), false);
+  // A spoken confirmation is deliberate, so it does not wait for the settle time.
+  assert.ok(acceptAnswer(q4, 'q4', 2, 'voice', 0, false));
+});
+
+test('back undoes the last answer, including the extra question that depended on it', async () => {
+  const { previousQuestion, withoutAnswer } = await import('../src/features/assessment/assessment-flow');
+  const answers: Answers = { q1: 0, q2: 0, q3: 0, q4: 0, q5: 0, q6: 0, q7: 0, q8: 0, q9: 2, q10: 1 };
+  assert.equal(previousQuestion(phq9, answers)?.question_id, 'q10');
+  const corrected = withoutAnswer(phq9, withoutAnswer(phq9, answers, 'q10'), 'q9');
+  assert.equal(nextQuestion(phq9, corrected)?.question_id, 'q9');
+  assert.equal('q10' in withoutAnswer(phq9, answers, 'q9'), false);
+});
+
+test('spoken confirmations and the resume request are recognised', async () => {
+  const { isAffirmative, isNegative, wantsResume } = await import('../src/features/assessment/assessment-flow');
+  for (const yes of ['yes', 'Yeah', "that's right", 'correct', 'ok']) assert.ok(isAffirmative(yes), yes);
+  for (const no of ['no', 'not quite', 'nope']) assert.ok(isNegative(no), no);
+  assert.equal(isAffirmative('several days'), false);
+  assert.equal(isAffirmative('not right'), false);
+  assert.ok(wantsResume("let's continue the questionnaire"));
 });

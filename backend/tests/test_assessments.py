@@ -250,3 +250,53 @@ def test_positive_q9_sends_every_answer_to_the_connected_doctor(report_client): 
         headers=headers(),
     )
     assert c.get(path, headers=headers(DOCTOR)).status_code == 403
+
+
+def test_patient_next_step_follows_the_sheet2_suggested_action():
+    low = score(PHQ9_ID, answers(phq(4)))
+    moderate = score(PHQ9_ID, answers(phq(12, q9=1)))
+    high = score(PHQ9_ID, answers(phq(20, q9=2)))
+    assert low["patient_next_step"].startswith("Keep going with small daily steps")
+    assert "qualified professional" in moderate["patient_next_step"]
+    assert high["patient_next_step"].startswith("Please arrange to talk with a mental health")
+    for result in (low, moderate, high):
+        assert "depress" not in result["patient_next_step"].lower()  # no labels for patients
+
+
+def test_recommendations_follow_questionnaire_answers_until_todays_check_in(client):  # noqa: F811
+    from app import guidance
+
+    sid = start(client)
+
+    def first():
+        r = client.post(
+            "/v1/activity-recommendations", json={"session_id": sid, "limit": 3}, headers=headers()
+        )
+        assert r.status_code == 201, r.text
+        return r.json()["options"][0]
+
+    # Little interest (Q1) and poor sleep (Q3) but normal energy (Q4 = 0).
+    values = {f"q{i}": 0 for i in range(1, 10)}
+    values.update(q1=3, q3=2)
+    assert submit(client, PHQ9_ID, values).status_code == 201
+    option = first()
+    assert option["activity"]["activity_id"] in guidance.AFTER_SHORT_SLEEP
+    assert option["reason"].startswith("From your recent questionnaire, sleep has been unsettled")
+    # Low energy in the questionnaire wins over the earlier rules: least effort first.
+    values.update(q4=3)
+    submit(client, PHQ9_ID, values)
+    assert first()["reason"].startswith("From your recent questionnaire, energy has been low")
+    # Today's confirmed check-in is more recent, so it decides.
+    confirm(client, observe(client, "energy", 2))
+    assert first()["reason"].startswith("Since your energy is low right now")
+
+
+def test_extended_questionnaire_groups_drive_suggestions():
+    from app import guidance
+
+    values = {f"q{i}": 0 for i in range(1, 22)}
+    values.update(q12=3, q18=3)  # Cognitive functioning group at its maximum
+    result = score(BDI_ID, answers(values))
+    rules = guidance.questionnaire_signals(result, answers(values))
+    applied = [prefix for applies, _, prefix in rules if applies]
+    assert applied == ["From your recent questionnaire, focus has been hard: "]

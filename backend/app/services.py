@@ -400,7 +400,9 @@ class ActivityService:
                 pass
         # Tailor to today's confirmed check-in; a catalog choice by the patient goes first.
         ranked = guidance.tailor(
-            (await self.catalog())["items"], await guidance.todays_checkin(self.store, patient)
+            (await self.catalog())["items"],
+            await guidance.todays_checkin(self.store, patient),
+            await self.questionnaire_signals(patient),
         )
         chosen = body.get("preferred_activity_id")
         ranked.sort(key=lambda pair: pair[0]["activity_id"] != chosen)
@@ -432,6 +434,22 @@ class ActivityService:
             "expires_at": expiry,
             "options": options,
         }
+
+    async def questionnaire_signals(self, patient: str) -> list[tuple]:
+        """Rules from the most recent complete questionnaire in the last 14 days."""
+        from .assessments import score
+
+        recent = [
+            r
+            for r in await self.store.all("assessment_responses", patient_id=patient, complete=True)
+            if utc(r["observed_at"]) >= now() - timedelta(days=14)
+        ]
+        if not recent:
+            return []
+        latest = max(recent, key=lambda r: r["observed_at"])
+        return guidance.questionnaire_signals(
+            score(latest["assessment_id"], latest["answers"]), latest["answers"]
+        )
 
     async def recommendation(self, patient: str, rid: str) -> dict:
         row = await self.store.get("recommendations", id=rid, patient_id=patient)
