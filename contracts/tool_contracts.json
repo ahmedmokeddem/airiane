@@ -1633,6 +1633,18 @@
         "version": {
           "type": "integer",
           "minimum": 1
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
         }
       },
       "required": [

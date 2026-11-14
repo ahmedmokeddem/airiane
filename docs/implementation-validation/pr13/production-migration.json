@@ -1,0 +1,17 @@
+{
+  "indexes_verified": 3,
+  "migration": "0008_insight_reports.sql",
+  "result": "applied",
+  "tables_present": {
+    "insight_reports": true
+  },
+  "checksum_sha256": "00fa27ca13be9fab5e66f7716680eaeb61db04eaf8e547ae5c1d694590b9ecfd",
+  "ledger_matches": true,
+  "tls_verified": true,
+  "feature_flag_changed": false,
+  "date": "2026-11-15",
+  "target": "configured Tiger Data PostgreSQL",
+  "hostname_verification": true,
+  "authorization": "Explicit user request: apply SQL 8",
+  "deployed": false
+}

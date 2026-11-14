@@ -55,7 +55,7 @@ export function InsightReportPanel({
         const data = report.report;
         const patterns = data.dimensions.filter(item => item.status === 'observed_pattern');
         return (
-          <article key={report.report_id} className="assessment-card">
+          <article key={report.report_id} id={`insight-${report.report_id}`} className="assessment-card">
             <header>
               <h3>Conversation insight · {patientName}</h3>
               <span className="record-tag">{report.status === 'shared' ? 'Shared with you' : 'Private draft'}</span>

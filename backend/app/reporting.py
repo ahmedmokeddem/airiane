@@ -21,6 +21,17 @@ class ReportService:
     def receipt(row: dict) -> dict:
         return {"report_id": row["id"], "version": row["version"], "state": row["state"]}
 
+    @staticmethod
+    def dated_receipt(row: dict) -> dict:
+        return {
+            **ReportService.receipt(row),
+            **{
+                key: row[key]
+                for key in ("period_start", "period_end", "created_at")
+                if row.get(key) is not None
+            },
+        }
+
     async def owned(self, patient: str, report_id: str) -> dict:
         row = await self.store.get("reports", id=report_id, patient_id=patient)
         if not row:

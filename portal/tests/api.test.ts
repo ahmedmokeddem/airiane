@@ -171,3 +171,5 @@ test('production mutations require the configured public origin',()=>{
 test('directory and report pagination encode cursors without changing authorization',async()=>{
  const urls:string[]=[];const fetcher:typeof fetch=async(input,init)=>{urls.push(String(input));assert.equal(init?.cache,'no-store');assert.equal((init?.headers as Record<string,string>).Authorization,'Bearer fictional-token');return Response.json({items:[],next_cursor:null});};const api=new ClinicianApi('https://api.example.invalid','fictional-token',fetcher);await api.patients('cursor&patient=other');await api.reports('patient/id','cursor&report=other');assert.deepEqual(urls,['https://api.example.invalid/v1/doctor/patients?cursor=cursor%26patient%3Dother','https://api.example.invalid/v1/doctor/patients/patient%2Fid/reports?cursor=cursor%26report%3Dother']);
 });
+
+import './shared-reports.test';

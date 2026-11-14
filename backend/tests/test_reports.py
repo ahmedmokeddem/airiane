@@ -257,3 +257,27 @@ def test_unverified_clinician_loses_existing_report_access(report_client):
     asyncio.run(unverify())
     assert c.get(path, headers=headers("demo-clinician-token")).status_code == 403
     assert c.get("/v1/me", headers=headers("demo-clinician-token")).status_code == 403
+
+
+def test_report_lists_include_authorized_date_metadata_without_document_reads(report_client):
+    c = report_client
+    complete(c)
+    rid, document = report(c)
+    own_list = c.get("/v1/reports", headers=headers()).json()["items"]
+    receipt = next(row for row in own_list if row["report_id"] == rid)
+    assert receipt["period_start"] == document["period_start"]
+    assert receipt["period_end"] == document["period_end"]
+    assert receipt["created_at"] == document["generated_at"]
+    pid = c.get("/v1/me", headers=headers()).json()["user_id"]
+    _link, grant = sharing(c)
+    listed = c.get(f"/v1/doctor/patients/{pid}/reports", headers=headers("demo-clinician-token"))
+    assert listed.status_code == 200
+    item = next(row for row in listed.json()["items"] if row["report_id"] == receipt["report_id"])
+    validate("ReportReceipt", item)
+    assert {key: item[key] for key in ("period_start", "period_end", "created_at")} == {
+        key: receipt[key] for key in ("period_start", "period_end", "created_at")
+    }
+    c.delete(f"/v1/consents/{grant}", headers=headers())
+    denied = c.get(f"/v1/doctor/patients/{pid}/reports", headers=headers("demo-clinician-token"))
+    assert denied.status_code == 403
+    assert "period_start" not in denied.text

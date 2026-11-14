@@ -6241,6 +6241,15 @@ components:
           - stale
           - failed
         version: *id006
+        period_start:
+          type: string
+          format: date-time
+        period_end:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
       required:
       - report_id
       - state

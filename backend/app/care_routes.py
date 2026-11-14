@@ -78,7 +78,7 @@ async def dispatch(op, store, actor, p, body, query, pages):
         case "requestReport":
             return await reports.create(actor, body)
         case "listReports":
-            return page(await store.all("reports", patient_id=actor), reports.receipt)
+            return page(await store.all("reports", patient_id=actor), reports.dated_receipt)
         case "getReport":
             return await reports.read(actor, p["report_id"])
         case "inviteClinician":
@@ -187,7 +187,7 @@ async def dispatch(op, store, actor, p, body, query, pages):
                 if grant["data_from"] is None
                 or utc(authorization_start(r)) >= utc(grant["data_from"])
             ]
-            return page(rows, reports.receipt)
+            return page(rows, reports.dated_receipt)
         case "getDoctorReport":
             return await reports.doctor_read(actor, p["patient_id"], p["report_id"])
         case "createObservation":

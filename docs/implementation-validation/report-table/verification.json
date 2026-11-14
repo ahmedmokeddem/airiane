@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-15",
+  "mode": "fictional browser preview; disposable test databases",
+  "backend_postgresql_tests": 122,
+  "backend_sqlite_report_insight_tests": 21,
+  "portal_tests": 26,
+  "contract_fixtures": 11,
+  "portal_typecheck": true,
+  "portal_lint": true,
+  "production_build": true,
+  "mobile_typecheck": true,
+  "browser_viewports": [
+    "1440x1000",
+    "390x844"
+  ],
+  "browser_checks": [
+    "patient-name search and empty results",
+    "clear filters restores row",
+    "created column toggles ascending",
+    "mobile document width 390; table width 900 contained in 348px scroll area"
+  ],
+  "new_database_migration": false,
+  "requires_deployment": [
+    "backend for optional date metadata",
+    "portal for table UI"
+  ],
+  "apk_rebuild_required": false,
+  "deployed": false
+}

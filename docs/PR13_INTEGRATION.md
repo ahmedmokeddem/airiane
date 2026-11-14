@@ -29,7 +29,7 @@
 
 ## Rollout and remaining limits
 
-The new hosted migration has **not** been applied. Before using private insight drafts on Aiven, apply explicitly:
+The configured hosted Tiger Data service was migrated with explicit approval on 15 November 2026. The table, three indexes and checksum ledger were verified ([receipt](implementation-validation/pr13/production-migration.json)). No environment flag was changed. For another database, apply explicitly:
 
 ```sh
 uv run --directory backend python -m app.migrate --migration 0008_insight_reports.sql

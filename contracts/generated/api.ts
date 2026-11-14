@@ -1566,6 +1566,12 @@ export interface components {
             /** @enum {string} */
             state: "pending" | "ready" | "stale" | "failed";
             version: number;
+            /** Format: date-time */
+            period_start?: string;
+            /** Format: date-time */
+            period_end?: string;
+            /** Format: date-time */
+            created_at?: string;
         };
         Trend: {
             /** @enum {string} */
