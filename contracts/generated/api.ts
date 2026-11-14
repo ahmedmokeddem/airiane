@@ -700,6 +700,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/recovery-streak": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getMyRecoveryStreak
+         * @description Consecutive local calendar days with at least one completed activity. Encouragement only; never a clinical measure.
+         */
+        get: operations["getMyRecoveryStreak"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/medication-reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getMyMedicationReminder
+         * @description Read the active daily medication reminder set by a connected clinician, if any.
+         */
+        get: operations["getMyMedicationReminder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/doctor/patients/{patient_id}/medication-reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * setDoctorMedicationReminder
+         * @description Set or update a patient's daily medication reminder on an active care link.
+         */
+        post: operations["setDoctorMedicationReminder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/doctor/patients/{patient_id}/alerts": {
         parameters: {
             query?: never;
@@ -1143,6 +1203,8 @@ export interface components {
             /** Format: uuid */
             session_id: string;
             limit: number;
+            /** @description Activity the patient chose from the catalog; ranked first when it is active. */
+            preferred_activity_id?: string | null;
         };
         RecommendationOption: {
             activity: components["schemas"]["Activity"];
@@ -1381,6 +1443,27 @@ export interface components {
             /** @enum {string} */
             state: "acknowledged" | "resolved";
         };
+        MedicationReminder: {
+            /** Format: uuid */
+            reminder_id: string;
+            /** Format: uuid */
+            patient_id: string;
+            /** Format: uuid */
+            clinician_id: string;
+            message: string;
+            schedule_time: string;
+            active: boolean;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        MedicationReminderSet: {
+            message: string;
+            schedule_time: string;
+            active: boolean;
+        };
+        MedicationReminderResponse: {
+            reminder: components["schemas"]["MedicationReminder"] | null;
+        };
         DoctorPatient: {
             /** Format: uuid */
             patient_id: string;
@@ -1388,6 +1471,17 @@ export interface components {
             /** Format: uuid */
             care_link_id: string;
             scopes: ("reports" | "alerts")[];
+            streak_days?: number;
+            attention?: components["schemas"]["AttentionSignal"];
+        };
+        /** @description Transparent rule-based triage from data the patient currently shares. Not a diagnosis or a relapse prediction. */
+        AttentionSignal: {
+            flagged: boolean;
+            reasons: string[];
+        };
+        RecoveryStreak: {
+            streak_days: number;
+            active_today: boolean;
         };
         GuidedQuestion: {
             question_id: string | null;
@@ -6067,6 +6161,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getMyRecoveryStreak: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryStreak"];
+                };
+            };
+        };
+    };
+    getMyMedicationReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationReminderResponse"];
+                };
+            };
+        };
+    };
+    setDoctorMedicationReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MedicationReminderSet"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationReminder"];
                 };
             };
         };

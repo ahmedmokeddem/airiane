@@ -3449,6 +3449,61 @@ paths:
       x-permission: same as listDoctorReports; repeat authorization before response;
         no raw transcript access
       x-idempotency: safe-read
+  /v1/me/recovery-streak:
+    get:
+      operationId: getMyRecoveryStreak
+      summary: getMyRecoveryStreak
+      description: Consecutive local calendar days with at least one completed activity. Encouragement only; never a clinical measure.
+      security:
+      - supabaseJWT: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryStreak'
+      x-permission: patient owner
+      x-idempotency: safe-read
+  /v1/me/medication-reminder:
+    get:
+      operationId: getMyMedicationReminder
+      summary: getMyMedicationReminder
+      description: Read the active daily medication reminder set by a connected clinician, if any.
+      security:
+      - supabaseJWT: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationReminderResponse'
+  /v1/doctor/patients/{patient_id}/medication-reminder:
+    post:
+      operationId: setDoctorMedicationReminder
+      summary: setDoctorMedicationReminder
+      description: Set or update a patient's daily medication reminder on an active care link.
+      security:
+      - supabaseJWT: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationReminderSet'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationReminder'
   /v1/doctor/patients/{patient_id}/alerts:
     get:
       operationId: listDoctorAlerts
@@ -5138,6 +5193,11 @@ components:
           type: integer
           minimum: 1
           maximum: 3
+        preferred_activity_id:
+          description: Activity the patient chose from the catalog; ranked first when it is active.
+          anyOf:
+          - *id001
+          - type: 'null'
       required:
       - session_id
       - limit
@@ -5710,6 +5770,58 @@ components:
       required:
       - expected_version
       - state
+    MedicationReminder:
+      type: object
+      additionalProperties: false
+      properties:
+        reminder_id: *id001
+        patient_id: *id001
+        clinician_id: *id001
+        message:
+          type: string
+          minLength: 1
+          maxLength: 240
+        schedule_time:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+        active:
+          type: boolean
+        updated_at: *id005
+      required:
+      - reminder_id
+      - patient_id
+      - clinician_id
+      - message
+      - schedule_time
+      - active
+      - updated_at
+    MedicationReminderSet:
+      type: object
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 240
+        schedule_time:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+        active:
+          type: boolean
+      required:
+      - message
+      - schedule_time
+      - active
+    MedicationReminderResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        reminder:
+          oneOf:
+          - $ref: '#/components/schemas/MedicationReminder'
+          - type: 'null'
+      required:
+      - reminder
     DoctorPatient:
       type: object
       additionalProperties: false
@@ -5728,11 +5840,45 @@ components:
             - reports
             - alerts
           maxItems: 2
+        streak_days:
+          type: integer
+          minimum: 0
+        attention:
+          $ref: '#/components/schemas/AttentionSignal'
       required:
       - patient_id
       - display_name
       - care_link_id
       - scopes
+    AttentionSignal:
+      type: object
+      additionalProperties: false
+      description: Transparent rule-based triage from data the patient currently shares. Not a diagnosis or a relapse prediction.
+      properties:
+        flagged:
+          type: boolean
+        reasons:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 120
+          maxItems: 6
+      required:
+      - flagged
+      - reasons
+    RecoveryStreak:
+      type: object
+      additionalProperties: false
+      properties:
+        streak_days:
+          type: integer
+          minimum: 0
+        active_today:
+          type: boolean
+      required:
+      - streak_days
+      - active_today
     GuidedQuestion:
       type: object
       additionalProperties: false

@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.exc import IntegrityError
 
-from . import care_routes, replay
+from . import care_routes, guidance, replay
 from .auth import Authenticator
 from .care import CareService, current_user
 from .config import Settings
@@ -355,6 +355,7 @@ IMPLEMENTED = {
     "updateAgentConnection": ("ProviderConnectionPatch", "ProviderConnection", 200),
     "dispatchTool": ("ToolDispatch", "ToolResult", 200),
     "getGuidedQuestion": (None, "GuidedQuestion", 200),
+    "getMyRecoveryStreak": (None, "RecoveryStreak", 200),
 }
 
 
@@ -415,9 +416,18 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
             return await ElevenLabsBootstrap(settings, store).patch(
                 pid, sid, p["connection_id"], body
             )
+        case "getMyRecoveryStreak":
+            profile = await store.get("patient_profiles", patient_id=pid)
+            days, today = guidance.streak(
+                await store.all("activity_sessions", patient_id=pid, state="completed"),
+                profile["timezone"],
+            )
+            return {"streak_days": days, "active_today": today}
         case "getGuidedQuestion":
             row = await sessions.owned(pid, sid)
-            return ConversationController().question(row["version"])
+            return ConversationController().question(
+                row["version"], await guidance.missing_checkin_fields(store, pid)
+            )
         case "dispatchTool":
             row = await sessions.owned(pid, sid)
             conn = await store.get(
@@ -459,7 +469,9 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                     alerts = AlertService(store)
                     result = await alerts.view(await alerts.owned(pid, prior["result_resource_id"]))
                 else:
-                    result = ConversationController().question(row["version"])
+                    result = ConversationController().question(
+                        row["version"], await guidance.missing_checkin_fields(store, pid)
+                    )
                 return {
                     "tool_call_id": body["tool_call_id"],
                     "contract_version": "2.0.0",
@@ -484,7 +496,9 @@ async def dispatch(op, store, settings, subject, pid, p, body, request, sessions
                     pid, {"session_id": sid, "reason": REVIEW_RULE}
                 )
             else:
-                result = ConversationController().question(row["version"])
+                result = ConversationController().question(
+                    row["version"], await guidance.missing_checkin_fields(store, pid)
+                )
             resource = (
                 # ActivitySession also carries recommendation_id, so check it first.
                 result.get("activity_session_id")

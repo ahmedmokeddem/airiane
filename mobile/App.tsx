@@ -63,6 +63,14 @@ import type {
 } from "./src/integration/types";
 import { ReportsSharing } from "./src/features/reports/reports-sharing";
 import { DailyCheckIn } from "./src/features/checkin/daily-check-in";
+import { CheckInProposals } from "./src/features/checkin/check-in-proposals";
+import {
+  fields as checkInFields,
+  format as formatCheckIn,
+  parseAnswer,
+  type Kind as CheckInKind,
+  type Observation,
+} from "./src/features/checkin/checkin-state";
 type Screen =
   | "home"
   | "text"
@@ -121,6 +129,12 @@ export default function App() {
   const renderAck = useRef<(() => void) | null>(null);
   const activeGate = useRef<Promise<void>>(Promise.resolve());
   const activityRef = useRef<ActivitySession | null>(null);
+  // Bumped whenever a check-in answer may be waiting for the patient's confirmation.
+  const [proposalsKey, setProposalsKey] = useState(0);
+  // Simulated companion only: the check-in question currently being asked.
+  const checkInKind = useRef<CheckInKind | null>(null);
+  const say = (textValue: string) =>
+    setMessages((m) => [...m, { role: "agent", text: textValue }]);
   const dispatchTool = useRef<
     | ((
         name: string,
@@ -323,6 +337,51 @@ export default function App() {
     },
     [],
   );
+  // Simulated companion: ask the next unanswered check-in question, or offer activities
+  // chosen for today's confirmed answers once all three are in.
+  const askNextCheckIn = async (sessionId: string, greet = false) => {
+    const next = await api.nextCheckInQuestion(sessionId);
+    checkInKind.current = next.kind;
+    if (next.kind && next.wording) {
+      say(
+        greet
+          ? `Hi, I’m AIriane. Before anything else, a few short questions about today. ${next.wording}`
+          : next.wording,
+      );
+      return;
+    }
+    say(
+      greet
+        ? "Welcome back. Your check-in for today is saved. Here are a few small things that might help right now."
+        : "Thank you, that’s today’s check-in saved. Based on what you shared, here are a few small things that might help.",
+    );
+    await bridge.current?.present();
+  };
+  const onCheckInDecided = async (observation: Observation) => {
+    void product.refresh();
+    const label = checkInFields.find((f) => f.kind === observation.kind)!.label;
+    if (realVoice) {
+      // Tell the live companion what the patient decided so it can continue.
+      try {
+        adapter.current?.updateContext(
+          JSON.stringify({
+            check_in: {
+              kind: observation.kind,
+              value: observation.value,
+              patient_decision: observation.state,
+            },
+          }),
+        );
+      } catch {
+        setConnected(false);
+      }
+      return;
+    }
+    if (observation.state !== "confirmed")
+      say(`No problem, let’s try ${label.toLowerCase()} again.`);
+    const parent = sessionRef.current;
+    if (parent) await askNextCheckIn(parent.session_id);
+  };
   const openConversation = async (kind: "voice" | "text") => {
     const epoch = ++connectEpoch.current;
     voiceCallRef.current = kind === "voice";
@@ -341,13 +400,8 @@ export default function App() {
     if (!realVoice) {
       setConnected(true);
       setCallState("listening");
-      setMessages((m) => [
-        ...m,
-        {
-          role: "agent",
-          text: "Simulated agent: ask for help relaxing, or display activity recommendations.",
-        },
-      ]);
+      if (kind === "text") await askNextCheckIn(s.session_id, true);
+      else say("Simulated call: ask for help relaxing to see activity suggestions.");
       return;
     }
     if (mode !== "live")
@@ -438,6 +492,8 @@ export default function App() {
           value: args.value,
           observed_at: args.observed_at ?? new Date().toISOString(),
         });
+        // Show the confirmation card; the value does not count until the patient confirms.
+        setProposalsKey((k) => k + 1);
         return JSON.stringify(result.result);
       },
       request_clinician_review: async () => {
@@ -477,6 +533,7 @@ export default function App() {
     setActivity(saved);
     await api.feedback(saved, rec, rating, feedbackKey.current);
     setJourney(await api.journey());
+    void product.refresh();
     setSavedInCall(true);
     setScreen(voiceCallRef.current ? "voice" : "journey");
     try {
@@ -498,7 +555,25 @@ export default function App() {
     setMessages((m) => [...m, { role: "user", text: value }]);
     setText("");
     if (realVoice) adapter.current!.sendText(value);
-    else {
+    else if (checkInKind.current) {
+      // Simulated companion: read the answer, then ask the patient to confirm it.
+      const kind = checkInKind.current;
+      const answer = parseAnswer(kind, value);
+      if (answer === null) {
+        if (/\bskip\b/i.test(value)) {
+          checkInKind.current = null;
+          say("That’s okay. We can come back to it whenever you like.");
+          await bridge.current!.present();
+        } else
+          say("I didn’t catch a number there. A rough number is fine, or say skip for now.");
+        return;
+      }
+      await api.proposeObservation(kind, answer);
+      setProposalsKey((k) => k + 1);
+      say(
+        `Thank you. I heard ${formatCheckIn(kind, answer)} for ${checkInFields.find((f) => f.kind === kind)!.label.toLowerCase()}. Is that right? You can confirm below.`,
+      );
+    } else {
       await bridge.current!.present();
       setMessages((m) => [
         ...m,
@@ -550,6 +625,20 @@ export default function App() {
     if (connected && connection.current?.mode === "text") return;
     void run(() => openConversation("text"));
   };
+  const startCheckIn = () => {
+    setScreen("text");
+    void run(async () => {
+      const already = connected && connection.current?.mode === "text";
+      if (!already && !(connected && !realVoice)) await openConversation("text");
+      else if (!realVoice && sessionRef.current)
+        await askNextCheckIn(sessionRef.current.session_id);
+      if (realVoice) {
+        const opener = "I’d like to do my daily check-in.";
+        setMessages((m) => [...m, { role: "user", text: opener }]);
+        adapter.current!.sendText(opener);
+      }
+    });
+  };
   const beginActivity = async (id: string) => {
     if (activity?.state === "started" && activity.activity_id === id) {
       setScreen("breathing");
@@ -574,7 +663,7 @@ export default function App() {
       setActivity(null);
     }
     const parent = await ensureSession("text");
-    const eligible = await api.recommendations(parent.session_id, 3);
+    const eligible = await api.recommendations(parent.session_id, 3, id);
     const inEligible = eligible.options.some((o) => o.activity.activity_id === id);
     const catalogMatch = product.activities.find((a) => a.activity_id === id);
     if (!inEligible && !catalogMatch)
@@ -618,7 +707,7 @@ export default function App() {
   const friendlyError = error
     ? "This moment could not be completed. Your saved records are safe. Please try again."
     : null;
-  const reviewPanel = proposal ? (
+  const insightPanel = proposal ? (
     <InsightReview
       key={proposal.proposal_id}
       proposal={proposal}
@@ -630,6 +719,17 @@ export default function App() {
       }}
     />
   ) : undefined;
+  // Check-in confirmations sit above insight review, in chat and on a call alike.
+  const reviewPanel = (
+    <>
+      <CheckInProposals
+        refreshKey={proposalsKey}
+        dark={immersive}
+        onDecided={(o) => void run(() => onCheckInDecided(o))}
+      />
+      {insightPanel}
+    </>
+  );
   const currentActivity =
     product.activities.find((a) => a.activity_id === activity?.activity_id) ??
     rec?.options.find((o) => o.activity.activity_id === activity?.activity_id)
@@ -733,7 +833,10 @@ export default function App() {
               onProfile={() => setScreen("profile")}
               onBegin={(id) => void run(() => beginActivity(id))}
               onReports={() => setScreen("reports")}
-              checkIn={<DailyCheckIn />}
+              checkIn={<DailyCheckIn onStart={startCheckIn} busy={busy} />}
+              streak={product.streak}
+              medication={product.medicationReminder}
+              careTeamHint={mode === "live" && !product.hasConnectedDoctor}
             />
           )}
           {screen === "text" && (
@@ -843,7 +946,7 @@ export default function App() {
           {screen !== "text" && proposal && (
             <View style={{ maxHeight: "42%", padding: 16 }}>
               <ScrollView keyboardShouldPersistTaps="handled">
-                {reviewPanel}
+                {insightPanel}
               </ScrollView>
             </View>
           )}

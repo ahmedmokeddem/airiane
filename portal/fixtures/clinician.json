@@ -8,7 +8,14 @@
         "scopes": [
           "reports",
           "alerts"
-        ]
+        ],
+        "streak_days": 4,
+        "attention": {
+          "flagged": true,
+          "reasons": [
+            "Patient asked for a check-in"
+          ]
+        }
       }
     ],
     "next_cursor": null

@@ -9,10 +9,17 @@ from test_reports import complete, report, report_client, sharing  # noqa: F401
 from test_slice import headers, onboard, start
 
 from app.domain import DomainError, now, stamp
+from app.reports import pdf as pdf_module
 from app.reports.narrative import document, validate_document
 from app.reports.pdf import render_pdf
 
+# WeasyPrint needs GTK/Pango system libraries; skip rendering tests where they are absent.
+needs_pdf = pytest.mark.skipif(
+    pdf_module.HTML is None, reason="WeasyPrint system libraries unavailable"
+)
 
+
+@needs_pdf
 def test_pdf_ownership_consent_revocation_and_selectable_text(report_client):  # noqa: F811
     c = report_client
     complete(c)
@@ -39,6 +46,7 @@ def test_pdf_ownership_consent_revocation_and_selectable_text(report_client):  #
     assert c.get(doctor, headers=headers("demo-clinician-token")).status_code == 403
 
 
+@needs_pdf
 def test_unicode_withdrawal_and_new_version(report_client):  # noqa: F811
     c = report_client
     sid = start(c)
@@ -144,6 +152,7 @@ def test_empty_snapshot_and_untrusted_generator(report_client):  # noqa: F811
         document(doc["snapshot"], Unsupported())
 
 
+@needs_pdf
 def test_revocation_during_render_prevents_delivery(report_client, monkeypatch):  # noqa: F811
     c = report_client
     complete(c)
@@ -165,6 +174,7 @@ def test_revocation_during_render_prevents_delivery(report_client, monkeypatch):
     assert response.headers["content-type"].startswith("application/json")
 
 
+@needs_pdf
 def test_withdrawal_during_render_prevents_delivery(report_client, monkeypatch):  # noqa: F811
     c = report_client
     sid = start(c)
@@ -228,6 +238,7 @@ def test_prior_note_withdrawal_invalidates_comparison_export(report_client):  # 
     assert c.get("/v1/reports/" + rid + "/pdf", headers=headers()).status_code == 409
 
 
+@needs_pdf
 def test_pdf_dates_respect_patient_timezone_at_midnight():
     from app.reports.examples import example
 

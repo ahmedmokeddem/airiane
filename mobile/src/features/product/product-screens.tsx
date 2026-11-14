@@ -140,6 +140,12 @@ export interface HomeScreenProps {
   onReports: () => void;
   /** Daily check-in card, rendered under the hero. */
   checkIn?: ReactNode;
+  /** Consecutive days with at least one completed activity. */
+  streak?: { streak_days: number; active_today: boolean } | null;
+  /** Daily reminder set by a connected doctor, if any. */
+  medication?: { message: string; schedule_time: string } | null;
+  /** True when no doctor is connected: show one gentle, optional invitation. */
+  careTeamHint?: boolean;
 }
 export function HomeScreen({
   profile,
@@ -153,6 +159,9 @@ export function HomeScreen({
   onBegin,
   onReports,
   checkIn,
+  streak,
+  medication,
+  careTeamHint,
 }: HomeScreenProps) {
   const completed =
     journey?.items.filter((item) => item.activity_session.state === "completed")
@@ -206,6 +215,54 @@ export function HomeScreen({
           </Pressable>
         </View>
       </View>
+      {streak && (
+        <View
+          testID="recovery-streak"
+          accessible
+          accessibilityLabel={
+            streak.streak_days > 0
+              ? `Recovery streak: ${streak.streak_days} ${streak.streak_days === 1 ? "day" : "days"}`
+              : "Recovery streak not started yet"
+          }
+          style={p.streak}
+        >
+          <View style={[p.streakBadge, streak.active_today && p.streakBadgeOn]}>
+            <Feather
+              name="sunrise"
+              size={22}
+              color={streak.active_today ? "#fff" : t.accent}
+            />
+          </View>
+          <View style={p.flex}>
+            <Text style={p.streakCount}>
+              {streak.streak_days > 0
+                ? `${streak.streak_days}-day recovery streak`
+                : "Start your recovery streak"}
+            </Text>
+            <Text style={s.small}>
+              {streak.active_today
+                ? "Today counts. One small step was enough."
+                : streak.streak_days > 0
+                  ? "One small activity today keeps it going. No pressure."
+                  : "One small activity a day adds a day. Any activity counts."}
+            </Text>
+          </View>
+        </View>
+      )}
+      {medication && (
+        <Surface style={{ backgroundColor: t.softLavender }}>
+          <View style={p.rowBetween}>
+            <Text style={s.eyebrow}>FROM YOUR DOCTOR · DAILY</Text>
+            <Text style={s.small}>{medication.schedule_time}</Text>
+          </View>
+          <Text testID="medication-reminder" style={p.activityTitle}>
+            {medication.message}
+          </Text>
+          <Text style={s.small}>
+            A reminder your doctor set for you. Ask them before changing how you take any medicine.
+          </Text>
+        </Surface>
+      )}
       {checkIn}
       <View style={p.rowBetween}>
         <SectionTitle title="Gentle invitations" />
@@ -269,6 +326,12 @@ export function HomeScreen({
         <Text style={p.textLink}>Your reports & sharing</Text>
         <Feather name="arrow-up-right" size={16} color={t.accent} />
       </Pressable>
+      {careTeamHint && (
+        <Text testID="care-team-hint" style={p.centerCopy}>
+          You’re doing this in your own way. If you’d ever like your doctor to follow along, you
+          can invite them from Reports & sharing. It’s always your choice.
+        </Text>
+      )}
     </ScreenScroll>
   );
 }
@@ -925,6 +988,30 @@ export function BreathingScreen({
   );
 }
 const p = StyleSheet.create({
+  streak: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 16,
+    borderRadius: 22,
+    backgroundColor: t.sage,
+  },
+  streakBadge: {
+    height: 48,
+    width: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: t.surface,
+  },
+  streakBadgeOn: { backgroundColor: t.accent },
+  streakCount: {
+    fontFamily: t.type.display,
+    fontSize: 16,
+    fontWeight: "600",
+    color: t.ink,
+    lineHeight: 23,
+  },
   flex: { flex: 1 },
   greeting: { gap: 9 },
   hero: {

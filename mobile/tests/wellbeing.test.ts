@@ -84,3 +84,37 @@ test('audio therapy synthesizer maps each activity to its therapeutic soundscape
   assert.equal(synth.running, false);
 });
 
+
+test('chat check-in reads spoken or typed answers and never guesses', async () => {
+  const { parseAnswer, missingToday } = await import('../src/features/checkin/checkin-state');
+  assert.equal(parseAnswer('mood', 'about a 6 today'), 6);
+  assert.equal(parseAnswer('mood', '6/10'), 6);
+  assert.equal(parseAnswer('energy', 'maybe three'), 3);
+  assert.equal(parseAnswer('sleep_hours', '7.5 hours'), 7.5);
+  assert.equal(parseAnswer('sleep_hours', 'seven and a half'), 7.5);
+  assert.equal(parseAnswer('sleep_hours', '6,5'), 6.5);
+  // Out of scale or no number: ask again rather than invent a value.
+  assert.equal(parseAnswer('mood', 'eleven'), null);
+  assert.equal(parseAnswer('mood', 'not great honestly'), null);
+  assert.equal(parseAnswer('sleep_hours', '30'), null);
+  assert.deepEqual(missingToday([], new Date()), ['mood', 'energy', 'sleep_hours']);
+});
+
+test('the companion asks the next unanswered question until today is complete', async () => {
+  const { api } = await import('../src/integration/api');
+  const session = await api.session('text');
+  // Earlier tests in this file confirmed mood for today; energy was rejected.
+  let next = await api.nextCheckInQuestion(session.session_id);
+  assert.equal(next.kind, 'energy'); assert.ok(next.wording);
+  await api.decideObservation(await api.proposeObservation('energy', 4), 'confirm');
+  await api.decideObservation(await api.proposeObservation('sleep_hours', 7), 'confirm');
+  next = await api.nextCheckInQuestion(session.session_id);
+  assert.deepEqual(next, { kind: null, wording: null });
+});
+
+test('home check-in is a status card, not a manual form', () => {
+  const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
+  const card = read('../src/features/checkin/daily-check-in.tsx');
+  assert.ok(!/stepValue|check-in-\$\{f\.kind\}-more/.test(card));
+  assert.ok(read('../src/features/checkin/check-in-proposals.tsx').includes("decide(o, 'confirm')"));
+});

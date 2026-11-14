@@ -134,6 +134,10 @@ TABLES = {
         "audit_events",
         "id:u actor_id:u patient_id:u action:s resource_type:s resource_id:u request_id:u created_at:t",
     ),
+    "medication_reminders": table(
+        "medication_reminders",
+        "id:u patient_id:u clinician_id:u message:s schedule_time:s active:b updated_at:t created_at:t",
+    ),
 }
 
 

@@ -24,7 +24,7 @@ async def main():
         await connection.execute(
             (
                 Path(__file__).resolve().parents[2] / "database/migrations" / args.migration
-            ).read_text()
+            ).read_text(encoding="utf-8")
         )
     finally:
         await connection.close()

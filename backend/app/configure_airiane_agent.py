@@ -31,6 +31,25 @@ deletion, consent, or memory-write tool. There are no such model tools.
 If an activity is already active, help the patient resume rather than start another.
 Never promise clinician delivery, monitoring, or emergency intervention.
 Never claim visual access. Camera is strictly local preview only.
+DAILY CHECK-IN
+Read guided_question in your context. If missing_fields is not empty, begin the conversation by
+warmly inviting the patient to a short check-in, then ask ONLY the missing questions, one at a
+time, in a caring and unhurried way:
+- mood: "How is your mood today, from zero to ten?"
+- energy: "How is your energy right now, from zero to ten?"
+- sleep_hours: "Roughly how many hours did you sleep last night?"
+After each answer call propose_observation with kind, the numeric value and observed_at (now).
+The app then shows a card; the value only counts when the patient confirms it there. Say what you
+heard and ask them to confirm on screen. If they decline or the tool reports a rejection, ask
+again gently or move on. Never record a value the patient did not state as a number, and never
+estimate mood, energy or sleep from their tone of voice. If they would rather not answer, accept
+that and continue.
+ACTIVITY SUGGESTIONS
+When the check-in is complete, or whenever the patient wants help, call
+present_activity_recommendations. The app orders the options from the patient's confirmed
+check-in and returns a short reason for each. Offer the first option, give its returned reason in
+one plain sentence, and let the patient choose. Do not invent other reasons, promise treatment
+effects or describe an activity as therapy.
 """
 
 
@@ -40,7 +59,9 @@ async def main():
     args = parser.parse_args()
     settings = Settings()
     definition = json.loads(
-        (Path(__file__).resolve().parents[2] / "contracts/client_ui_tools.json").read_text()
+        (Path(__file__).resolve().parents[2] / "contracts/client_ui_tools.json").read_text(
+            encoding="utf-8"
+        )
     )["tools"][0]
     async with httpx.AsyncClient(
         timeout=30, headers={"xi-api-key": settings.elevenlabs_api_key}
@@ -65,50 +86,61 @@ async def main():
             return
         all_tools = await client.get("https://api.elevenlabs.io/v1/convai/tools")
         all_tools.raise_for_status()
-        existing = next(
-            (
-                t
-                for t in all_tools.json().get("tools", [])
-                if t.get("tool_config", {}).get("name") == definition["name"]
-            ),
-            None,
-        )
-        if existing:
-            tool_id = existing["id"]
-        else:
-            parameters = definition["parameters"]
+        registered = all_tools.json().get("tools", [])
+
+        async def ensure_tool(spec: dict) -> str:
+            """Return the id of the client tool named in `spec`, creating it when missing."""
+            existing = next(
+                (t for t in registered if t.get("tool_config", {}).get("name") == spec["name"]),
+                None,
+            )
+            if existing:
+                return existing["id"]
+            parameters = spec["parameters"]
             properties = {
                 k: {
                     "type": v["type"],
-                    "description": v.get(
-                        "description",
-                        f"{k}; match the patient-reported draft, text <=500 characters.",
-                    ),
+                    "description": v.get("description", f"{k} as reported by the patient."),
                     **({"enum": v["enum"]} if "enum" in v else {}),
                 }
                 for k, v in parameters["properties"].items()
             }
-            tool = {
-                "type": "client",
-                "name": definition["name"],
-                "description": definition["description"],
-                "expects_response": True,
-                "parameters": {
-                    "type": "object",
-                    "required": parameters["required"],
-                    "properties": properties,
-                },
-            }
             created = await client.post(
-                "https://api.elevenlabs.io/v1/convai/tools", json={"tool_config": tool}
+                "https://api.elevenlabs.io/v1/convai/tools",
+                json={
+                    "tool_config": {
+                        "type": "client",
+                        "name": spec["name"],
+                        "description": spec["description"],
+                        "expects_response": True,
+                        "parameters": {
+                            "type": "object",
+                            "required": parameters["required"],
+                            "properties": properties,
+                        },
+                    }
+                },
             )
             created.raise_for_status()
-            tool_id = created.json()["id"]
+            return created.json()["id"]
+
+        tool_id = await ensure_tool(definition)
+        # Daily check-in and review request: the app shows a confirmation card for each answer.
+        contract_tools = json.loads(
+            (Path(__file__).resolve().parents[2] / "contracts/tool_contracts.json").read_text(
+                encoding="utf-8"
+            )
+        )["tools"]
+        extra_ids = [
+            await ensure_tool(t)
+            for t in contract_tools
+            if t["name"] in ("propose_observation", "request_clinician_review")
+        ]
         old = prompt["prompt"]
         marker = "AIRIANE BRAND AND PATIENT-REVIEWED NOTES"
         base = old.split(marker)[0].rstrip()
         base = base.replace("You are RE,", "You are AIriane,")
-        ids = list(dict.fromkeys([*prompt.get("tool_ids", []), tool_id]))
+        ids = list(dict.fromkeys([*prompt.get("tool_ids", []), tool_id, *extra_ids]))
         update = {
             "conversation_config": {
                 "agent": {

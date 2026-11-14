@@ -1,7 +1,10 @@
 """Dispatch the existing report/care HTTP operations to application services."""
 
+from uuid import uuid4
+
+from . import guidance
 from .care import CareService
-from .domain import DomainError
+from .domain import DomainError, stamp
 from .insights import InsightService
 from .reporting import ReportService, authorization_start
 from .services import utc
@@ -16,6 +19,7 @@ SHARED_OPERATIONS = {
     "getDoctorReport",
     "listDoctorAlerts",
     "updateDoctorAlert",
+    "setDoctorMedicationReminder",
 }
 OPERATIONS = {
     "confirmInsight": ("ConfirmedInsightCreate", "ConfirmedInsight", 201),
@@ -41,6 +45,8 @@ OPERATIONS = {
     "listPatientAlerts": (None, "AlertPage", 200),
     "listDoctorAlerts": (None, "AlertPage", 200),
     "updateDoctorAlert": ("AlertPatch", "Alert", 200),
+    "getMyMedicationReminder": (None, "MedicationReminderResponse", 200),
+    "setDoctorMedicationReminder": ("MedicationReminderSet", "MedicationReminder", 200),
 }
 
 
@@ -103,24 +109,44 @@ async def dispatch(op, store, actor, p, body, query, pages):
                 user = await store.get("users", id=link["patient_id"])
                 if not profile or not user or user["disabled_at"]:
                     continue
-                scopes = sorted(
-                    {
-                        g["scope"]
-                        for g in await store.all(
-                            "consent_grants", patient_id=link["patient_id"], care_link_id=link["id"]
-                        )
-                        if g["scope"] in ["reports", "alerts"] and care.active_grant(g)
-                    }
-                )
-                if scopes:
-                    patients.append(
-                        {
-                            "patient_id": link["patient_id"],
-                            "display_name": profile["display_name"],
-                            "care_link_id": link["id"],
-                            "scopes": scopes,
-                        }
+                grants = {
+                    g["scope"]: g
+                    for g in await store.all(
+                        "consent_grants", patient_id=link["patient_id"], care_link_id=link["id"]
                     )
+                    if g["scope"] in ["reports", "alerts"] and care.active_grant(g)
+                }
+                if not grants:
+                    continue
+                entry = {
+                    "patient_id": link["patient_id"],
+                    "display_name": profile["display_name"],
+                    "care_link_id": link["id"],
+                    "scopes": sorted(grants),
+                }
+                # Derived signals use only what each active grant already lets this doctor read.
+                shared = None
+                if "reports" in grants:
+                    start = grants["reports"]["data_from"]
+                    shared = [
+                        row
+                        for row in await store.all(
+                            "observations", patient_id=link["patient_id"], state="confirmed"
+                        )
+                        if start is None or utc(row["observed_at"]) >= utc(start)
+                    ]
+                    entry["streak_days"] = guidance.streak(
+                        await store.all(
+                            "activity_sessions", patient_id=link["patient_id"], state="completed"
+                        ),
+                        profile["timezone"],
+                    )[0]
+                open_request = False
+                if "alerts" in grants:
+                    _, visible = await alerts.visible(actor, link["patient_id"])
+                    open_request = any(row["state"] == "open" for row in visible)
+                entry["attention"] = guidance.attention(shared, open_request)
+                patients.append(entry)
             return page(patients, key=lambda r: (r["patient_id"],), descending=False)
         case "listDoctorReports":
             patient = p["patient_id"]
@@ -157,4 +183,78 @@ async def dispatch(op, store, actor, p, body, query, pages):
             return built
         case "updateDoctorAlert":
             return await alerts.doctor_update(actor, p["patient_id"], p["alert_id"], body)
+        case "getMyMedicationReminder":
+            active_links = {
+                link["clinician_id"]
+                for link in await store.all("care_links", patient_id=actor, state="active")
+            }
+            reminders = [
+                r
+                for r in await store.all("medication_reminders", patient_id=actor, active=True)
+                if r["clinician_id"] in active_links
+            ]
+            reminders.sort(key=lambda r: r["updated_at"], reverse=True)
+            if not reminders:
+                return {"reminder": None}
+            top = reminders[0]
+            return {
+                "reminder": {
+                    "reminder_id": top["id"],
+                    "patient_id": top["patient_id"],
+                    "clinician_id": top["clinician_id"],
+                    "message": top["message"],
+                    "schedule_time": top["schedule_time"],
+                    "active": bool(top["active"]),
+                    "updated_at": top["updated_at"],
+                }
+            }
+        case "setDoctorMedicationReminder":
+            await care.clinician(actor)
+            patient_id = p["patient_id"]
+            link = await store.get(
+                "care_links", patient_id=patient_id, clinician_id=actor, state="active"
+            )
+            if not link:
+                raise DomainError("RESOURCE_NOT_FOUND", 404)
+            now_ts = stamp()
+            existing = await store.get(
+                "medication_reminders", patient_id=patient_id, clinician_id=actor
+            )
+            if existing:
+                await store.update(
+                    "medication_reminders",
+                    {"id": existing["id"], "patient_id": patient_id, "clinician_id": actor},
+                    {
+                        "message": body["message"],
+                        "schedule_time": body["schedule_time"],
+                        "active": body["active"],
+                        "updated_at": now_ts,
+                    },
+                )
+                rid = existing["id"]
+            else:
+                rid = str(uuid4())
+                await store.add(
+                    "medication_reminders",
+                    id=rid,
+                    patient_id=patient_id,
+                    clinician_id=actor,
+                    message=body["message"],
+                    schedule_time=body["schedule_time"],
+                    active=body["active"],
+                    updated_at=now_ts,
+                    created_at=now_ts,
+                )
+            await care.audit(
+                actor, patient_id, "medication_reminder_set", "medication_reminder", rid
+            )
+            return {
+                "reminder_id": rid,
+                "patient_id": patient_id,
+                "clinician_id": actor,
+                "message": body["message"],
+                "schedule_time": body["schedule_time"],
+                "active": body["active"],
+                "updated_at": now_ts,
+            }
     raise DomainError("RESOURCE_NOT_FOUND", 404)

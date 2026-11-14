@@ -14,6 +14,8 @@ def metadata(op: str, result: dict) -> dict:
         }
     if op == "updateDoctorAlert":
         return {"alert_id": result["alert_id"], "doctor_patient_id": result["patient_id"]}
+    if "reminder_id" in result:
+        return {"reminder_id": result["reminder_id"]}
     if "patient_id" in result and "preferences" in result:
         return {"type": "patient_context"}
     if "missing_fields" in result:
@@ -58,6 +60,19 @@ async def restore(op: str, meta: dict, store, patient: str) -> dict:
             patient,
         )
         return {"tool_call_id": meta["tool_call_id"], "contract_version": "2.0.0", "result": result}
+    if "reminder_id" in meta:
+        # Only the clinician who set the reminder can replay it.
+        row = await store.get("medication_reminders", id=meta["reminder_id"], clinician_id=patient)
+        if not row:
+            raise DomainError("RESOURCE_NOT_FOUND", 404)
+        return {
+            "reminder_id": row["id"],
+            **{
+                k: row[k]
+                for k in ["patient_id", "clinician_id", "message", "schedule_time", "updated_at"]
+            },
+            "active": bool(row["active"]),
+        }
     if "observation_id" in meta:
         from .wellbeing import ObservationService
 
@@ -97,7 +112,11 @@ async def restore(op: str, meta: dict, store, patient: str) -> dict:
         return await PatientService(store).context(patient)
     if meta.get("type") == "guided_question":
         session = await sessions.owned(patient, meta["application_session_id"])
-        return ConversationController().question(session["version"])
+        from . import guidance
+
+        return ConversationController().question(
+            session["version"], await guidance.missing_checkin_fields(store, patient)
+        )
     if "feedback_id" in meta:
         row = await store.get("activity_feedback", id=meta["feedback_id"], patient_id=patient)
         if not row:

@@ -1,6 +1,7 @@
 import { uuid } from './runtime';
 import recommendationFixture from '../../../contracts/fixtures/recommendation.json';
 import type { DTO, Session, Recommendation, ActivitySession, Journey } from './types';
+import { missingToday, QUESTIONS } from '../features/checkin/checkin-state';
 export { uuid } from './runtime';
 export const mode = process.env.EXPO_PUBLIC_API_MODE === 'live' ? 'live' : 'mock';
 // In a browser opened over the LAN, call the backend on the same host that served the page, so a
@@ -38,7 +39,17 @@ export const api = {
     const created = await request<Session>('/conversation-sessions',{mode:kind});
     return request<Session>(`/conversation-sessions/${created.session_id}`,{state:'active',expected_version:created.version},'PATCH');
   },
-  async recommendations(sessionId:string,limit=3):Promise<Recommendation> {return mode==='mock'?{...recommendation,session_id:sessionId}:request('/activity-recommendations',{session_id:sessionId,limit});},
+  /** `preferred` is an activity the patient picked from the catalog; the backend ranks it first. */
+  async recommendations(sessionId:string,limit=3,preferred?:string):Promise<Recommendation> {return mode==='mock'?{...recommendation,session_id:sessionId}:request('/activity-recommendations',{session_id:sessionId,limit,...(preferred?{preferred_activity_id:preferred}:{})});},
+  /** Next daily check-in question, decided by the backend from today's confirmed answers. */
+  async nextCheckInQuestion(sessionId:string):Promise<{kind:Observation['kind']|null;wording:string|null}> {
+    if(mode==='live'){const q=await request<DTO<'GuidedQuestion'>>(`/conversation-sessions/${sessionId}/guided-question`);return {kind:q.question_id as Observation['kind']|null,wording:q.wording};}
+    const kind=missingToday(mockObservations,new Date())[0]??null;return {kind,wording:kind?QUESTIONS[kind]:null};
+  },
+  async streak():Promise<DTO<'RecoveryStreak'>>{
+    if(mode==='live')return request('/me/recovery-streak');
+    const today=mockJourney.items.some(i=>i.activity_session.state==='completed');return {streak_days:today?1:0,active_today:today};
+  },
   async start(sessionId:string, rec:Recommendation, activityId:string, channel:'voice'|'touch'):Promise<ActivitySession> {
     const selected=rec.options.find(o=>o.activity.activity_id===activityId);
     if(!selected)throw new Error('Activity is not in the current recommendation.');

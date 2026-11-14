@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Protocol
+from typing import Any, ClassVar, Protocol
 
 
 class DomainError(Exception):
@@ -36,7 +36,13 @@ class ConversationController:
     def context(self, version: int, recommendation: dict | None = None) -> dict:
         return {
             "context_version": version,
-            "summary": "Offer optional wellbeing activities. You cannot see images or surroundings.",
+            "summary": (
+                "Warmly greet the patient and gently guide them through the 3 daily check-in "
+                "questions (mood 0-10, energy 0-10, sleep_hours 0-24) via speech or text, "
+                "calling propose_observation for each answer so they can confirm it. "
+                "Recommend calming activities with brief scientific rationale. "
+                "You cannot see images or surroundings."
+            ),
             "guided_question": self.question(version),
             "preferences": {},
             "current_recommendation": recommendation,
@@ -44,11 +50,20 @@ class ConversationController:
             "vision_access": "none",
         }
 
-    def question(self, version: int) -> dict:
+    WORDING: ClassVar[dict[str, str]] = {
+        "mood": "How is your mood today, from zero to ten? There is no right answer.",
+        "energy": "And how is your energy right now, from zero to ten?",
+        "sleep_hours": "Roughly how many hours did you sleep last night?",
+    }
+
+    def question(self, version: int, missing: list[str] | None = None) -> dict:
+        """Next daily check-in question. `missing` is what today still lacks a confirmed value for."""
+        missing = list(self.WORDING) if missing is None else missing
+        field = missing[0] if missing else None
         return {
-            "question_id": "mood",
-            "flow_version": "first-slice-v1",
-            "wording": "How are you feeling today, from zero to ten?",
-            "missing_fields": ["mood", "energy", "sleep_hours"],
+            "question_id": field,
+            "flow_version": "daily-checkin-v1",
+            "wording": self.WORDING[field] if field else None,
+            "missing_fields": missing,
             "session_version": version,
         }
