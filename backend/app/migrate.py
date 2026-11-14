@@ -35,6 +35,7 @@ async def apply(connection, name, *, adopt=False, check=False):
             "0004_companion_continuity.sql": "re.companion_state",
             "0003_clinical_questionnaires.sql": "re.assessment_definitions",
             "0005_medication_reminders.sql": "re.medication_reminders",
+            "0006_medication_reminder_constraints.sql": "re.medication_reminders",
         }[name]
         exists = await connection.fetchval("SELECT to_regclass($1)", target)
         if name == "0003_clinical_questionnaires.sql":
@@ -50,6 +51,17 @@ async def apply(connection, name, *, adopt=False, check=False):
                     "WHERE table_schema='re' AND table_name='alert_recipients' AND column_name='consent_grant_id'"
                 )
             )
+        if name == "0006_medication_reminder_constraints.sql":
+            exists = bool(exists) and bool(
+                await connection.fetchval(
+                    "SELECT 1 FROM pg_constraint WHERE conrelid='re.medication_reminders'::regclass "
+                    "AND conname='medication_reminders_message_length_check'"
+                )
+            )
+            if not ledger or not await connection.fetchval(
+                "SELECT 1 FROM public.airiane_schema_migrations WHERE name='0005_medication_reminders.sql'"
+            ):
+                raise RuntimeError("Apply or explicitly adopt medication reminders first")
         if exists and not adopt:
             raise RuntimeError(
                 "Existing untracked schema: review it before explicit --adopt-existing; baseline will not be rerun"
@@ -94,7 +106,11 @@ async def apply(connection, name, *, adopt=False, check=False):
                         if name == "0003_clinical_questionnaires.sql"
                         else (
                             ["medication_reminders"]
-                            if name == "0005_medication_reminders.sql"
+                            if name
+                            in (
+                                "0005_medication_reminders.sql",
+                                "0006_medication_reminder_constraints.sql",
+                            )
                             else ["companion_state", "daily_checkins"]
                         )
                     )
@@ -134,6 +150,7 @@ async def main():
             "0003_clinical_questionnaires.sql",
             "0004_companion_continuity.sql",
             "0005_medication_reminders.sql",
+            "0006_medication_reminder_constraints.sql",
         ],
     )
     parser.add_argument(

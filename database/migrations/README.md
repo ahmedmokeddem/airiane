@@ -28,3 +28,5 @@ uv run --directory backend python -m app.migrate --migration 0004_companion_cont
 V2 API readiness requires these tables only when `RE_COMPANION_V2_ENABLED=true`. Keep that flag off until migration and the matching mobile client have been validated. This migration was tested on disposable PostgreSQL; it has **not** been applied to the configured Tiger Data production service. For a pre-ledger populated database, review existing DDL and the migration runner's explicit adoption options first; never rerun the baseline blindly.
 
 `0005_medication_reminders.sql` supplies the PostgreSQL table required by the original-main medication-reminder feature. It is additive and must be explicitly applied by an operator; no hosted database was changed during the merge.
+
+`0006_medication_reminder_constraints.sql` preserves PR #10’s reminder defaults, message-length constraint, verified clinician foreign key and active-patient index. Apply after 0005; no existing migration checksum is changed. The PR’s duplicate 0004 reminder table is superseded by 0005 + 0006. Invalid legacy rows cause the upgrade to fail transactionally rather than deleting data.
