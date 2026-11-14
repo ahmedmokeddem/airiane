@@ -22,3 +22,5 @@ import './companion.test';
 import "./noise-filter.test";
 import "./assessment.test";
 import "./nudges.test";
+
+import "./native-playback.test";

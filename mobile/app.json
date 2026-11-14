@@ -75,6 +75,15 @@
           "color": "#166a61",
           "enableRemoteNotifications": false
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
       ]
     ],
     "scheme": "re-patient"

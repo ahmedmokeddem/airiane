@@ -1,0 +1,5 @@
+{
+  "productionBrowserRedirect": true,
+  "finalPath": "/login",
+  "developmentSignInHidden": true
+}

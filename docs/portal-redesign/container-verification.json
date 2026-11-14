@@ -1,0 +1,58 @@
+{
+  "production_image": "airiane-portal:redesign-review",
+  "non_root_uid": 1000,
+  "isolated_placeholder_configuration": true,
+  "live_supabase_login_tested": false,
+  "routes": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/how-it-works",
+      "status": 200
+    },
+    {
+      "path": "/for-clinicians",
+      "status": 200
+    },
+    {
+      "path": "/privacy",
+      "status": 200
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "development_sign_in_hidden": true
+    },
+    {
+      "path": "/dashboard",
+      "status": 200,
+      "sign_in_redirect": true,
+      "private_no_store": true,
+      "mechanism": "streamed Next.js redirect"
+    },
+    {
+      "path": "/patients",
+      "status": 200,
+      "sign_in_redirect": true,
+      "private_no_store": true,
+      "mechanism": "streamed Next.js redirect"
+    },
+    {
+      "path": "/reports",
+      "status": 200,
+      "sign_in_redirect": true,
+      "private_no_store": true,
+      "mechanism": "streamed Next.js redirect"
+    },
+    {
+      "path": "/reports/11111111-1111-4111-8111-111111111111/77777777-7777-4777-8777-777777777777/pdf",
+      "status": 401
+    },
+    {
+      "path": "/health/live",
+      "status": 200
+    }
+  ]
+}

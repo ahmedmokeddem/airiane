@@ -1,6 +1,9 @@
+import { prepareActivityAudio } from "../activity/native-audio-session";
 import { AudioSession } from "@livekit/react-native";
 import { PermissionsAndroid, Platform } from "react-native";
 export async function requestVoicePermissions() {
+  // Configure mixing before the SDK claims communication focus/routing.
+  await prepareActivityAudio();
   if (Platform.OS !== "android") return; // iOS microphone prompt is owned by SDK audio capture.
   const mic = (await PermissionsAndroid.check(
     PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,

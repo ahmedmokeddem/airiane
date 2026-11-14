@@ -1,5 +1,72 @@
 # AIriane implementation status
 
+## Android regression repair — 14 November 2026
+
+Confirmed that the activity audio implementation used browser-only APIs and silently produced no native playback. Added SDK-matched Expo Audio 58.0.12 with bundled selected recordings, cancellation/cleanup, mute and visible retry errors. Audio mixing is configured before voice startup; in-call playback does not reset LiveKit routing. Native dynamic bilateral panning is unavailable and its toggle is hidden. Camera permission/foreground settlement and mount-error reporting were repaired, but the original device camera exception remains unconfirmed.
+
+**BUILD VERIFIED:** ARM64 internal APK built successfully in 6m46s; existing signing identity, public Aiven URL, V2 UI and private-credential scan passed. All six native recordings match their packaged APK bytes. Artifact: `build/artifacts/AIriane-V2-native-fixes-internal-arm64.apk` (63,943,438 bytes), SHA-256 `df58d5828beba7f5e899aa2d340aeb7b61089818f298126dafffd7a9e140f2a0`. This is an internal development-signed release build, not a store release.
+
+**VERIFIED AUTOMATED:** 65 mobile tests, TypeScript and ESLint pass. **NOT TESTED ON DEVICE:** this repair's audible playback, camera startup and Bluetooth coexistence; repeated host ADB checks return no devices. Existing earlier device evidence does not validate this new build. See [regression details](NATIVE_REGRESSION_FIXES.md). No backend, agent configuration or production deployment was changed in this repair.
+
+
+
+
+
+
+## Premium public website and clinician workspace — 14 November 2026
+
+Implemented for local review; **not deployed or pushed**. Public routes `/`, `/how-it-works`, `/for-clinicians`, `/privacy` and redesigned `/login` use the unchanged official logo, local mobile fonts, navy/teal/ivory system, interactive thread/companion previews and reduced-motion-safe animation. The verified clinician workspace moves to `/dashboard`, `/patients` and nested patient/report routes, preserving the existing PDF URL, alerts/questionnaires, reminders, invitations and backend grants. Public previews are explicitly illustrative; protected production pages never fall back to fixtures.
+
+Request-scoped server-only loaders revalidate clinician role and backend data. Successful login/care-action redirects target the new workspace. Alert/reminder handlers now open sealed production cookies before forwarding bearer tokens; origin checks, backend permissions, idempotency and HttpOnly cookies remain intact. Reports keep actual periods, evidence, limitations and prominent Export PDF. Raw provider configuration, FastAPI source, migrations, mobile code and brand assets are unchanged.
+
+**VERIFIED LOCAL:** 17 portal tests, TypeScript, ESLint, standalone production build and portal Docker build; 30 route/viewport combinations (1440/820/390 px), additional 320 px fit, controls/keyboard/reduced-motion checks, zero unexpected page errors. Selected axe WCAG A/AA checks passed on ten page types and the backend-generated report after contrast refinements. This is not accessibility certification. Isolated real FastAPI with fictional identities passed sign-in, HttpOnly session, role denial, reminder save, authorized PDF/export download, consent revocation, subsequent PDF 403 and removal of old report content. No hosted patient mutation or live Supabase login was used for this evidence.
+
+Read [review, before/after screenshots, exact changed files and Aiven redeployment instructions](portal-redesign/REVIEW.md). Real Supabase account sign-in and deployed HTTPS cookie behavior remain manual post-review gates. The original public deployment was inspected read-only; no website deployment or ElevenLabs agent update occurred.
+
+## V2 Aiven-connected Android APK — 14 November 2026
+
+Built the merged main as an ARM64 internal release APK: **BUILD SUCCESSFUL in 11m 7s**, 927 tasks. Explicit build environment uses the public Aiven API, production/live mode, real Supabase authentication, ElevenLabs and `EXPO_PUBLIC_COMPANION_V2=true`; dotenv autoload was disabled to avoid local/demo overrides. No source/dependency version changes were needed. Mobile lint/typecheck and **63 tests** passed before the build.
+
+Artifact: `build/artifacts/AIriane-V2-Aiven-internal-arm64.apk` (58,996,602 bytes), SHA-256 `2c7a8eb4e94c73ee635a3ed3c14424e90742240b82d6d87b4b4f7857fcaf70be`. Verified package `dev.re.patient`, ARM64 only, non-debuggable, valid signing matching the previous internal APK's development certificate, packaged public API URL and V2 UI code. Scan of archive members found none of the locally configured backend/provider private keys or database password. This is an installable internal APK, not Play Store/production signing. The previous APK was preserved separately.
+
+ADB showed no phone; this APK was not installed or tested in a real V2 Android conversation. Artifact checks do not establish native voice, activity/Journey or authenticated end-to-end success. Private environment files and build artifacts remain Git-ignored.
+
+## Tiger Data migrations applied — 14 November 2026
+
+With explicit user authorization, the live schema was compared with a disposable baseline+insights reference: columns, defaults, constraints and indexes matched after normalizing PostgreSQL 18 NOT NULL metadata/schema qualification. A private pre-migration RE-schema pg_dump archive was created over verify-full TLS, its archive directory verified, and an actual restore succeeded on disposable PostgreSQL 18. The archive remains outside the repository at `/tmp/airiane-before-v2-migrations.dump` (mode 0600); it contains private application records and must not be committed or shared.
+
+Existing baseline 0001 and confirmed-insights 0002 were explicitly adopted into the checksum ledger without rerunning their SQL. Migrations **0003 clinical questionnaires, 0004 companion continuity, 0005 medication reminders and 0006 reminder constraints** were applied successfully. All six ledger rechecks returned already applied; continuity tables and the active-reminder index were verified. No provider agent configuration or Aiven environment flags were changed. Updated V2 Android build/device validation remains a separate acceptance gate.
+
+## AIriane V2 — isolated validation, production unchanged
+
+Created **AIriane V2** (`agent_0801m7dfz5w1ez7s46a26640wjtt`) through the official API and verified readback. Original agent configuration/privacy are unchanged. Empty static opening plus initial trusted dynamic context prevents repeated technical-session introductions; backend-owned relationship state, opt-in confirmed-record context and an optional explicitly approved written handoff replace assumptions about provider history. No raw chat replay or automatic memory writes were introduced.
+
+**VERIFIED REAL PROVIDER:** fictional text conversation, returning reconnect without self-introduction, first-request recommendation tool with real backend IDs, approved-note recall after opt-in, and exclusion after opt-out/reconnect. A voice token was issued for the new agent; that is **not** a native audio test. Daily check-in UI confirms patient-entered values only; migration 0003 enforces patient/local-day uniqueness. Assessments remain separate and unimplemented.
+
+**VERIFIED AUTOMATED:** backend 48 tests on disposable PostgreSQL; SQLite 47 passed/one PostgreSQL-only skip; mobile lint/typecheck and 34 tests; Ruff check/format; nine shared fixtures. Existing portal typecheck/12 tests passed. Two upstream backend deprecation warnings remain.
+
+**BLOCKED:** Android V2 verification: despite reconnect attempts, host ADB and USB inventory show no phone. No new APK/native V2 success is claimed. Production Docker build was blocked fetching the Python base image from Docker Hub (network unreachable). **NOT DEPLOYED:** Tiger Data migration 0003, Aiven agent/key switch and V2 mobile production flag remain pending; defaults remain off. Existing production APK is separate.
+
+See [V2 implementation, exact isolated launch commands, changed files and rollout gates](airiane-v2/IMPLEMENTATION.md), [root causes](airiane-v2/ROOT_CAUSE_AUDIT.md) and [real-provider test receipt](airiane-v2/conversation-verification.json).
+
+## Aiven-connected Android test APK — 14 November 2026
+
+Built the existing ARM64 release variant with the reviewed production/live mobile environment and the existing Android development signing key: **BUILD SUCCESSFUL in 5m 58s**. This is an internal test APK, not a Play Store/production-signed release. Packaged bundle contains the Aiven API and Supabase project URL; a targeted scan of packaged text resources found neither the locally configured PostgreSQL password nor ElevenLabs key. Manifest is `debuggable=false`. Installed with `adb install -r` on Samsung SM-G998B, preserving app data; AIriane was confirmed in the foreground, with zero React Native/Android Runtime error lines in the initial sampled window. No screenshots or raw logs containing credentials were retained.
+
+Artifact: `build/artifacts/AIriane-Aiven-internal-arm64.apk` (Git-ignored). Mobile tests: **33 passed**; ESLint and TypeScript passed. Actual Supabase login and a new ElevenLabs call against the public API remain **BLOCKED on account setup**: the user confirmed no application user exists yet. No account, clinician privilege or authentication bypass was created. Previous development-provider conversations do not count as verification of the new public-backend APK flow. Local receipt: `docs/implementation-validation/aiven-android/verification.json`.
+
+## Public deployment checks — 14 November 2026
+
+Both public Aiven applications returned HTTP 200 `ready` during this pass. API readiness executed its existing read-only queries for required PostgreSQL tables and active catalogue from the deployed application, so this is evidence of Aiven → Tiger Data reads, not merely TCP liveness. Unauthenticated `/v1/me` returned HTTP 401. The Doctor Portal is already the second deployed service; it was not provisioned again.
+
+The configured Supabase project's JWKS returned HTTP 200 with ES256, and its Auth settings accepted the supplied publishable key with email auth enabled. These checks do not demonstrate a real account login. The user is testing portal login; verified clinician role remains a separate backend authorization requirement. A real ElevenLabs bootstrap/conversation against the public backend remains pending an authenticated patient session; no demo token was used as a substitute.
+
+Local `mobile/.env.production.local` now targets the public HTTPS API with production/live mode, demo auth disabled, ElevenLabs selected, and the supplied Supabase public URL/key. It is Git-ignored and does not alter the local development `.env`. Production config validation, mobile ESLint and TypeScript passed. No APK was built, signed or installed in this pass; the installed APK was not changed. A subsequent production bundle must consume this production configuration rather than the localhost development configuration.
+
+## Aiven TLS investigation — 14 November 2026
+
+Diagnostics now inspect the SSLContext actually passed to asyncpg and log nested TLS verification details, loaded CA fingerprints, effective settings and file inventory without credentials. TLS trust/hostname/verification settings remain unchanged. The production image connected read-only as UID 10001 using the reference CA: verified TLS 1.3, actual transport-context identity confirmed. System-only negative control failed with verification code 19. Aiven still reports `database_tls`; its detailed runtime report and in-container probe remain pending because this session has no Aiven exec access. Backend tests: **39 passed**; changed-file Ruff checks and production image build passed. See [TLS diagnostic comparison, evidence and operator command](deployment/TLS_DIAGNOSTIC.md).
+
 ## Aiven Runtime preparation — 14 November 2026
 
 Two independent production images build locally: FastAPI and the clinician portal. Existing Tiger Data, Supabase and ElevenLabs remain external. Local TLS/signed-JWT container checks verified authenticated reports, encrypted Secure cookies, CORS/CSRF, PDF download and revocation. All 31 backend tests passed against disposable PostgreSQL. Container PDF rendering and graceful shutdown receipts are under `docs/deployment/verification/`. A verification receipt write failed because the fixture container created a root-owned file; the script now writes the enriched receipt directly to the repository instead of modifying that file. The corrected complete harness has not yet been rerun.

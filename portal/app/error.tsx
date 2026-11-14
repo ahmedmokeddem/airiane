@@ -1,2 +1,3 @@
 'use client';
-export default function ErrorPage({reset}:{reset:()=>void}) { return <main className="empty-state" role="alert"><h1>The workspace could not load</h1><p>No report has been displayed. Try again to check current access.</p><button onClick={reset}>Try again</button></main>; }
+import Link from 'next/link';
+export default function ErrorPage({reset}:{reset:()=>void}) {return <main className="page-loading" role="alert"><h1>This page could not load.</h1><p>Check your connection and try again.</p><button className="button button-small" onClick={reset}>Try again</button><Link href="/">AIriane home</Link></main>;}

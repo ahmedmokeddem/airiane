@@ -96,3 +96,5 @@ mobile/android/
 *.sqlite3
 .playwright-cli/
 !.env.production.example
+
+portal/.next-*/

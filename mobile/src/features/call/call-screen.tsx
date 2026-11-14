@@ -117,6 +117,7 @@ export function CallScreen(p: Props) {
     p.inActivity && !!p.activity && p.elapsed < cue.duration,
     p.activityDetail,
     p.elapsed,
+    { inCall: true },
   );
   const lastCaption = p.inActivity
     ? cue.cue
@@ -196,9 +197,7 @@ export function CallScreen(p: Props) {
               facing="front"
               mode="picture"
               mute
-              onMountError={() => {
-                void camera.toggle();
-              }}
+              onMountError={camera.fail}
             />
             <Text style={s.you}>YOU · PREVIEW</Text>
           </View>
@@ -245,70 +244,88 @@ export function CallScreen(p: Props) {
                 </Text>
               </Pressable>
               {p.activityDetail?.kind === "nature" && (
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-                  {(Object.keys(NATURE_SOUNDSCAPES) as NatureSoundscapeId[]).map(
-                    (id) => (
-                      <Pressable
-                        key={id}
-                        testID={`soundscape-chip-${id}`}
-                        accessibilityRole="button"
-                        onPress={() => sound.setSoundscape(id)}
-                        style={[
-                          s.route,
-                          sound.soundscape === id && s.routeChosen,
-                          {
-                            paddingVertical: 6,
-                            paddingHorizontal: 10,
-                            minHeight: 32,
-                            backgroundColor:
-                              sound.soundscape === id ? "#65afa533" : "#ffffff0d",
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            s.detail,
-                            {
-                              color:
-                                sound.soundscape === id ? "#c5e9e0" : "#a0b3c3",
-                            },
-                          ]}
-                        >
-                          {NATURE_SOUNDSCAPES[id].label}
-                        </Text>
-                      </Pressable>
-                    ),
-                  )}
-                  <Pressable
-                    testID="soundscape-bilateral-toggle"
-                    accessibilityRole="button"
-                    onPress={sound.toggleBilateral}
-                    style={[
-                      s.route,
-                      sound.bilateralEnabled && s.routeChosen,
-                      {
-                        paddingVertical: 6,
-                        paddingHorizontal: 10,
-                        minHeight: 32,
-                        backgroundColor: sound.bilateralEnabled
-                          ? "#65afa533"
-                          : "#ffffff0d",
-                      },
-                    ]}
-                  >
-                    <Text
+                <View
+                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}
+                >
+                  {(
+                    Object.keys(NATURE_SOUNDSCAPES) as NatureSoundscapeId[]
+                  ).map((id) => (
+                    <Pressable
+                      key={id}
+                      testID={`soundscape-chip-${id}`}
+                      accessibilityRole="button"
+                      onPress={() => sound.setSoundscape(id)}
                       style={[
-                        s.detail,
+                        s.route,
+                        sound.soundscape === id && s.routeChosen,
                         {
-                          color: sound.bilateralEnabled ? "#c5e9e0" : "#a0b3c3",
+                          paddingVertical: 6,
+                          paddingHorizontal: 10,
+                          minHeight: 32,
+                          backgroundColor:
+                            sound.soundscape === id ? "#65afa533" : "#ffffff0d",
                         },
                       ]}
                     >
-                      {sound.bilateralEnabled
-                        ? "Bilateral Pan: ON"
-                        : "Bilateral Pan: OFF"}
-                    </Text>
-                  </Pressable>
+                      <Text
+                        style={[
+                          s.detail,
+                          {
+                            color:
+                              sound.soundscape === id ? "#c5e9e0" : "#a0b3c3",
+                          },
+                        ]}
+                      >
+                        {NATURE_SOUNDSCAPES[id].label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                  {sound.playbackError ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={sound.retryPlayback}
+                    >
+                      <Text style={{ color: "#ffffff" }}>
+                        {sound.playbackError} Retry audio
+                      </Text>
+                    </Pressable>
+                  ) : sound.loading ? (
+                    <Text style={{ color: "#ffffff" }}>Loading sound…</Text>
+                  ) : null}
+                  {sound.supportsBilateral && (
+                    <Pressable
+                      testID="soundscape-bilateral-toggle"
+                      accessibilityRole="button"
+                      onPress={sound.toggleBilateral}
+                      style={[
+                        s.route,
+                        sound.bilateralEnabled && s.routeChosen,
+                        {
+                          paddingVertical: 6,
+                          paddingHorizontal: 10,
+                          minHeight: 32,
+                          backgroundColor: sound.bilateralEnabled
+                            ? "#65afa533"
+                            : "#ffffff0d",
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          s.detail,
+                          {
+                            color: sound.bilateralEnabled
+                              ? "#c5e9e0"
+                              : "#a0b3c3",
+                          },
+                        ]}
+                      >
+                        {sound.bilateralEnabled
+                          ? "Bilateral Pan: ON"
+                          : "Bilateral Pan: OFF"}
+                      </Text>
+                    </Pressable>
+                  )}
                 </View>
               )}
               <View
@@ -332,8 +349,8 @@ export function CallScreen(p: Props) {
                 />
               </View>
               <Text style={s.detail}>
-                {Math.min(p.elapsed, cue.duration)} / {cue.duration} seconds · Stop
-                whenever you need.
+                {Math.min(p.elapsed, cue.duration)} / {cue.duration} seconds ·
+                Stop whenever you need.
               </Text>
               {p.elapsed >= cue.duration && (
                 <>
@@ -496,13 +513,17 @@ export function CallScreen(p: Props) {
               <Text style={s.detail}>Use your device’s audio controls.</Text>
             )}
             {!!routes.error && <Text style={s.error}>{routes.error}</Text>}
-            <View testID="noise-filter-options" style={{ gap: 8, marginTop: 6 }}>
+            <View
+              testID="noise-filter-options"
+              style={{ gap: 8, marginTop: 6 }}
+            >
               <Text style={s.cardTitle}>Background noise filter</Text>
               {noiseFilterSupported ? (
                 <>
                   <Text style={s.detail}>
-                    Helps AIriane listen to you, not the room. It turns down sound that is
-                    much quieter than your voice, such as a TV or people further away.
+                    Helps AIriane listen to you, not the room. It turns down
+                    sound that is much quieter than your voice, such as a TV or
+                    people further away.
                   </Text>
                   <View style={{ flexDirection: "row", gap: 6 }}>
                     {NOISE_FILTER_MODES.map((option) => (
@@ -511,7 +532,9 @@ export function CallScreen(p: Props) {
                         testID={`noise-filter-${option.mode}`}
                         accessibilityRole="radio"
                         accessibilityLabel={`Noise filter ${option.label}`}
-                        accessibilityState={{ selected: filterMode === option.mode }}
+                        accessibilityState={{
+                          selected: filterMode === option.mode,
+                        }}
                         onPress={() => setNoiseFilterMode(option.mode)}
                         style={[
                           s.route,
@@ -524,12 +547,16 @@ export function CallScreen(p: Props) {
                     ))}
                   </View>
                   <Text style={s.detail}>
-                    {NOISE_FILTER_MODES.find((o) => o.mode === filterMode)?.detail}
+                    {
+                      NOISE_FILTER_MODES.find((o) => o.mode === filterMode)
+                        ?.detail
+                    }
                   </Text>
                 </>
               ) : (
                 <Text style={s.detail}>
-                  Your phone’s built-in voice noise reduction is on for this call.
+                  Your phone’s built-in voice noise reduction is on for this
+                  call.
                 </Text>
               )}
             </View>

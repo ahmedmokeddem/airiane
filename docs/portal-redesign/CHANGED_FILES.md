@@ -1,0 +1,50 @@
+# Source files changed
+
+- `.dockerignore`
+- `.gitignore`
+- `portal/app/(public)/for-clinicians/page.tsx`
+- `portal/app/(public)/how-it-works/page.tsx`
+- `portal/app/(public)/layout.tsx`
+- `portal/app/(public)/login/page.tsx`
+- `portal/app/(public)/page.tsx`
+- `portal/app/(public)/privacy/page.tsx`
+- `portal/app/(workspace)/dashboard/page.tsx`
+- `portal/app/(workspace)/error.tsx`
+- `portal/app/(workspace)/layout.tsx`
+- `portal/app/(workspace)/loading.tsx`
+- `portal/app/(workspace)/not-found.tsx`
+- `portal/app/(workspace)/patients/[patientId]/page.tsx`
+- `portal/app/(workspace)/patients/page.tsx`
+- `portal/app/(workspace)/reports/[patientId]/[reportId]/page.tsx`
+- `portal/app/(workspace)/reports/page.tsx`
+- `portal/app/auth/login/route.ts`
+- `portal/app/care/accept/route.ts`
+- `portal/app/care/alerts/route.ts`
+- `portal/app/care/medication/route.ts`
+- `portal/app/error.tsx`
+- `portal/app/layout.tsx`
+- `portal/app/loading.tsx`
+- `portal/app/login/page.tsx`
+- `portal/app/page.tsx`
+- `portal/app/premium.css`
+- `portal/components/auto-refresh.tsx`
+- `portal/components/brand.tsx`
+- `portal/components/login-form.tsx`
+- `portal/components/patient-list.tsx`
+- `portal/components/pdf-download.tsx`
+- `portal/components/public/document-preview.tsx`
+- `portal/components/public/product-preview.tsx`
+- `portal/components/public/reveal.tsx`
+- `portal/components/public/site-navigation.tsx`
+- `portal/components/public/thread-story.tsx`
+- `portal/components/report-document.tsx`
+- `portal/components/workspace/directory.tsx`
+- `portal/components/workspace/report-list.tsx`
+- `portal/components/workspace/workspace-nav.tsx`
+- `portal/eslint.config.mjs`
+- `portal/lib/api.ts`
+- `portal/lib/workspace.ts`
+- `portal/next.config.mjs`
+- `portal/tests/api.test.ts`
+
+Documentation, receipts and screenshots: `docs/portal-redesign/`. Current status: `docs/IMPLEMENTATION_STATUS.md`. The deleted root and login page files are replaced by their public route-group equivalents.

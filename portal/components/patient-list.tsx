@@ -13,7 +13,7 @@ export function PatientList({ patients, selectedId, mock }: { patients: DoctorPa
   const row = (patient: DoctorPatient) => {
     const attention = patient.attention?.flagged ? patient.attention.reasons : [];
     const streak = patient.streak_days ?? 0;
-    return <Link className={`patient ${selectedId === patient.patient_id ? 'selected' : ''} ${attention.length ? 'patient-attention' : ''}`} key={patient.patient_id} href={`/?patient=${patient.patient_id}`}>
+    return <Link className={`patient ${selectedId === patient.patient_id ? 'selected' : ''} ${attention.length ? 'patient-attention' : ''}`} key={patient.patient_id} href={`/patients/${patient.patient_id}`}>
       <span className="avatar" aria-hidden="true">{patient.display_name[0]}</span>
       <span>
         <strong>{patient.display_name}</strong>

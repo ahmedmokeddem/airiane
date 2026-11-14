@@ -167,7 +167,9 @@ export function HomeScreen({
     journey?.items.filter((item) => item.activity_session.state === "completed")
       .length ?? 0;
   const firstName = profile?.display_name.trim().split(/\s+/)[0];
-  const running = journey?.items.find(item => item.activity_session.state === "started");
+  const running = journey?.items.find(
+    (item) => item.activity_session.state === "started",
+  );
   return (
     <ScreenScroll>
       <View style={p.greeting}>
@@ -187,7 +189,19 @@ export function HomeScreen({
           Take your time. No rush, no scores to beat.
         </Text>
       </View>
-      {running && <Surface><Text style={s.sectionTitle}>Your quiet moment is waiting</Text><Text style={s.small}>Continue {running.activity.title} whenever you are ready.</Text><Button label="Resume activity" onPress={() => onBegin(running.activity.activity_id)} disabled={busy}/></Surface>}
+      {running && (
+        <Surface>
+          <Text style={s.sectionTitle}>Your quiet moment is waiting</Text>
+          <Text style={s.small}>
+            Continue {running.activity.title} whenever you are ready.
+          </Text>
+          <Button
+            label="Resume activity"
+            onPress={() => onBegin(running.activity.activity_id)}
+            disabled={busy}
+          />
+        </Surface>
+      )}
       <View style={p.hero}>
         <View style={p.heroOrb}>
           <Orb />
@@ -259,7 +273,8 @@ export function HomeScreen({
             {medication.message}
           </Text>
           <Text style={s.small}>
-            A reminder your doctor set for you. Ask them before changing how you take any medicine.
+            A reminder your doctor set for you. Ask them before changing how you
+            take any medicine.
           </Text>
         </Surface>
       )}
@@ -328,8 +343,9 @@ export function HomeScreen({
       </Pressable>
       {careTeamHint && (
         <Text testID="care-team-hint" style={p.centerCopy}>
-          You’re doing this in your own way. If you’d ever like your doctor to follow along, you
-          can invite them from Reports & sharing. It’s always your choice.
+          You’re doing this in your own way. If you’d ever like your doctor to
+          follow along, you can invite them from Reports & sharing. It’s always
+          your choice.
         </Text>
       )}
     </ScreenScroll>
@@ -690,7 +706,13 @@ export function WelcomeScreen({
     >
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[p.welcomeContent, { paddingTop: Math.max(24, insets.top + 12), paddingBottom: Math.max(36, insets.bottom + 24) }]}
+        contentContainerStyle={[
+          p.welcomeContent,
+          {
+            paddingTop: Math.max(24, insets.top + 12),
+            paddingBottom: Math.max(36, insets.bottom + 24),
+          },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <Brand />
@@ -894,8 +916,7 @@ export function BreathingScreen({
                     paddingHorizontal: 12,
                     borderRadius: 16,
                     borderWidth: 1,
-                    borderColor:
-                      sound.soundscape === id ? t.accent : t.border,
+                    borderColor: sound.soundscape === id ? t.accent : t.border,
                     backgroundColor:
                       sound.soundscape === id ? `${t.accent}22` : "transparent",
                   }}
@@ -911,32 +932,46 @@ export function BreathingScreen({
                 </Pressable>
               ),
             )}
-            <Pressable
-              testID="activity-soundscape-bilateral-toggle"
-              accessibilityRole="button"
-              onPress={sound.toggleBilateral}
-              style={{
-                paddingVertical: 6,
-                paddingHorizontal: 12,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: sound.bilateralEnabled ? t.accent : t.border,
-                backgroundColor: sound.bilateralEnabled
-                  ? `${t.accent}22`
-                  : "transparent",
-              }}
-            >
-              <Text
+            {sound.playbackError ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={sound.retryPlayback}
+              >
+                <Text style={{ color: "#166a61" }}>
+                  {sound.playbackError} Retry audio
+                </Text>
+              </Pressable>
+            ) : sound.loading ? (
+              <Text style={{ color: "#166a61" }}>Loading sound…</Text>
+            ) : null}
+            {sound.supportsBilateral && (
+              <Pressable
+                testID="activity-soundscape-bilateral-toggle"
+                accessibilityRole="button"
+                onPress={sound.toggleBilateral}
                 style={{
-                  fontSize: 12,
-                  color: sound.bilateralEnabled ? t.accent : t.muted,
+                  paddingVertical: 6,
+                  paddingHorizontal: 12,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: sound.bilateralEnabled ? t.accent : t.border,
+                  backgroundColor: sound.bilateralEnabled
+                    ? `${t.accent}22`
+                    : "transparent",
                 }}
               >
-                {sound.bilateralEnabled
-                  ? "Bilateral Pan: ON"
-                  : "Bilateral Pan: OFF"}
-              </Text>
-            </Pressable>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: sound.bilateralEnabled ? t.accent : t.muted,
+                  }}
+                >
+                  {sound.bilateralEnabled
+                    ? "Bilateral Pan: ON"
+                    : "Bilateral Pan: OFF"}
+                </Text>
+              </Pressable>
+            )}
           </View>
         )}
       </View>
