@@ -4,6 +4,9 @@ import type { DTO, Session, Recommendation, ActivitySession, Journey } from './t
 export { uuid } from './runtime';
 export const mode = process.env.EXPO_PUBLIC_API_MODE === 'live' ? 'live' : 'mock';
 const origin = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000';
+if(typeof __DEV__!=='undefined'&&!__DEV__){
+ if(process.env.EXPO_PUBLIC_APP_ENV!=='production'||mode!=='live'||process.env.EXPO_PUBLIC_DEMO_AUTH==='true'||process.env.EXPO_PUBLIC_VOICE_PROVIDER!=='elevenlabs'||!origin.startsWith('https://'))throw new Error('Configure the production HTTPS mobile environment before building a release.');
+}
 const eventBodies = new Map<string, DTO<'ActivityEventRequest'>>();
 const feedbackBodies = new Map<string, DTO<'FeedbackRequest'>>();
 let accessToken = '';

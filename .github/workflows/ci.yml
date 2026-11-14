@@ -21,11 +21,15 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.9.8"
+      - run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-noto-core
       - run: uv sync --project backend --group dev --frozen
       - run: uv run --project backend python scripts/check_contracts.py
       - run: uv run --directory backend ruff check app tests
       - run: uv run --directory backend ruff format --check app tests
       - run: psql -h localhost -U re -d re_test -v ON_ERROR_STOP=1 -f database/migrations/0001_baseline.sql
+        env:
+          PGPASSWORD: re_local_ci_only
+      - run: psql -h localhost -U re -d re_test -v ON_ERROR_STOP=1 -f database/migrations/0002_confirmed_insights.sql
         env:
           PGPASSWORD: re_local_ci_only
       - run: uv run --directory backend pytest tests

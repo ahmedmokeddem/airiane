@@ -16,8 +16,8 @@ from .pdf import render_pdf
 OPERATIONS = {"exportPatientReportPdf", "exportDoctorReportPdf"}
 
 
-def install(app, engine, auth):
-    capacity = asyncio.Semaphore(2)
+def install(app, engine, auth, settings):
+    capacity = asyncio.Semaphore(settings.pdf_max_concurrent)
 
     async def export(request: Request):
         identity = await auth.verify(request.headers.get("Authorization"))

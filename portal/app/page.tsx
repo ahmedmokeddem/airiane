@@ -1,3 +1,4 @@
+import { openSession } from '@/lib/session';
 import { PdfDownload } from '@/components/pdf-download';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,12 +11,12 @@ export const dynamic = 'force-dynamic';
 type Search = { patient?: string; report?: string; error?: string };
 export default async function Dashboard({searchParams}:{searchParams:Promise<Search>}) {
   const query = await searchParams;
-  const mode = process.env.PORTAL_DATA_MODE ?? 'mock';
+  const mode = process.env.NODE_ENV==='production'?'api':(process.env.PORTAL_DATA_MODE??'mock');
   let invitations: import('../../contracts/generated/api').components['schemas']['CareLink'][]=[]; let clinicianCode:string|undefined;let demoIdentity=false;
   let patients: DoctorPatient[] = []; let report: Report | undefined; let message: string | undefined;
   if (mode === 'mock') { patients = fixture.patients.items as DoctorPatient[]; report = fixture.report as Report; }
   else if (mode === 'api') {
-    const token = (await cookies()).get('re_access_token')?.value;demoIdentity=token==='demo-clinician-token';
+    const token = openSession((await cookies()).get('re_access_token')?.value);demoIdentity=token==='demo-clinician-token';
     if (!token) message = 'Sign in to view authorized patient reports.';
     else {
       try {

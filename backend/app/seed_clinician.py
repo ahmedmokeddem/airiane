@@ -12,7 +12,7 @@ from .storage import SqlStore, engine_for
 
 async def seed(subject: str, display_name: str) -> str:
     settings = Settings()
-    engine = engine_for(settings.database_url)
+    engine = engine_for(settings.database_url, settings)
     try:
         async with engine.begin() as connection:
             store = SqlStore(connection)

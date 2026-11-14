@@ -70,3 +70,17 @@ test('report excludes superseded insights while preserving direct versus approve
  report.confirmed_insights=[base,{...base,insight_id:'old',state:'superseded'},{...base,insight_id:'approved',statement_kind:'patient_approved_interpretation'}];
  assert.deepEqual(confirmedInsights(report).map(item=>item.statement_kind),['direct_statement','patient_approved_interpretation']);
 });
+
+import {sealSession,openSession} from '../lib/session';
+import {validateProduction} from '../lib/runtime-config.mjs';
+test('production session encryption rejects plaintext, tampering and expired values',()=>{
+ const old={NODE_ENV:process.env.NODE_ENV,PORTAL_SESSION_KEY:process.env.PORTAL_SESSION_KEY};
+ Object.assign(process.env,{NODE_ENV:'production',PORTAL_SESSION_KEY:Buffer.alloc(32,7).toString('base64')});
+ try{const encoded=sealSession('fictional-bearer',60);assert.equal(encoded.includes('fictional-bearer'),false);assert.equal(openSession(encoded),'fictional-bearer');assert.equal(openSession('demo-clinician-token'),undefined);assert.equal(openSession(encoded+'bad'),undefined);assert.equal(openSession(sealSession('expired',-1)),undefined);}finally{for(const [k,v]of Object.entries(old)){if(v===undefined)delete process.env[k];else process.env[k]=v;}}
+});
+test('production startup requires configuration and configured public origin protects proxy mutations',()=>{
+ assert.throws(()=>validateProduction({NODE_ENV:'production'}),/Production/);
+ const env={NODE_ENV:'production',PORTAL_DATA_MODE:'api',PORTAL_DEMO_AUTH:'false',RE_API_URL:'https://api.example.invalid',RE_SUPABASE_URL:'https://auth.example.invalid',PORTAL_PUBLIC_URL:'https://portal.example.invalid',RE_SUPABASE_ANON_KEY:'sb_publishable_fictional',PORTAL_SESSION_KEY:Buffer.alloc(32,7).toString('base64')};
+ validateProduction(env);assert.throws(()=>validateProduction({...env,RE_API_URL:'http://localhost:8000'}),/HTTPS/);
+ const old={NODE_ENV:process.env.NODE_ENV,PORTAL_PUBLIC_URL:process.env.PORTAL_PUBLIC_URL};Object.assign(process.env,{NODE_ENV:'production',PORTAL_PUBLIC_URL:env.PORTAL_PUBLIC_URL});try{assert.equal(validOrigin(new Request('http://internal:3000/auth/logout',{headers:{host:'internal:3000',origin:env.PORTAL_PUBLIC_URL}})),true);assert.equal(validOrigin(new Request('http://internal:3000/auth/logout',{headers:{origin:'https://attacker.invalid'}})),false);}finally{for(const[k,v]of Object.entries(old)){if(v===undefined)delete process.env[k];else process.env[k]=v;}}
+});

@@ -1,0 +1,27 @@
+[
+  {
+    "image": "airiane-api:deployment-check",
+    "id": "sha256:23bec47cc0fd3983e7a870a0312f0e60736792e5173d54888d15c1ad8c5e67d8",
+    "bytes": 362680777,
+    "user": "10001:10001",
+    "command": [
+      "python",
+      "-m",
+      "app.serve"
+    ],
+    "missing_configuration_fails": true,
+    "no_env_pdf_private_key_files_under_app": true
+  },
+  {
+    "image": "airiane-portal:deployment-check",
+    "id": "sha256:42974735f6148d30c789b1de00b3a8a285ace747d985637c7287bc584be4ba54",
+    "bytes": 273789565,
+    "user": "node",
+    "command": [
+      "node",
+      "scripts/start.mjs"
+    ],
+    "missing_configuration_fails": true,
+    "no_env_pdf_private_key_files_under_app": true
+  }
+]

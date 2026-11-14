@@ -1,0 +1,9 @@
+# Deployment audit — 14 November 2026
+
+This is preparation only. No Aiven resources, remote pushes, live SQL changes or signed mobile releases are authorized.
+
+Initial blockers: no container files; development-first config defaults; no production startup validation or readiness; asyncpg TLS accepted encryption-only `sslmode=require`; default pools unbounded by deployment settings; portal could default to fixtures; cookie held a raw bearer under HttpOnly; mutation origin checks depended on proxy Host; raw migration scripts were non-idempotent; CI omitted migration 0002 and native PDF OS dependencies. Android's generated release variant uses the debug keystore. Bootstrap replay credentials and pagination are process-local; force-killed voice connections can remain active.
+
+Preparation adds separate root-context images, fail-closed production configuration, certificate-verifying TLS, small configurable pools, bounded readiness, encrypted expiring portal cookies, configured public-origin CSRF checks, an explicit checksum migration ledger and release config guards. The baseline and migration SQL are unchanged. Nothing migrates automatically. Existing untracked hosted schemas require manual review before explicit adoption; existence checks alone do not prove DDL equivalence.
+
+Unverified prerequisites remain actual Supabase project/signing keys and provisioned patient/verified clinician accounts; externally reachable Tiger Data TLS/CA and least-privilege application role; Aiven outbound networking/TLS termination/Console capabilities; provider privacy retention verification; production mobile signing; load/interruptions and crash recovery. One process and one replica are required for current replay ownership. A rolling multi-replica deployment is not certified; restarting loses ephemeral credential replay and can require a fresh connection. No new infrastructure or model provider is introduced.

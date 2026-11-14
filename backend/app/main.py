@@ -19,13 +19,13 @@ from .domain import ConversationController, DomainError, now, stamp
 from .pagination import Pages
 from .provider import ElevenLabsBootstrap
 from .reports import routes as pdf_routes
-from .services import ACTIVITY_ID, ActivityService, PatientService, SessionService, utc
+from .services import ActivityService, PatientService, SessionService, utc
 from .storage import SqlStore, engine_for, metadata
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
-    engine = engine_for(settings.database_url)
+    engine = engine_for(settings.database_url, settings)
     auth = Authenticator(settings)
     cipher = Fernet(Fernet.generate_key())
     credential_cache: dict[tuple, tuple] = {}
@@ -38,27 +38,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise RuntimeError("SQLite is development-only; use migrated PostgreSQL")
             async with engine.begin() as connection:
                 await connection.run_sync(metadata.create_all)
-        async with engine.begin() as connection:
-            store = SqlStore(connection)
-            if not await store.get("activity_catalog", id=ACTIVITY_ID):
-                await store.add(
-                    "activity_catalog",
-                    id=ACTIVITY_ID,
-                    slug="calm-breathing",
-                    version=1,
-                    kind="breathing",
-                    title="Calm Breathing",
-                    description="Take an optional gentle pause. Stop whenever you want.",
-                    duration_seconds=60,
-                    config={
-                        "renderer": "breathing_v1",
-                        "asset_id": None,
-                        "instructions": ["Breathe comfortably. Stop if uncomfortable."],
-                        "inhale_seconds": 4,
-                        "exhale_seconds": 4,
-                    },
-                    active=True,
-                )
+        if settings.environment == "development":
+            async with engine.begin() as connection:
+                store = SqlStore(connection)
+                from .seed_catalog import ensure_catalog
+
+                await ensure_catalog(store)
         yield
         await engine.dispose()
 
@@ -78,10 +63,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.openapi = lambda: exposed_contract
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins.split(","),
+        allow_origins=[origin.strip() for origin in settings.cors_origins.split(",")],
         allow_methods=["GET", "POST", "PATCH", "DELETE"],
         allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
     )
+
+    @app.middleware("http")
+    async def security_headers(request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-Frame-Options"] = "DENY"
+        if settings.environment == "production":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000"
+        return response
 
     @app.exception_handler(DomainError)
     async def domain_error(request: Request, exc: DomainError):
@@ -102,6 +97,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/health")
     async def health():
+        if settings.environment == "production":
+            return {"status": "alive"}
         return {
             "status": "ok",
             "scope": "first-vertical-slice",
@@ -310,7 +307,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     name=operation["operationId"],
                     status_code=IMPLEMENTED[operation["operationId"]][2],
                 )
-    pdf_routes.install(app, engine, auth)
+    from .health import install_health
+
+    install_health(app, engine, settings)
+    pdf_routes.install(app, engine, auth, settings)
     return app
 
 

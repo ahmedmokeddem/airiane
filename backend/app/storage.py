@@ -184,7 +184,7 @@ class SqlStore:
             raise DomainError("VERSION_CONFLICT")
 
 
-def engine_for(url: str):
+def engine_for(url: str, settings=None):
     if url.startswith(("postgres://", "postgresql://", "postgresql+asyncpg://")):
         import asyncpg
 
@@ -193,11 +193,26 @@ def engine_for(url: str):
         dsn = postgres_dsn(url)
 
         async def connect():
-            return await asyncpg.connect(dsn, timeout=15)
+            kwargs = {
+                "timeout": settings.database_connect_timeout if settings else 15,
+                "command_timeout": settings.database_command_timeout if settings else 15,
+            }
+            if settings and settings.environment == "production":
+                import ssl
+
+                kwargs["ssl"] = ssl.create_default_context(cadata=settings.database_ca_pem or None)
+            return await asyncpg.connect(dsn, **kwargs)
 
         # Native asyncpg parses provider SSL parameters; engine logs contain no credentials.
         return create_async_engine(
-            "postgresql+asyncpg://", async_creator=connect, pool_pre_ping=True
+            "postgresql+asyncpg://",
+            async_creator=connect,
+            pool_pre_ping=True,
+            pool_size=settings.database_pool_size if settings else 2,
+            max_overflow=settings.database_max_overflow if settings else 1,
+            pool_timeout=settings.database_pool_timeout if settings else 5,
+            pool_recycle=300,
+            hide_parameters=True,
         )
     engine = create_async_engine(url, pool_pre_ping=True)
     if url.startswith("sqlite"):

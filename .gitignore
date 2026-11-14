@@ -95,3 +95,4 @@ mobile/android/
 *.db
 *.sqlite3
 .playwright-cli/
+!.env.production.example

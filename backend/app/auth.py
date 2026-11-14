@@ -13,7 +13,9 @@ class Authenticator:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.keys = (
-            jwt.PyJWKClient(settings.supabase_url.rstrip("/") + "/auth/v1/.well-known/jwks.json")
+            jwt.PyJWKClient(
+                settings.supabase_url.rstrip("/") + "/auth/v1/.well-known/jwks.json", timeout=5
+            )
             if settings.supabase_url
             else None
         )

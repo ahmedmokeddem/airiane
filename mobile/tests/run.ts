@@ -14,3 +14,5 @@ import "./native-text.test";
 import "./opening.test";
 
 import "./report-export.test";
+
+import "./production-config.test";
