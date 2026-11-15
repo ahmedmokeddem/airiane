@@ -14,7 +14,7 @@ At the center of the app is an AI virtual companion. Patients can talk to it abo
 
 ## Resources
 
-- 🎥 **Demo video:** _[add link here]_
+- 🎥 **Demo video:** [Link here](https://drive.google.com/file/d/1a8c8rY0cH8lkJBe75VkCydqiTwXWGPxx/view?usp=sharing)
 - 📺 **YouTube (marketing):** _[add link here]_
 - 📊 **Presentation (slides):** _[add link here]_
 - 🛠️ **Installation & developer guide:** [INSTALLATION.md](INSTALLATION.md)
