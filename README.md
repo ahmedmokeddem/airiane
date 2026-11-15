@@ -15,7 +15,7 @@ At the center of the app is an AI virtual companion. Patients can talk to it abo
 ## Resources
 
 - 🎥 **Demo video:** [Link here](https://drive.google.com/file/d/1a8c8rY0cH8lkJBe75VkCydqiTwXWGPxx/view?usp=sharing)
-- 📺 **YouTube (marketing):** _[add link here]_
+- 📺 **YouTube (marketing):** [Link here](https://github.com/ahmedmokeddem/airiane.git)
 - 📊 **Presentation (slides):** [presentation/AIriane-Beyond-the-Clinic.pptx](presentation/AIriane-Beyond-the-Clinic.pptx)
 - 🛠️ **Installation & developer guide:** [INSTALLATION.md](INSTALLATION.md)
 
